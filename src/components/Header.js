@@ -12,6 +12,9 @@ export default function Header() {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const langDropdownRef = useRef(null);
 
+  // Mobile menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const handleScrollTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -38,14 +41,21 @@ export default function Header() {
     visible: { y: 0 },
     exit: { y: -50 },
   };
+  // Framer Motion variants for the mobile menu (drops down from top)
+  const mobileMenuVariants = {
+    hidden: { opacity: 0, y: -100 },
+    visible: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -100 },
+  };
 
   return (
-    <header className="fixed left-1/2 transform -translate-x-1/2 top-10 p-3 w-[75%] flex justify-center items-center bg-mainColor shadow-md z-50 rounded-full mx-auto">
+    <header className="fixed md:left-1/2 md:transform md:-translate-x-1/2 top-10 p-3 md:w-[75%] w-38 flex justify-center items-center bg-mainColor shadow-md z-50 rounded-full mx-10">
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between w-full">
+
         {/* Home Button */}
         <button
           onClick={handleScrollTop}
-          className="font-Main text-3xl text-white font-bold hover:text-gray-600"
+          className="md:block hidden font-Main text-3xl text-white font-bold hover:text-gray-600"
         >
           Home
         </button>
@@ -54,7 +64,7 @@ export default function Header() {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="font-Main text-3xl font-bold text-white hover:text-gray-600"
+            className="md:block hidden font-Main text-3xl font-bold text-white hover:text-gray-600"
           >
             Linktree
           </button>
@@ -96,7 +106,7 @@ export default function Header() {
           {/* Account/Login Link (now on the left) */}
           <Link
             href="/account"
-            className="absolute right-30 font-Main items-c text-3xl font-bold text-white hover:text-gray-600"
+            className="md:block hidden absolute right-30 font-Main text-3xl font-bold text-white hover:text-gray-600"
           >
             Login
           </Link>
@@ -104,7 +114,7 @@ export default function Header() {
 
         </div>
       </div>
-      <div className="relative" ref={langDropdownRef}>
+      <div className="md:block hidden relative" ref={langDropdownRef}>
             <button
               onClick={() => setLangDropdownOpen(!langDropdownOpen)}
               className="flex w-20 h-20 rounded-full overflow-hidden border-transperant"
@@ -146,6 +156,110 @@ export default function Header() {
               )}
             </AnimatePresence>
           </div>
+      {/* Mobile Navigation (visible on screens smaller than md) */}
+      <div className="md:hidden flex items-center justify-between px-4 py-4">
+        {/* Burger Button */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="text-white focus:outline-none mx-auto"
+        >
+          <div className="space-y-1">
+            <div className="w-8 h-0.5 bg-white"></div>
+            <div className="w-8 h-0.5 bg-white"></div>
+            <div className="w-8 h-0.5 bg-white"></div>
+          </div>
+        </button>
+        <img
+                src="/languageSv.jpeg"
+                alt="Language"
+                className="absolute w-16 h-16 left-1 rounded-full overflow-hidden object-cover"
+        />
+      </div>
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.nav
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={mobileMenuVariants}
+            transition={{ duration: 0.3 }}
+            className="md:hidden flex fixed inset-0 bg-mainColor shadow-md z-40"
+          >
+            <div className="flex flex-col items-center py-8 mx-auto">
+            <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-2xl text-white mt-8"
+              >
+              <div className="space-y-1 p-6 my-10">
+                <div className="w-8 h-0.5 bg-white"></div>
+                <div className="w-8 h-0.5 bg-white"></div>
+                <div className="w-8 h-0.5 bg-white"></div>
+              </div>
+              </button>
+              <button
+                onClick={handleScrollTop}
+                className="text-3xl text-white font-bold hover:text-gray-300 mb-4"
+              >
+                Home
+              </button>
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="text-3xl text-white font-bold hover:text-gray-300 mb-4"
+              >
+                Linktree
+              </button>
+              <Link
+                href="/account"
+                className="text-3xl font-bold text-white hover:text-gray-300 mb-4"
+              >
+                Login
+              </Link>
+              <div className="relative" ref={langDropdownRef}>
+                <button
+                  onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                  className="w-16 h-16 rounded-full overflow-hidden border-2 border-white"
+                >
+                  <img
+                    src="/languageSv.jpeg"
+                    alt="Language"
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+                <AnimatePresence>
+                  {langDropdownOpen && (
+                    <motion.div
+                      initial={{ y: -10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -10, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="absolute right-0 mt-2 w-40 p-2 bg-white border border-gray-200 rounded shadow-lg flex flex-col items-center"
+                    >
+                      <button
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        onClick={() => setLangDropdownOpen(false)}
+                      >
+                        English
+                      </button>
+                      <button
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        onClick={() => setLangDropdownOpen(false)}
+                      >
+                        Spanish
+                      </button>
+                      <button
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        onClick={() => setLangDropdownOpen(false)}
+                      >
+                        French
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </motion.nav>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

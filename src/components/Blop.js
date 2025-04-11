@@ -47,7 +47,6 @@ export default function Blop() {
     let t = 0; // Time parameter for animation
 
     function draw() {
-      // Clear the canvas so that the background remains transparent
       ctx.clearRect(0, 0, width, height);
 
       ctx.beginPath();
@@ -94,7 +93,7 @@ export default function Blop() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute -bottom-50 -right-130 w-[75%] h-[75%] z-[-1] pointer-events-none bg-transparent"
+      className="absolute -bottom-70 -right-190 z-[-1] pointer-events-none bg-transparent"
     />
   );
 }
