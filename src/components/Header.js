@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
+
   // Language dropdown state and ref
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const langDropdownRef = useRef(null);
@@ -40,12 +40,12 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-10 p-5 w-[90%] flex justify-center items-center bg-purple-400 shadow-md z-50 rounded-full mx-20">
+    <header className="fixed left-1/2 transform -translate-x-1/2 top-10 p-3 w-[75%] flex justify-center items-center bg-mainColor shadow-md z-50 rounded-full mx-auto">
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between w-full">
         {/* Home Button */}
         <button
           onClick={handleScrollTop}
-          className="text-3xl text-white font-bold hover:text-gray-600"
+          className="font-Main text-3xl text-white font-bold hover:text-gray-600"
         >
           Home
         </button>
@@ -54,7 +54,7 @@ export default function Header() {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="text-3xl font-bold text-white hover:text-gray-600"
+            className="font-Main text-3xl font-bold text-white hover:text-gray-600"
           >
             Linktree
           </button>
@@ -96,18 +96,25 @@ export default function Header() {
           {/* Account/Login Link (now on the left) */}
           <Link
             href="/account"
-            className="text-3xl font-bold text-white hover:text-gray-600"
+            className="absolute right-30 font-Main items-c text-3xl font-bold text-white hover:text-gray-600"
           >
             Login
           </Link>
           {/* Language Dropdown Button */}
-          <div className="relative" ref={langDropdownRef}>
-            {/* <button
+
+        </div>
+      </div>
+      <div className="relative" ref={langDropdownRef}>
+            <button
               onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-              className="w-12 h-12 rounded-full overflow-hidden border-2 border-white"
+              className="flex w-20 h-20 rounded-full overflow-hidden border-transperant"
             >
-              <img src="/languageSv.jpeg" alt="Language" className="w-full h-full object-cover" />
-            </button> */}
+              <img
+                src="/languageSv.jpeg"
+                alt="Language"
+                className="w-full h-full object-cover"
+              />
+            </button>
             <AnimatePresence>
               {langDropdownOpen && (
                 <motion.div
@@ -115,7 +122,7 @@ export default function Header() {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -10, opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute right-0 mt-2 w-40 p-2 bg-white border border-gray-200 rounded shadow-lg flex flex-col items-center"
+                  className="absolute -z-1 top-16 left-1/2 transform -translate-x-1/2 mt-7 p-1 bg-white border border-gray-200 rounded shadow-lg flex flex-col items-center"
                 >
                   <button
                     className="w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -139,8 +146,6 @@ export default function Header() {
               )}
             </AnimatePresence>
           </div>
-        </div>
-      </div>
     </header>
   );
 }

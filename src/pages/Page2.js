@@ -34,7 +34,7 @@ export default function ScrollAnimation() {
   return (
     <div
       ref={animationRef}
-      className="p-8 bg-gray-200 rounded-lg shadow-lg max-w-3xl mx-auto mt-20"
+      className="p-8 bg-mainColor rounded-lg shadow-lg max-w-3xl mx-auto mt-20"
     >
       <h2 className="text-2xl font-bold mb-4">Scroll Trigger Animation</h2>
       <p>
