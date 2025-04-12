@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import SocialIcons from "./Socialmedia";
 
 export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -111,7 +112,7 @@ export default function Header() {
                 exit={{ y: -10, opacity: 0 }}
                 variants={dropdownVariants}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="absolute -z-1 top-16 left-1/2 transform -translate-x-1/2 mt-2 w-110 p-2 bg-white border border-gray-200 rounded shadow-lg flex flex-col items-center"
+                className="absolute -z-51 top-16 left-1/2 transform -translate-x-1/2 mt-2 w-110 p-2 bg-white border border-gray-200 rounded shadow-lg flex flex-col items-center"
               >
                 <button
                   className="sm:w-96 w-[95%] bg-amber-300 mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 hover:translate-y-1"
@@ -131,6 +132,10 @@ export default function Header() {
                 >
                   <p className="text-xl font-bold">Option 3</p>
                 </button>
+                <p className="text-2xl font-bold font-Main ">Socialmedia</p>
+                <div className="bg-gray-100 rounded-4xl border border-gray-200 shadow-2xs mb-5">
+                   <SocialIcons />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

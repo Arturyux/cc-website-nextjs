@@ -67,7 +67,7 @@ export default function BackgroundPatterns() {
   }, []);
 
   return (
-    <div className="absolute md:m-50 inset-0 z-52">
+    <div className="absolute md:m-50 inset-0 -z-1">
       {selectedPattern}
     </div>
   );
