@@ -9,7 +9,9 @@ import DropPath from "@/components/DropPath";
 export default function Home() {
   return (
     <>
+    <div>
       <Blop />
+    </div>
       {/* <DropPath /> */}
       <div className="relative z-10 p-8 mt-50">
         <Main />
