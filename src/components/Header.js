@@ -68,6 +68,7 @@ export default function Header() {
   // Update header position based on scroll.
   useEffect(() => {
     const handleScroll = () => {
+      if (mobileMenuOpen) return;
       if (initialScrollRef.current === null) {
         initialScrollRef.current = window.scrollY;
       }
@@ -76,7 +77,6 @@ export default function Header() {
       }
       const offset = (window.scrollY - initialScrollRef.current) * 0.025;
       controls.start({ y: offset, transition: { duration: 0 } });
-
       scrollTimeoutRef.current = setTimeout(() => {
         controls.start({
           y: 0,
@@ -85,23 +85,21 @@ export default function Header() {
         initialScrollRef.current = null;
       }, 150);
     };
-
+  
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
-  }, [controls]);
+  }, [controls, mobileMenuOpen]);
 
   return (
     <>
-    <div className="top-0 p-10 border-b-1 border-black w-full h-10 bg-mainColor mb-10">
-    </div>
+    {/* <div className="top-0 p-10 border-b-1 border-black w-full h-10 bg-mainColor mb-10">
+    </div> */}
     <motion.header
       animate={controls}
-      className="fixed md:left-1/2 md:transform md:-translate-x-1/2 top-30 p-3 md:w-[75%] w-38 flex justify-center items-center bg-mainColor shadow-md z-50 rounded-full mx-10"
+      className={`fixed md:left-1/2 md:transform md:-translate-x-1/2 top-10 p-3 md:w-[75%] w-38 flex justify-center items-center bg-mainColor shadow-md z-50 rounded-full mx-10`}
     >
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between w-full">
         {/* Home Button */}
@@ -195,13 +193,7 @@ export default function Header() {
                 className="w-full text-left px-4 py-2 hover:bg-gray-100"
                 onClick={() => setLangDropdownOpen(false)}
               >
-                Spanish
-              </button>
-              <button
-                className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                onClick={() => setLangDropdownOpen(false)}
-              >
-                French
+                Swedish
               </button>
             </motion.div>
           )}
@@ -211,7 +203,10 @@ export default function Header() {
       <div className="md:hidden flex items-center justify-between px-4 py-4">
         {/* Burger Button */}
         <button
-          onClick={() => {setMobileMenuOpen(!mobileMenuOpen); setIsScrollDisabled(true);}}
+          onClick={() => {
+            setMobileMenuOpen(true);
+            setIsScrollDisabled(true);
+          }}
           className="text-white focus:outline-none mx-auto"
         >
           <div className="space-y-1">
@@ -234,13 +229,16 @@ export default function Header() {
             exit="exit"
             variants={mobileMenuVariants}
             transition={{ duration: 0.3 }}
-            className="absolute block md:hidden h-full w-full bg-mainColor z-40"
+            className="fixed block md:hidden top-0 left-0 h-full w-full bg-mainColor z-50 overflow-y-auto"
           >
-            <div className="">
+            <div className="items-center justify-center flex">
               <button
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setIsScrollDisabled(false);
+                }}
                 
-                className="text-2xl text-white mt-8"
+                className="text-2xl text-white"
               >
                 <div className="space-y-1 p-6 my-10">
                   <div className="w-8 h-0.5 bg-white"></div>
@@ -249,21 +247,8 @@ export default function Header() {
                 </div>
               </button>
               <button
-                onClick={handleScrollTop}
-                className="text-7xl text-white font-bold hover:text-gray-300 mb-4"
-              >
-                Home
-              </button>
-              <Link
-                href="/account"
-                className="text-4xl font-bold text-white hover:text-gray-300 mb-4"
-              >
-                Login
-              </Link>
-              <div className="relative" ref={langDropdownRef}>
-                <button
                   onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                  className="w-16 h-16 rounded-full overflow-hidden border-2 border-white"
+                  className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white"
                 >
                   <img
                     src="/languageSv.jpeg"
@@ -271,25 +256,6 @@ export default function Header() {
                     className="w-full h-full object-cover"
                   />
                 </button>
-                <button
-                  className="sm:w-96 w-[95%] bg-amber-300 mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 hover:translate-y-1"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <p className="text-xl font-bold">Option 1</p>
-                </button>
-                <button
-                  className="sm:w-96 w-[95%] bg-violet-500 mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 hover:translate-y-1"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <p className="text-xl font-bold">Option 2</p>
-                </button>
-                <button
-                  className="sm:w-96 w-[95%] bg-blue-500 my-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 hover:translate-y-1"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <p className="text-xl font-bold">Option 3</p>
-                </button>
-                <SocialIcons />
                 <AnimatePresence>
                   {langDropdownOpen && (
                     <motion.div
@@ -297,7 +263,7 @@ export default function Header() {
                       animate={{ y: 0, opacity: 1 }}
                       exit={{ y: -10, opacity: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="absolute right-0 mt-2 w-40 p-2 bg-white border border-gray-200 rounded shadow-lg flex flex-col items-center"
+                      className="absolute top-28 w-40 p-2 bg-white border border-gray-200 rounded shadow-lg flex flex-col justify-center items-center"
                     >
                       <button
                         className="w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -309,17 +275,42 @@ export default function Header() {
                         className="w-full text-left px-4 py-2 hover:bg-gray-100"
                         onClick={() => setLangDropdownOpen(false)}
                       >
-                        Spanish
-                      </button>
-                      <button
-                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                        onClick={() => setLangDropdownOpen(false)}
-                      >
-                        French
+                        Swedish
                       </button>
                     </motion.div>
                   )}
                 </AnimatePresence>
+            </div>
+            <div className="min-h-full flex flex-col items-center justify-start pt-10 pb-20 px-4 space-y-8">
+              <Link
+                href="/account"
+                className="text-6xl font-bold text-white hover:text-gray-300 mb-4"
+              >
+                Login
+              </Link>
+              <div className="relative" ref={langDropdownRef}>
+                <button
+                  className="w-[95%] bg-amber-300 mt-6 text-center ml-4 p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 hover:translate-y-1"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <p className="text-xl font-bold">Option 1</p>
+                </button>
+                <button
+                  className="w-[95%] bg-violet-500 mt-6 text-center ml-4 p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 hover:translate-y-1"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <p className="text-xl font-bold">Option 2</p>
+                </button>
+                <button
+                  className="w-[95%] bg-blue-500 my-6 text-center ml-4 p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 hover:translate-y-1"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <p className="text-xl font-bold">Option 3</p>
+                </button>
+                <p className="text-2xl mt-6 text-center mx-auto font-bold font-Main ">Socialmedia</p>
+                <div className="bg-gray-100 ml-2 rounded-4xl border border-gray-200 shadow-2xs mb-5">
+                   <SocialIcons />
+                </div>
               </div>
             </div>
           </motion.nav>

@@ -3,11 +3,14 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 // Register the ScrollTrigger plugin with GSAP
 gsap.registerPlugin(ScrollTrigger);
 
-export default function ScrollAnimation() {
+export default function MainPage() {
+  const { t } = useTranslation('common');
   const animationRef = useRef(null);
 
   useEffect(() => {
@@ -32,14 +35,14 @@ export default function ScrollAnimation() {
   }, []);
 
   return (
-<div className=" p-2 md:ml-76 ml-2 md:grid md:grid-cols-3 block">
+<div className=" p-2 md:ml-56 ml-2 md:grid md:grid-cols-3 block">
   {/* Left Column: Text Content */}
   <div className="">
     <h1 className="font-Header text-mainColor md:text-9xl text-8xl font-bold">Culture</h1>
     <h1 className="font-Header text-mainColor md:text-9xl text-8xl font-bold">Connection</h1>
-    <p className="font-Main text-xl">Veniam dolore labore irure mollit sunt cillum duis magna. In ipsum laboris cillum quis est. Aliqua mollit pariatur voluptate elit amet consectetur Lorem aliqua. Tempor consequat in consequat ut aute incididunt aliqua incididunt fugiat ex fugiat sint magna. Aute id excepteur duis et voluptate consectetur in incididunt commodo ea laboris nostrud.</p>
+    <p className="font-Main text-xl">{t('description')}</p>
     <button className="relative col-span-full p-4 mt-10 text-white bg-baseColor rounded-full font-Header text-4xl">
-      Get to Know Us
+    {t('button')}
     </button>
   </div>
   
@@ -47,11 +50,11 @@ export default function ScrollAnimation() {
   <div className="col-span-2 justify-center md:block hidden">
     <img
       src="https://api2.cultureconnection.se/assets/crafts-pictures/1329877326598639678_1329877314674364548.jpg"
-      className="absolute rounded-full left-260 w-154 h-154 object-cover"
+      className="absolute rounded-full left-210 w-154 h-154 object-cover"
     />
     <img
       src="https://welcome.cultureconnection.se/assets/CCLogo-D0TRwCJL.png"
-      className="absolute rounded-full left-230 w-80 object-cover"
+      className="absolute rounded-full left-180 w-80 object-cover"
     />
   </div>
 </div>
