@@ -44,14 +44,14 @@ export default function ScrollAnimation() {
   </div>
   
   {/* Right Column: Two Images */}
-  <div className="col-span-2 mx-40 md:block hidden w-1">
+  <div className="col-span-2 justify-center md:block hidden">
     <img
       src="https://api2.cultureconnection.se/assets/crafts-pictures/1329877326598639678_1329877314674364548.jpg"
-      className="absolute rounded-full ml-20 w-164 h-164 object-cover"
+      className="absolute rounded-full left-260 w-154 h-154 object-cover"
     />
     <img
       src="https://welcome.cultureconnection.se/assets/CCLogo-D0TRwCJL.png"
-      className="absolute rounded-full mr-80 -top-10 w-82 h-82 object-cover"
+      className="absolute rounded-full left-230 w-80 object-cover"
     />
   </div>
 </div>

@@ -18,6 +18,19 @@ export default function Header() {
   const controls = useAnimation();
   const initialScrollRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
+  const [isScrollDisabled, setIsScrollDisabled] = useState(false);
+
+  useEffect(() => {
+    if (isScrollDisabled) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isScrollDisabled]);
+
 
   const handleScrollTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -83,9 +96,12 @@ export default function Header() {
   }, [controls]);
 
   return (
+    <>
+    <div className="top-0 p-10 border-b-1 border-black w-full h-10 bg-mainColor mb-10">
+    </div>
     <motion.header
       animate={controls}
-      className="fixed md:left-1/2 md:transform md:-translate-x-1/2 top-10 p-3 md:w-[75%] w-38 flex justify-center items-center bg-mainColor shadow-md z-50 rounded-full mx-10"
+      className="fixed md:left-1/2 md:transform md:-translate-x-1/2 top-30 p-3 md:w-[75%] w-38 flex justify-center items-center bg-mainColor shadow-md z-50 rounded-full mx-10"
     >
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between w-full">
         {/* Home Button */}
@@ -195,7 +211,7 @@ export default function Header() {
       <div className="md:hidden flex items-center justify-between px-4 py-4">
         {/* Burger Button */}
         <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          onClick={() => {setMobileMenuOpen(!mobileMenuOpen); setIsScrollDisabled(true);}}
           className="text-white focus:outline-none mx-auto"
         >
           <div className="space-y-1">
@@ -218,11 +234,12 @@ export default function Header() {
             exit="exit"
             variants={mobileMenuVariants}
             transition={{ duration: 0.3 }}
-            className="md:hidden flex fixed inset-0 bg-mainColor shadow-md z-40"
+            className="absolute block md:hidden h-full w-full bg-mainColor z-40"
           >
-            <div className="flex flex-col items-center py-8 mx-auto">
+            <div className="">
               <button
                 onClick={() => setMobileMenuOpen(false)}
+                
                 className="text-2xl text-white mt-8"
               >
                 <div className="space-y-1 p-6 my-10">
@@ -233,19 +250,13 @@ export default function Header() {
               </button>
               <button
                 onClick={handleScrollTop}
-                className="text-3xl text-white font-bold hover:text-gray-300 mb-4"
+                className="text-7xl text-white font-bold hover:text-gray-300 mb-4"
               >
                 Home
               </button>
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="text-3xl text-white font-bold hover:text-gray-300 mb-4"
-              >
-                Linktree
-              </button>
               <Link
                 href="/account"
-                className="text-3xl font-bold text-white hover:text-gray-300 mb-4"
+                className="text-4xl font-bold text-white hover:text-gray-300 mb-4"
               >
                 Login
               </Link>
@@ -260,6 +271,25 @@ export default function Header() {
                     className="w-full h-full object-cover"
                   />
                 </button>
+                <button
+                  className="sm:w-96 w-[95%] bg-amber-300 mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 hover:translate-y-1"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <p className="text-xl font-bold">Option 1</p>
+                </button>
+                <button
+                  className="sm:w-96 w-[95%] bg-violet-500 mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 hover:translate-y-1"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <p className="text-xl font-bold">Option 2</p>
+                </button>
+                <button
+                  className="sm:w-96 w-[95%] bg-blue-500 my-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 hover:translate-y-1"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <p className="text-xl font-bold">Option 3</p>
+                </button>
+                <SocialIcons />
                 <AnimatePresence>
                   {langDropdownOpen && (
                     <motion.div
@@ -296,5 +326,6 @@ export default function Header() {
         )}
       </AnimatePresence>
     </motion.header>
+    </>
   );
 }

@@ -93,7 +93,7 @@ export default function Blop() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute -bottom-70 -right-190 z-[-1] overflow-x-hidden pointer-events-none bg-transparent"
+      className="absolute -bottom-70 -right-190 z-[-1] pointer-events-none bg-transparent"
     />
   );
 }
