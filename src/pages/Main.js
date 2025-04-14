@@ -3,14 +3,11 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 // Register the ScrollTrigger plugin with GSAP
 gsap.registerPlugin(ScrollTrigger);
 
 export default function MainPage() {
-  const { t } = useTranslation('common');
   const animationRef = useRef(null);
 
   useEffect(() => {
@@ -40,9 +37,9 @@ export default function MainPage() {
   <div className="">
     <h1 className="font-Header text-mainColor md:text-9xl text-8xl font-bold">Culture</h1>
     <h1 className="font-Header text-mainColor md:text-9xl text-8xl font-bold">Connection</h1>
-    <p className="font-Main text-xl">{t('description')}</p>
+    <p className="font-Main text-xl">Aliquip labore sit deserunt eu elit proident aliqua consequat ullamco pariatur ad voluptate.</p>
     <button className="relative col-span-full p-4 mt-10 text-white bg-baseColor rounded-full font-Header text-4xl">
-    {t('button')}
+    About us
     </button>
   </div>
   
