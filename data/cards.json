@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "title": "Climbing",
+    "date": "Every Monday",
+    "time": "17:30",
+    "location": "Bollgatan 1 (Town)",
+    "bgColor": "bg-yellow-300"
+  },
+  {
+    "id": 2,
+    "title": "Board Games",
+    "date": "Every Tuesday",
+    "time": "18:00",
+    "location": "F-Building (Campus)",
+    "bgColor": "bg-blue-300"
+  },
+  {
+    "id": 3,
+    "title": "Fun Swedish",
+    "date": "Every Thursday",
+    "time": "20:00",
+    "location": "H-Building Linnesalen (Campus)",
+    "bgColor": "bg-red-300"
+  },
+  {
+    "id": 4,
+    "title": "Crafts",
+    "date": "Every Friday",
+    "time": "18:00",
+    "location": "B-Building (Campus)",
+    "bgColor": "bg-green-300"
+  },
+  {
+    "id": 5,
+    "title": "Dancing",
+    "date": "Every Wednesday",
+    "time": "17:30",
+    "location": "Olympus (Campus)",
+    "bgColor": "bg-pink-300"
+  }
+]
