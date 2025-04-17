@@ -9,7 +9,7 @@ import BoardGamesModal from '../components/ActivitiesModal/BoardGamesModal';
 import FunSwedishModal from '../components/ActivitiesModal/FunSwedishModal';
 import CraftsModal from '../components/ActivitiesModal/CraftsModal';
 import DancingModal from '../components/ActivitiesModal/DancingModal';
-import ActivitiesMobile from './ActivitiesMobile';
+import ActivitiesMobile from './mobile/ActivitiesMobile';
 
 const modalVariants = {
   hidden: { opacity: 0, scale: 0.9, y: 20 },
@@ -26,6 +26,11 @@ const modalVariants = {
     transition: { duration: 0.2, ease: 'easeOut' },
   },
 };
+
+const CARD_HEIGHT_DESKTOP = 450;
+const CARD_WIDTH_DESKTOP = 'max-w-3xl';
+const CARD_PEEK_Y_DESKTOP = -30;
+const CARD_PEEK_X_DESKTOP = 18;
 
 export default function ActivitiesPage() {
   const [cards, setCards] = useState([]);
@@ -85,6 +90,7 @@ export default function ActivitiesPage() {
     const fetchImages = async () => {
       if (!fetchPicture) {
         setError("Picture fetch URL is not configured.");
+        console.error("Error: NEXT_PUBLIC_FETCHPICTURE_URL is not defined in env.");
         return;
       }
       try {
@@ -155,8 +161,8 @@ export default function ActivitiesPage() {
     stack: (index) => ({
       opacity: index < 4 ? 1 - index * 0.15 : 0,
       scale: 1 - index * 0.04,
-      x: index * 15,
-      y: index * -25,
+      x: index * CARD_PEEK_X_DESKTOP,
+      y: index * CARD_PEEK_Y_DESKTOP,
       zIndex: cards.length - index,
       transition: { type: 'spring', stiffness: 100, damping: 20 },
     }),
@@ -169,10 +175,10 @@ export default function ActivitiesPage() {
       transition: { type: 'spring', stiffness: 100, damping: 20 },
     },
     exit: (direction) => ({
-      x: direction === 'right' ? -500 : 500,
+      x: direction === 'right' ? -600 : 600,
       opacity: 0,
       scale: 0.9,
-      y: 20,
+      y: 30,
       zIndex: 0,
       transition: { duration: 0.4, ease: 'easeInOut' },
     }),
@@ -204,8 +210,7 @@ export default function ActivitiesPage() {
     else if (title === 'Dancing') setIsDancingModalOpen(true);
   };
 
-  const cardHeight = 380;
-  const stackContainerHeight = cardHeight + 100;
+  const stackContainerHeight = CARD_HEIGHT_DESKTOP + Math.abs(CARD_PEEK_Y_DESKTOP * 3) + 50;
 
   const getImageSrc = (title) => {
     switch (title) {
@@ -225,38 +230,13 @@ export default function ActivitiesPage() {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen py-8 overflow-x-hidden">
-      {error && (
-        <p className="text-red-500 mb-4 px-4 text-center">{error}</p>
-      )}
+    <div className="flex flex-col items-center min-h-screen py-8 md:py-12 overflow-x-hidden">
+        <p className="font-Header text-mainColor md:text-9xl text-7xl sm:text-6xl font-bold">Weekly Activities</p>
 
-      <div className="hidden md:flex flex-col items-center w-full max-w-5xl px-4">
-        <div className="flex items-center justify-center w-full gap-4 sm:gap-6">
-           <motion.button
-            onClick={rotateLeft}
-            className="flex-shrink-0 z-20 p-3 rounded-full bg-blue-400 text-white border-2 border-blue-600 shadow-lg hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            disabled={cards.length < 2}
-            aria-label="Previous Activity"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 sm:h-8 sm:w-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={3}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </motion.button>
+      <div className="hidden md:flex flex-col items-center w-full max-w-6xl px-4">
+        <div className="flex items-center justify-center w-full">
           <div
-            className="relative w-full max-w-2xl mx-auto"
+            className={`relative w-full ${CARD_WIDTH_DESKTOP} mx-auto`}
             style={{ height: `${stackContainerHeight}px` }}
           >
             <AnimatePresence initial={false} custom={lastDirection}>
@@ -267,7 +247,7 @@ export default function ActivitiesPage() {
                     key={card.id}
                     className="absolute w-full cursor-pointer origin-bottom"
                     style={{
-                      height: `${cardHeight}px`,
+                      height: `${CARD_HEIGHT_DESKTOP}px`,
                       left: '0',
                       right: '0',
                       top: '50px',
@@ -280,27 +260,37 @@ export default function ActivitiesPage() {
                     animate={index === 0 ? 'center' : 'stack'}
                     exit="exit"
                     onClick={() => {
+                      // Allow clicking the front card to rotate right (next)
                       if (index === 0) {
                         rotateRight();
                       }
+                      // Optionally, allow clicking back cards to bring them to front:
+                      // else if (index > 0 && index < 4) { // Only allow clicking visible stacked cards
+                      //   // Logic to bring card at 'index' to the front
+                      //   setCards(prevCards => {
+                      //     const clickedCard = prevCards[index];
+                      //     const rest = prevCards.filter((_, i) => i !== index);
+                      //     return [clickedCard, ...rest];
+                      //   });
+                      // }
                     }}
                   >
                     <div
                       className={`card ${
                         card.bgColor || 'bg-gradient-to-br from-gray-100 to-gray-200'
-                      } w-full h-full flex rounded-xl border-2 border-black shadow-black shadow-lg overflow-hidden`}
+                      } w-full h-full flex rounded-xl border-2 border-black shadow-black shadow-xl overflow-hidden`}
                     >
-                      <div className="w-1/2 flex flex-col justify-between p-4 sm:p-5 text-left">
+                      <div className="w-1/2 flex flex-col justify-between p-5 lg:p-6 text-left">
                         <div>
-                          <h2 className="card-title text-black text-xl sm:text-2xl font-bold mb-2">
+                          <h2 className="card-title text-black text-2xl lg:text-3xl font-bold mb-3">
                             {card.title}
                           </h2>
-                          <p className="text-sm sm:text-base text-gray-700 font-medium mb-3 line-clamp-4">
+                          <p className="text-base lg:text-lg text-gray-700 font-medium mb-4 line-clamp-4">
                             {card.description}
                           </p>
                         </div>
                         <div>
-                          <div className="text-xs sm:text-sm font-semibold mb-3 space-y-1">
+                          <div className="text-sm lg:text-base font-semibold mb-4 space-y-1">
                             <p className="text-gray-800">
                               <span className="font-bold">Date:</span> {card.date}
                             </p>
@@ -317,7 +307,7 @@ export default function ActivitiesPage() {
                               e.stopPropagation();
                               openModal(card.title);
                             }}
-                            className="btn bg-blue-500 text-black text-center px-5 py-2 rounded border-2 border-black shadow-md shadow-black hover:shadow-none hover:bg-blue-400 transition-all text-sm sm:text-base font-semibold"
+                            className="btn bg-blue-500 text-black text-center px-6 py-2.5 rounded border-2 border-black shadow-md shadow-black hover:shadow-none hover:bg-blue-400 transition-all text-base lg:text-lg font-semibold"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -338,7 +328,7 @@ export default function ActivitiesPage() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400">
-                            <span className="text-gray-600 text-3xl font-bold opacity-50">
+                            <span className="text-gray-600 text-4xl font-bold opacity-50">
                               {card.title.substring(0, 3)}
                             </span>
                           </div>
@@ -350,30 +340,18 @@ export default function ActivitiesPage() {
               })}
             </AnimatePresence>
           </div>
-           <motion.button
+
+        </div>
+        <motion.button
             onClick={rotateRight}
-            className="flex-shrink-0 z-20 p-3 rounded-full bg-blue-400 text-white border-2 border-blue-600 shadow-lg hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="relative px-10 p-4 text-white bg-baseColor rounded-full font-Header text-4xl"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             disabled={cards.length < 2}
             aria-label="Next Activity"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 sm:h-8 sm:w-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={3}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            <p>Next Card</p>
           </motion.button>
-        </div>
       </div>
 
       <div className="md:hidden flex items-center justify-center px-4 py-4 w-full">

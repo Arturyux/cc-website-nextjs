@@ -62,28 +62,8 @@ export default function ActivitiesMobile({
 
   return (
     <div className="flex flex-col items-center w-full max-w-sm mx-auto py-4">
-      <motion.button
-        onClick={rotateLeft}
-        className="z-20 mb-4 p-3 rounded-full bg-blue-400 text-white border-2 border-blue-600 shadow-lg hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        disabled={cards.length < 2}
-        aria-label="Previous Activity"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={3}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-        </svg>
-      </motion.button>
-
       <div
-        className="relative w-full mx-auto mb-4"
+        className="relative w-full mx-auto"
         style={{ height: `${stackContainerHeight}px` }}
       >
         {cards.map((card, index) => {
@@ -177,26 +157,13 @@ export default function ActivitiesMobile({
       </div>
       <motion.button
         onClick={rotateRight}
-        className="z-20 mt-4 p-3 rounded-full bg-blue-400 text-white border-2 border-blue-600 shadow-lg hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="relative px-10 p-4 text-white bg-baseColor rounded-full font-Header text-4xl"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         disabled={cards.length < 2}
         aria-label="Next Activity"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={3}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
+        <p>Next Card</p>
       </motion.button>
     </div>
   );
