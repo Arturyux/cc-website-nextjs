@@ -140,7 +140,7 @@ function DancingModal({
 
   return (
     <motion.div
-      className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4"
+      className="fixed inset-0 bg-[rgba(0,0,0,0.4)] flex justify-center items-center z-50 p-4"
       onClick={onClose}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

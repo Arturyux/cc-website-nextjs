@@ -140,7 +140,7 @@ function BoardGamesModal({
 
   return (
     <motion.div
-      className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4"
+      className="fixed inset-0 bg-[rgba(0,0,0,0.4)] flex justify-center items-center z-50 p-4"
       onClick={onClose}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -187,14 +187,14 @@ function BoardGamesModal({
             <>
               <button
                 onClick={goToPrevSlide}
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 btn btn-circle btn-sm sm:btn-md bg-black bg-opacity-40 hover:bg-opacity-60 text-white border-none"
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 btn btn-circle btn-sm sm:btn-md bg-black opacity-40 hover:bg-opacity-60 text-white border-none"
                 aria-label="Previous image"
               >
                 ❮
               </button>
               <button
                 onClick={goToNextSlide}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 btn btn-circle btn-sm sm:btn-md bg-black bg-opacity-40 hover:bg-opacity-60 text-white border-none"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 btn btn-circle btn-sm sm:btn-md bg-black opacity-40 hover:bg-opacity-60 text-white border-none"
                 aria-label="Next image"
               >
                 ❯
