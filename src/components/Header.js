@@ -17,7 +17,7 @@ export default function Header() {
   const [isScrollDisabled, setIsScrollDisabled] = useState(false);
 
   useEffect(() => {
-    if (isScrollDisabled || mobileMenuOpen) { // Also disable scroll if mobile menu is open
+    if (isScrollDisabled || mobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -25,7 +25,7 @@ export default function Header() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isScrollDisabled, mobileMenuOpen]); // Add mobileMenuOpen dependency
+  }, [isScrollDisabled, mobileMenuOpen]);
 
 
   const handleScrollTop = () => {
@@ -48,13 +48,13 @@ export default function Header() {
   }, []);
 
   const dropdownVariants = {
-    hidden: { y: -10, opacity: 0 }, // Adjusted starting position
+    hidden: { y: -10, opacity: 0 },
     visible: { y: 0, opacity: 1 },
     exit: { y: -10, opacity: 0 },
   };
 
   const mobileMenuVariants = {
-    hidden: { opacity: 0, y: "-100%" }, // Slide from top edge
+    hidden: { opacity: 0, y: "-100%" }, 
     visible: { opacity: 1, y: "0%" },
     exit: { opacity: 0, y: "-100%" },
   };
@@ -74,10 +74,10 @@ export default function Header() {
       scrollTimeoutRef.current = setTimeout(() => {
         controls.start({
           y: 0,
-          transition: { type: "spring", stiffness: 300, damping: 25 }, // Adjusted damping
+          transition: { type: "spring", stiffness: 300, damping: 25 }, 
         });
         initialScrollRef.current = null;
-      }, 200); // Increased timeout slightly
+      }, 200); 
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -89,19 +89,19 @@ export default function Header() {
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
-    // setIsScrollDisabled(false); // Scroll is re-enabled by useEffect
+    setIsScrollDisabled(false); // Scroll is re-enabled by useEffect
   };
 
   return (
     <>
       <motion.header
         animate={controls}
-        className={`fixed md:left-1/2 md:transform md:-translate-x-1/2 top-4 md:top-6 p-2 md:p-3 md:w-[75%] w-[90%] flex justify-center items-center bg-mainColor shadow-lg z-30 rounded-full mx-auto left-0 right-0`} // Adjusted z-index, top padding, width
+        className={`fixed md:left-1/2 md:transform md:-translate-x-1/2 top-4 md:top-6 p-2 md:p-3 md:w-[75%] w-[90%] flex justify-center items-center bg-mainColor shadow-lg z-30 rounded-full mx-auto left-0 right-0`}
       >
         <div className="max-w-7xl mx-auto px-2 sm:px-4 flex items-center justify-between w-full">
           <button
             onClick={handleScrollTop}
-            className="md:block hidden font-Main text-xl lg:text-2xl text-white font-bold hover:text-gray-300 transition-colors" // Adjusted size
+            className="md:block hidden font-Main text-xl lg:text-2xl text-white font-bold hover:text-gray-300 transition-colors"
           >
             Home
           </button>
@@ -109,7 +109,7 @@ export default function Header() {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="md:block hidden font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors" // Adjusted size
+              className="md:block hidden font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
             >
               Linktree
             </button>
@@ -118,13 +118,13 @@ export default function Header() {
                 <motion.div
                   initial="hidden"
                   animate="visible"
-                  exit="exit" // Use exit variant
+                  exit="exit"
                   variants={dropdownVariants}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="absolute z-20 top-12 md:top-14 left-1/2 transform -translate-x-1/2 mt-2 w-72 md:w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col items-center" // Adjusted z-index, width, padding, shadow
+                  className="absolute z-20 top-12 left-1/2 transform -translate-x-1/2 mt-2 w-72 md:w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col items-center"
                 >
                   <button
-                    className="w-full bg-amber-300 mb-3 text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5" // Adjusted spacing, hover effect
+                    className="w-full bg-amber-300 mb-3 text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
                     onClick={() => setDropdownOpen(false)}
                   >
                     <p className="text-lg font-bold">Option 1</p>
@@ -141,8 +141,7 @@ export default function Header() {
                   >
                     <p className="text-lg font-bold">Option 3</p>
                   </button>
-                  <p className="text-xl font-bold font-Main mb-2">Socialmedia</p>
-                  <div className="bg-gray-100 rounded-xl border border-gray-200 shadow-inner p-2">
+                  <div className="bg-gray-100 rounded-4xl border border-gray-200 shadow-2xs mb-5">
                     <SocialIcons />
                   </div>
                 </motion.div>
@@ -152,16 +151,16 @@ export default function Header() {
           <div className="flex items-center gap-4">
             <Link
               href="/account"
-              className="md:block hidden font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors" // Adjusted size
+              className="md:block hidden font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
             >
               Login
             </Link>
           </div>
         </div>
-        <div className="md:block hidden relative ml-4" ref={langDropdownRef}> {/* Added margin */}
+        <div className="md:block hidden relative ml-4" ref={langDropdownRef}> 
           <button
             onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-            className="flex w-10 h-10 lg:w-12 lg:h-12 rounded-full overflow-hidden border-2 border-white shadow-md" // Adjusted size, added border/shadow
+            className="flex w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-md"
           >
             <img
               src="/languageSv.jpeg"
@@ -176,7 +175,7 @@ export default function Header() {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -10, opacity: 0 }}
                 transition={{ duration: 0.2 }} 
-                className="absolute z-20 top-12 md:top-14 left-1/2 transform -translate-x-1/2 mt-2 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center w-28" // Adjusted z-index, width, padding, shadow
+                className="absolute z-20 top-12 md:top-14 left-1/2 transform -translate-x-1/2 mt-2 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center w-28"
               >
                 <button
                   className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 rounded"
@@ -196,10 +195,20 @@ export default function Header() {
         </div>
 
         {/* Mobile Navigation Trigger */}
-        <div className="md:hidden flex items-center">
+        <div className="md:hidden flex flex-row items-center justify-between w-full px-4"> {/* Added justify-between, w-full, and padding */}
+
+          {/* Language Image (Left) */}
+          <img
+            src="/languageSv.jpeg"
+            alt="Language"
+            // Consider adding a button wrapper if this image should be clickable for language selection
+            className="flex w-12 h-12 flex-row-1 rounded-full overflow-hidden border-2 border-white" // Slightly smaller size might look better in header
+          />
+
+          {/* Burger Button (Right) */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="text-white focus:outline-none p-2" 
+            className="text-white focus:outline-none p-2" // Padding helps tap target
             aria-label="Open menu"
           >
             <div className="space-y-1.5">
@@ -208,6 +217,7 @@ export default function Header() {
               <div className="w-6 h-0.5 bg-white rounded"></div>
             </div>
           </button>
+
         </div>
       </motion.header>
 
@@ -219,14 +229,14 @@ export default function Header() {
             animate="visible"
             exit="exit"
             variants={mobileMenuVariants}
-            transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }} // Smooth tween animation
-            className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col" // Use z-40 (below modal z-50)
+            transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }} 
+            className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col"
           >
             {/* Mobile Menu Header */}
             <div className="flex items-center justify-between p-4 border-b border-white border-opacity-20 flex-shrink-0">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="relative w-10 h-10 rounded-full overflow-hidden border border-white border-opacity-50"
+                className="relative w-16 h-16 rounded-full overflow-hidden border border-white border-opacity-50"
               >
                 <img
                   src="/languageSv.jpeg"
