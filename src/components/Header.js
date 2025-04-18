@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import SocialIcons from "./Socialmedia";
+import Linktree from "./Linktree";
 
 export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -89,16 +90,16 @@ export default function Header() {
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
-    setIsScrollDisabled(false); // Scroll is re-enabled by useEffect
+    setIsScrollDisabled(false);
   };
 
   return (
     <>
       <motion.header
         animate={controls}
-        className={`fixed md:left-1/2 md:transform md:-translate-x-1/2 top-4 md:top-6 p-2 md:p-3 md:w-[75%] w-[90%] flex justify-center items-center bg-mainColor shadow-lg z-30 rounded-full mx-auto left-0 right-0`}
+        className={`fixed md:left-1/2 left-0 right-0 md:transform md:-translate-x-1/2 top-4 md:top-6 p-2 md:p-3 md:w-[75%] w-[90%] flex justify-center items-center bg-mainColor shadow-lg z-30 rounded-full mx-auto`}
       >
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 flex items-center justify-between w-full">
+        <div className="md:max-w-7xl max-w-0 mx-auto flex items-center justify-between w-full">
           <button
             onClick={handleScrollTop}
             className="md:block hidden font-Main text-xl lg:text-2xl text-white font-bold hover:text-gray-300 transition-colors"
@@ -123,25 +124,8 @@ export default function Header() {
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   className="absolute z-20 top-12 left-1/2 transform -translate-x-1/2 mt-2 w-72 md:w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col items-center"
                 >
-                  <button
-                    className="w-full bg-amber-300 mb-3 text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    <p className="text-lg font-bold">Option 1</p>
-                  </button>
-                  <button
-                    className="w-full bg-violet-500 mb-3 text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    <p className="text-lg font-bold">Option 2</p>
-                  </button>
-                  <button
-                    className="w-full bg-blue-500 mb-4 text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    <p className="text-lg font-bold">Option 3</p>
-                  </button>
-                  <div className="bg-gray-100 rounded-4xl border border-gray-200 shadow-2xs mb-5">
+                  <Linktree />
+                  <div className="bg-gray-100 mt-6 rounded-4xl border border-gray-200 shadow-2xs mb-5">
                     <SocialIcons />
                   </div>
                 </motion.div>
@@ -195,20 +179,17 @@ export default function Header() {
         </div>
 
         {/* Mobile Navigation Trigger */}
-        <div className="md:hidden flex flex-row items-center justify-between w-full px-4"> {/* Added justify-between, w-full, and padding */}
-
-          {/* Language Image (Left) */}
+        <div className="md:hidden flex items-center justify-between w-full px-4">
           <img
             src="/languageSv.jpeg"
             alt="Language"
-            // Consider adding a button wrapper if this image should be clickable for language selection
-            className="flex w-12 h-12 flex-row-1 rounded-full overflow-hidden border-2 border-white" // Slightly smaller size might look better in header
+            className="flex w-12 h-12 left-0 rounded-full overflow-hidden border-white"
           />
 
           {/* Burger Button (Right) */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="text-white focus:outline-none p-2" // Padding helps tap target
+            className="text-white focus:outline-none p-2"
             aria-label="Open menu"
           >
             <div className="space-y-1.5">
@@ -290,24 +271,7 @@ export default function Header() {
                 Login
               </Link>
               <div className="w-full max-w-xs pt-6">
-                 <button
-                    className="w-full bg-amber-300 mb-3 text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
-                    onClick={closeMobileMenu}
-                  >
-                    <p className="text-lg font-bold">Option 1</p>
-                  </button>
-                  <button
-                    className="w-full bg-violet-500 mb-3 text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
-                    onClick={closeMobileMenu}
-                  >
-                    <p className="text-lg font-bold">Option 2</p>
-                  </button>
-                  <button
-                    className="w-full bg-blue-500 mb-4 text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
-                    onClick={closeMobileMenu}
-                  >
-                    <p className="text-lg font-bold">Option 3</p>
-                  </button>
+                <Linktree />
               </div>
 
               {/* Social Media Section */}
