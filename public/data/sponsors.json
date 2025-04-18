@@ -1,0 +1,50 @@
+[
+  {
+    "id": "sp1",
+    "name": "TechCorp",
+    "imageUrl": "https://via.placeholder.com/150/FF5733/FFFFFF?text=TechCorp",
+    "websiteUrl": "https://example.com/techcorp"
+  },
+  {
+    "id": "sp2",
+    "name": "Innovate Solutions",
+    "imageUrl": "https://via.placeholder.com/150/33FF57/FFFFFF?text=Innovate",
+    "websiteUrl": "https://example.com/innovate"
+  },
+  {
+    "id": "sp3",
+    "name": "Global Ventures",
+    "imageUrl": "https://via.placeholder.com/150/3357FF/FFFFFF?text=Global",
+    "websiteUrl": "https://example.com/global"
+  },
+  {
+    "id": "sp4",
+    "name": "Synergy Systems",
+    "imageUrl": "https://via.placeholder.com/150/FFFF33/000000?text=Synergy",
+    "websiteUrl": "https://example.com/synergy"
+  },
+  {
+    "id": "sp5",
+    "name": "Alpha Industries",
+    "imageUrl": "https://via.placeholder.com/150/FF33FF/FFFFFF?text=Alpha",
+    "websiteUrl": "https://example.com/alpha"
+  },
+  {
+    "id": "sp6",
+    "name": "Beta Logistics",
+    "imageUrl": "https://via.placeholder.com/150/33FFFF/000000?text=Beta",
+    "websiteUrl": "https://example.com/beta"
+  },
+  {
+    "id": "sp7",
+    "name": "Omega Group",
+    "imageUrl": "https://via.placeholder.com/150/FF69B4/FFFFFF?text=Omega",
+    "websiteUrl": "https://example.com/omega"
+  },
+  {
+    "id": "sp8",
+    "name": "Delta Dynamics",
+    "imageUrl": "https://via.placeholder.com/150/AAAAAA/FFFFFF?text=Delta",
+    "websiteUrl": "https://example.com/delta"
+  }
+]
