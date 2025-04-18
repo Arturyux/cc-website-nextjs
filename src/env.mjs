@@ -4,8 +4,10 @@ import { z } from "zod";
 export const env = createEnv({
   client: {
     NEXT_PUBLIC_FETCHPICTURE_URL: z.string().url(),
+    NEXT_PUBLIC_FETCHTREELINK_URL: z.string().url(),
   },
   runtimeEnv: {
+    NEXT_PUBLIC_FETCHTREELINK_URL: process.env.NEXT_PUBLIC_FETCHTREELINK_URL,
     NEXT_PUBLIC_FETCHPICTURE_URL: process.env.NEXT_PUBLIC_FETCHPICTURE_URL,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

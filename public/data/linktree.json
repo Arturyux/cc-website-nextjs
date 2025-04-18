@@ -1,0 +1,19 @@
+[
+  {
+    "color": "bg-green-300",
+    "text": "Weekly Activities",
+    "link": "https://activities.cultureconnection.se",
+    "textColor": "text-black"
+  },
+  {
+    "color": "#FFB8D1",
+    "text": "Bylaws",
+    "link": "https://bylaws.cultureconnection.se"
+  },
+  {
+    "color": "bg-lime-400",
+    "text": "Committee sign up",
+    "link": "https://forms.gle/y7eDTap2WQ6yK5gt7",
+    "textColor": "text-black"
+  }
+]
