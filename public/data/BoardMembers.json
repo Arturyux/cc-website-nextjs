@@ -1,0 +1,82 @@
+[
+  {
+    "id": "m1",
+    "name": "Aaron",
+    "position": "President",
+    "contact": "info@cultureconnection.se",
+    "imageUrl": "https://via.placeholder.com/150/FF5733/FFFFFF?text=Alice",
+    "bio": "Leading the association towards new horizons with enthusiasm."
+  },
+  {
+    "id": "m2",
+    "name": "Linnea",
+    "position": "Vice President",
+    "contact": "info@cultureconnection.se",
+    "imageUrl": "https://via.placeholder.com/150/33FF57/FFFFFF?text=Bob",
+    "bio": "Supporting the president and managing internal affairs."
+  },
+  {
+    "id": "m3",
+    "name": "Charlie Chaplin",
+    "position": "Secretary",
+    "contact": "info@cultureconnection.se",
+    "imageUrl": "https://via.placeholder.com/150/3357FF/FFFFFF?text=Charlie",
+    "bio": "Keeping records straight and communication flowing."
+  },
+  {
+    "id": "m4",
+    "name": "Diana Prince",
+    "position": "Treasurer",
+    "contact": "info@cultureconnection.se",
+    "imageUrl": "https://via.placeholder.com/150/FFFF33/000000?text=Diana",
+    "bio": "Managing the finances with precision and transparency."
+  },
+  {
+    "id": "m5",
+    "name": "Harley Quinn",
+    "position": "Social Media",
+    "contact": "info@cultureconnection.se",
+    "imageUrl": "https://via.placeholder.com/150/FF69B4/FFFFFF?text=Harley",
+    "bio": "Organizing fun and engaging events for everyone."
+  },
+  {
+    "id": "m6",
+    "name": "Harley Quinn",
+    "position": "Head of Committee",
+    "contact": "info@cultureconnection.se",
+    "imageUrl": "https://via.placeholder.com/150/FF69B4/FFFFFF?text=Harley",
+    "bio": "Organizing fun and engaging events for everyone."
+  },
+  {
+    "id": "m7",
+    "name": "Harley Quinn",
+    "position": "Events Coordinator",
+    "contact": "info@cultureconnection.se",
+    "imageUrl": "https://via.placeholder.com/150/FF69B4/FFFFFF?text=Harley",
+    "bio": "Organizing fun and engaging events for everyone."
+  },
+  {
+    "id": "m8",
+    "name": "Ethan Hunt",
+    "position": "Committee Member",
+    "contact": "info@cultureconnection.se",
+    "imageUrl": "https://via.placeholder.com/150/FF33FF/FFFFFF?text=Ethan",
+    "bio": "An active and engaged member contributing to projects."
+  },
+  {
+    "id": "m9",
+    "name": "Fiona Shrek",
+    "position": "Committee Member",
+    "contact": "info@cultureconnection.se",
+    "imageUrl": "https://via.placeholder.com/150/33FFFF/000000?text=Fiona",
+    "bio": "Bringing fresh perspectives and ideas to the team."
+  },
+  {
+    "id": "m10",
+    "name": "George Constanza",
+    "position": "Committee Member",
+    "contact": "info@cultureconnection.se",
+    "imageUrl": "https://via.placeholder.com/150/AAAAAA/FFFFFF?text=George",
+    "bio": "Expert in... various things. Always present."
+ }
+]
