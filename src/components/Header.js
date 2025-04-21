@@ -5,6 +5,15 @@ import Link from "next/link";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import SocialIcons from "./Socialmedia";
 import Linktree from "./Linktree";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  SignOutButton,
+  useUser,
+  UserButton,
+} from "@clerk/nextjs";
 
 export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -16,21 +25,30 @@ export default function Header() {
   const initialScrollRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
   const [isScrollDisabled, setIsScrollDisabled] = useState(false);
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+  const accountDropdownRef = useRef(null);
+  const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
+  const menuDropdownRef = useRef(null);
+
+  const { user } = useUser();
 
   useEffect(() => {
     if (isScrollDisabled || mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isScrollDisabled, mobileMenuOpen]);
 
-
-  const handleScrollTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    setMenuDropdownOpen(false);
   };
 
   useEffect(() => {
@@ -38,27 +56,29 @@ export default function Header() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
-      if (langDropdownRef.current && !langDropdownRef.current.contains(event.target)) {
+      if (
+        langDropdownRef.current &&
+        !langDropdownRef.current.contains(event.target)
+      ) {
         setLangDropdownOpen(false);
+      }
+      if (
+        accountDropdownRef.current &&
+        !accountDropdownRef.current.contains(event.target)
+      ) {
+        setAccountDropdownOpen(false);
+      }
+      if (
+        menuDropdownRef.current &&
+        !menuDropdownRef.current.contains(event.target)
+      ) {
+        setMenuDropdownOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const dropdownVariants = {
-    hidden: { y: -10, opacity: 0 },
-    visible: { y: 0, opacity: 1 },
-    exit: { y: -10, opacity: 0 },
-  };
-
-  const mobileMenuVariants = {
-    hidden: { opacity: 0, y: "-100%" }, 
-    visible: { opacity: 1, y: "0%" },
-    exit: { opacity: 0, y: "-100%" },
-  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -69,18 +89,19 @@ export default function Header() {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
-      // Reduced the scroll effect intensity
-      const offset = Math.max(-5, Math.min(5, (window.scrollY - initialScrollRef.current) * 0.01));
+      const offset = Math.max(
+        -5,
+        Math.min(5, (window.scrollY - initialScrollRef.current) * 0.01),
+      );
       controls.start({ y: offset, transition: { duration: 0 } });
       scrollTimeoutRef.current = setTimeout(() => {
         controls.start({
           y: 0,
-          transition: { type: "spring", stiffness: 300, damping: 25 }, 
+          transition: { type: "spring", stiffness: 300, damping: 25 },
         });
         initialScrollRef.current = null;
-      }, 200); 
+      }, 200);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
@@ -88,10 +109,24 @@ export default function Header() {
     };
   }, [controls, mobileMenuOpen]);
 
+  const dropdownVariants = {
+    hidden: { y: -10, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+    exit: { y: -10, opacity: 0 },
+  };
+
+  const mobileMenuVariants = {
+    hidden: { opacity: 0, y: "-100%" },
+    visible: { opacity: 1, y: "0%" },
+    exit: { opacity: 0, y: "-100%" },
+  };
+
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
     setIsScrollDisabled(false);
   };
+
+  const closeAccountDropdown = () => setAccountDropdownOpen(false);
 
   return (
     <>
@@ -99,18 +134,57 @@ export default function Header() {
         animate={controls}
         className={`fixed md:left-1/2 left-0 right-0 md:transform md:-translate-x-1/2 top-4 md:top-6 p-2 md:p-3 md:w-[75%] w-[90%] flex justify-center items-center bg-mainColor shadow-lg z-30 rounded-full mx-auto`}
       >
-        <div className="md:max-w-7xl max-w-0 mx-auto flex items-center justify-between w-full">
-          <button
-            onClick={handleScrollTop}
-            className="md:block hidden font-Main text-xl lg:text-2xl text-white font-bold hover:text-gray-300 transition-colors"
-          >
-            Home
-          </button>
+        <div className="flex items-center justify-between w-full px-4 md:px-6">
+          <div className="hidden md:block relative" ref={menuDropdownRef}>
+            <button
+              onClick={() => setMenuDropdownOpen(!menuDropdownOpen)}
+              className="font-Main text-xl lg:text-2xl text-white font-bold hover:text-gray-300 transition-colors"
+            >
+              Menu
+            </button>
+            <AnimatePresence>
+              {menuDropdownOpen && (
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={dropdownVariants}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="absolute z-20 top-11 -right-16 mt-2 w-48 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col"
+                >
+                  <button
+                    onClick={() => scrollToSection("home-section")}
+                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                  >
+                    Home
+                  </button>
+                  <button
+                    onClick={() => scrollToSection("events-section")}
+                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                  >
+                    Events
+                  </button>
+                  <button
+                    onClick={() => scrollToSection("team-section")}
+                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                  >
+                    Team
+                  </button>
+                  <button
+                    onClick={() => scrollToSection("sponsors-section")}
+                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                  >
+                    Sponsors
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-          <div className="relative" ref={dropdownRef}>
+          <div className="hidden md:block relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="md:block hidden font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
+              className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
             >
               Linktree
             </button>
@@ -122,7 +196,7 @@ export default function Header() {
                   exit="exit"
                   variants={dropdownVariants}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="absolute z-20 top-12 left-1/2 transform -translate-x-1/2 mt-2 w-72 md:w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col items-center"
+                  className="absolute z-20 top-11 left-1/2 transform -translate-x-1/2 mt-2 w-72 md:w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col items-center"
                 >
                   <Linktree />
                   <div className="bg-gray-100 mt-6 rounded-4xl border border-gray-200 shadow-2xs mb-5">
@@ -132,92 +206,94 @@ export default function Header() {
               )}
             </AnimatePresence>
           </div>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/account"
-              className="md:block hidden font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
-            >
-              Login
-            </Link>
-          </div>
-        </div>
-        <div className="md:block hidden relative ml-4" ref={langDropdownRef}> 
-          <button
-            onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-            className="flex w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-md"
-          >
-            <img
-              src="/languageSv.jpeg"
-              alt="Language"
-              className="w-full h-full object-cover"
-            />
-          </button>
-          <AnimatePresence>
-            {langDropdownOpen && (
-              <motion.div
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -10, opacity: 0 }}
-                transition={{ duration: 0.2 }} 
-                className="absolute z-20 top-12 md:top-14 left-1/2 transform -translate-x-1/2 mt-2 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center w-28"
-              >
-                <button
-                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 rounded"
-                  onClick={() => setLangDropdownOpen(false)}
-                >
-                  English
-                </button>
-                <button
-                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 rounded"
-                  onClick={() => setLangDropdownOpen(false)}
-                >
-                  Swedish
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
 
-        {/* Mobile Navigation Trigger */}
-        <div className="md:hidden flex items-center justify-between w-full px-4">
-          <img
-            src="/languageSv.jpeg"
-            alt="Language"
-            className="flex w-12 h-12 left-0 rounded-full overflow-hidden border-white"
-          />
+          <div className="hidden md:flex items-center gap-4">
+            <div className="relative" ref={accountDropdownRef}>
+              <SignedOut>
+                <button
+                  onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
+                  className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
+                >
+                  Account
+                </button>
+              </SignedOut>
+              <SignedIn>
+                <button
+                  onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
+                  className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
+                >
+                  Dashboard
+                </button>
+              </SignedIn>
 
-          {/* Burger Button (Right) */}
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="text-white focus:outline-none p-2"
-            aria-label="Open menu"
-          >
-            <div className="space-y-1.5">
-              <div className="w-6 h-0.5 bg-white rounded"></div>
-              <div className="w-6 h-0.5 bg-white rounded"></div>
-              <div className="w-6 h-0.5 bg-white rounded"></div>
+              <AnimatePresence>
+                {accountDropdownOpen && (
+                  <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={dropdownVariants}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className="absolute z-20 top-11 -right-16 mt-2 w-64 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col"
+                  >
+                    <SignedOut>
+                      <SignInButton mode="modal">
+                        <button
+                          onClick={closeAccountDropdown}
+                          className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                        >
+                          Sign In
+                        </button>
+                      </SignInButton>
+                      <SignUpButton mode="modal">
+                        <button
+                          onClick={closeAccountDropdown}
+                          className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                        >
+                          Sign Up
+                        </button>
+                      </SignUpButton>
+                    </SignedOut>
+                    <SignedIn>
+                      <div className="px-4 text-center text-4xl font-Header  text-black border-b my-2">
+                        <p className="">
+                          Welcome, {user?.firstName || "User"}! <UserButton />
+                        </p>
+                      </div>
+                      <Link
+                        href="/events"
+                        onClick={closeAccountDropdown}
+                        className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                      >
+                        Events
+                      </Link>
+                      <Link
+                        href="/shop"
+                        onClick={closeAccountDropdown}
+                        className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                      >
+                        Shop
+                      </Link>
+                      <div className="border-t mt-1 pt-1">
+                        <SignOutButton>
+                          <button
+                            onClick={closeAccountDropdown}
+                            className="w-full text-center text-2xl px-4 py-2 text-red-600 hover:bg-red-50 rounded"
+                          >
+                            Log Out
+                          </button>
+                        </SignOutButton>
+                      </div>
+                    </SignedIn>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </button>
 
-        </div>
-      </motion.header>
-
-      {/* Mobile Menu Panel */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.nav
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={mobileMenuVariants}
-            transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }} 
-            className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col"
-          >
-            {/* Mobile Menu Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white border-opacity-20 flex-shrink-0">
+            <div className="relative" ref={langDropdownRef}>
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="relative w-16 h-16 rounded-full overflow-hidden border border-white border-opacity-50"
+                className="flex w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md"
               >
                 <img
                   src="/languageSv.jpeg"
@@ -232,17 +308,90 @@ export default function Header() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -10, opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute top-16 left-4 mt-1 w-28 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center z-50" // Ensure dropdown is above menu content
+                    className="absolute z-20 top-13 -right-12 mt-2 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center"
+                  >
+                    <button
+                      className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                      onClick={() => setLangDropdownOpen(false)}
+                    >
+                      English
+                    </button>
+                    <button
+                      className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                      onClick={() => setLangDropdownOpen(false)}
+                    >
+                      Swedish
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          <div className="md:hidden flex items-center justify-between w-full">
+            <img
+              src="/languageSv.jpeg"
+              alt="Language"
+              className="flex w-10 h-10 rounded-full overflow-hidden border-white"
+            />
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="text-white focus:outline-none p-2"
+              aria-label="Open menu"
+            >
+              <div className="space-y-1.5">
+                <div className="w-6 h-0.5 bg-white rounded"></div>
+                <div className="w-6 h-0.5 bg-white rounded"></div>
+                <div className="w-6 h-0.5 bg-white rounded"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </motion.header>
+
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.nav
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={mobileMenuVariants}
+            transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+            className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-white border-opacity-20 flex-shrink-0">
+              <button
+                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                className="relative w-12 h-12 rounded-full overflow-hidden border border-white border-opacity-50"
+              >
+                <img
+                  src="/languageSv.jpeg"
+                  alt="Language"
+                  className="w-full h-full object-cover"
+                />
+              </button>
+              <AnimatePresence>
+                {langDropdownOpen && (
+                  <motion.div
+                    initial={{ y: -10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -10, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-16 left-4 mt-1 w-28 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center z-50"
                   >
                     <button
                       className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 rounded"
-                      onClick={() => { setLangDropdownOpen(false); /* Add language change logic  TODO*/  }}
+                      onClick={() => {
+                        setLangDropdownOpen(false);
+                      }}
                     >
                       English
                     </button>
                     <button
                       className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 rounded"
-                      onClick={() => { setLangDropdownOpen(false); /* Add language change logic */ }}
+                      onClick={() => {
+                        setLangDropdownOpen(false);
+                      }}
                     >
                       Swedish
                     </button>
@@ -254,31 +403,84 @@ export default function Header() {
                 className="text-white p-2"
                 aria-label="Close menu"
               >
-                {/* X Icon */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-7 w-7"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
 
-            {/* Mobile Menu Content */}
-            <div className="flex-grow flex flex-col items-center justify-center pb-16 px-4 space-y-6 overflow-y-auto">
-              <Link
-                href="/account"
-                onClick={closeMobileMenu}
-                className="text-6xl top-0 font-semibold text-white hover:text-gray-300 transition-colors"
-              >
-                Login
-              </Link>
-              <div className="w-full max-w-xs pt-6">
+            <div className="flex-grow flex flex-col items-center justify-center pb-16 px-4 space-y-8 overflow-y-auto">
+              <SignedOut>
+                <div className="flex flex-col items-center space-y-6">
+                  <SignInButton mode="modal">
+                    <button
+                      onClick={closeMobileMenu}
+                      className="text-5xl font-semibold text-white hover:text-gray-300 transition-colors"
+                    >
+                      Sign In
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button
+                      onClick={closeMobileMenu}
+                      className="text-5xl font-semibold text-white hover:text-gray-300 transition-colors"
+                    >
+                      Sign Up
+                    </button>
+                  </SignUpButton>
+                </div>
+              </SignedOut>
+              <SignedIn>
+                <div className="my-4">
+                  <p className="text-white font-Header text-5xl text-center mb-2">
+                    Welcome, {user?.firstName}! <UserButton />
+                  </p>
+                  <Link
+                    href="/events"
+                    onClick={closeMobileMenu}
+                    className="block w-full text-4xl px-4 py-2 text-white text-center rounded"
+                  >
+                    Events
+                  </Link>
+                  <Link
+                    href="/shop"
+                    onClick={closeMobileMenu}
+                    className="block w-full text-4xl text-center px-4 py-2 text-white rounded"
+                  >
+                    Shop
+                  </Link>
+                  <div className="border-t mt-1 pt-1">
+                    <SignOutButton>
+                      <button
+                        onClick={closeMobileMenu}
+                        className="w-full text-center font-bold text-2xl px-4 py-2 text-white hover:bg-red-50 rounded"
+                      >
+                        Log Out
+                      </button>
+                    </SignOutButton>
+                  </div>
+                </div>
+              </SignedIn>
+
+              <div className="w-full max-w-xs pt-4">
                 <Linktree />
               </div>
 
-              {/* Social Media Section */}
-              <div className="pt-6">
-                 <div className="bg-gray-100 rounded-4xl border border-gray-200 shadow-2xs mb-5">
-                   <SocialIcons />
-                 </div>
+              <div className="pt-4">
+                <div className="bg-gray-100 rounded-4xl border border-gray-200 shadow-2xs mb-5">
+                  <SocialIcons />
+                </div>
               </div>
             </div>
           </motion.nav>
