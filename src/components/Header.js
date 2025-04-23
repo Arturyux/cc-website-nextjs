@@ -31,6 +31,7 @@ export default function Header() {
   const menuDropdownRef = useRef(null);
 
   const { user } = useUser();
+  const isAdmin = user?.publicMetadata?.admin === true;
 
   useEffect(() => {
     if (isScrollDisabled || mobileMenuOpen) {
@@ -256,10 +257,17 @@ export default function Header() {
                     </SignedOut>
                     <SignedIn>
                       <div className="px-4 text-center text-4xl font-Header  text-black border-b my-2">
-                        <p className="">
                           Welcome, {user?.firstName || "User"}! <UserButton />
-                        </p>
                       </div>
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          onClick={closeAccountDropdown}
+                          className="block w-full text-center text-2xl px-4 py-2 text-purple-700 hover:bg-purple-50 rounded font-semibold"
+                        >
+                          Admin Panel
+                        </Link>
+                      )}
                       <Link
                         href="/events"
                         onClick={closeAccountDropdown}
@@ -444,8 +452,17 @@ export default function Header() {
               <SignedIn>
                 <div className="my-4">
                   <p className="text-white font-Header text-5xl text-center mb-2">
-                    Welcome, {user?.firstName}! <UserButton />
-                  </p>
+                    Welcome, {user?.firstName}! 
+                  </p><UserButton />
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      onClick={closeMobileMenu}
+                      className="block w-full text-4xl px-4 py-2 text-purple-300 hover:text-purple-200 text-center rounded font-semibold" // Adjusted mobile styling
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
                   <Link
                     href="/events"
                     onClick={closeMobileMenu}
