@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import SocialIcons from "./Socialmedia";
 import Linktree from "./Linktree";
+import UserCardModal from "./UserCardModal";
 import {
   SignedIn,
   SignedOut,
@@ -29,20 +30,44 @@ export default function Header() {
   const accountDropdownRef = useRef(null);
   const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
   const menuDropdownRef = useRef(null);
+  const [isUserCardModalOpen, setIsUserCardModalOpen] = useState(false);
 
-  const { user } = useUser();
-  const isAdmin = user?.publicMetadata?.admin === true;
+  const { user, isLoaded } = useUser();
+  const isAdmin = isLoaded && user?.publicMetadata?.admin === true;
+  const isCommittee = isLoaded && user?.publicMetadata?.committee === true;
+  const isMember = isLoaded && user?.publicMetadata?.member === true;
+  const canShowUserCard = isLoaded && (isAdmin || isCommittee || isMember);
 
+  const openUserCardModal = () => setIsUserCardModalOpen(true);
+  const closeUserCardModal = () => setIsUserCardModalOpen(false);
+
+  // --- MOVED body overflow logic here ---
+  useEffect(() => {
+    // Apply style only when the UserCardModal is open
+    if (isUserCardModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      // Otherwise, ensure it's unset
+      document.body.style.overflow = ""; // Use "" or "unset" or "auto"
+    }
+    // Cleanup function ensures style is removed when component unmounts
+    // or when isUserCardModalOpen becomes false
+    return () => {
+      document.body.style.overflow = ""; // Use "" or "unset" or "auto"
+    };
+  }, [isUserCardModalOpen]); // Depend only on the modal state
+
+  // Effect for mobile menu scroll lock (keep separate)
   useEffect(() => {
     if (isScrollDisabled || mobileMenuOpen) {
       document.body.style.overflow = "hidden";
-    } else {
+    } else if (!isUserCardModalOpen) { // Only unset if UserCardModal isn't also open
       document.body.style.overflow = "";
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isScrollDisabled, mobileMenuOpen]);
+    // No cleanup needed here as the other effect handles the final state
+  }, [isScrollDisabled, mobileMenuOpen, isUserCardModalOpen]);
+  // --- End moved logic ---
+
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -83,7 +108,7 @@ export default function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (mobileMenuOpen) return;
+      if (mobileMenuOpen || isUserCardModalOpen) return; // Prevent scroll effect if modal/menu open
       if (initialScrollRef.current === null) {
         initialScrollRef.current = window.scrollY;
       }
@@ -108,7 +133,7 @@ export default function Header() {
       window.removeEventListener("scroll", handleScroll);
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
-  }, [controls, mobileMenuOpen]);
+  }, [controls, mobileMenuOpen, isUserCardModalOpen]); // Added isUserCardModalOpen dependency
 
   const dropdownVariants = {
     hidden: { y: -10, opacity: 0 },
@@ -135,374 +160,125 @@ export default function Header() {
         animate={controls}
         className={`fixed md:left-1/2 left-0 right-0 md:transform md:-translate-x-1/2 top-4 md:top-6 p-2 md:p-3 md:w-[75%] w-[90%] flex justify-center items-center bg-mainColor shadow-lg z-30 rounded-full mx-auto`}
       >
+        {/* Header content remains the same */}
         <div className="flex items-center justify-between w-full px-4 md:px-6">
           <div className="hidden md:block relative" ref={menuDropdownRef}>
-            <button
-              onClick={() => setMenuDropdownOpen(!menuDropdownOpen)}
-              className="font-Main text-xl lg:text-2xl text-white font-bold hover:text-gray-300 transition-colors"
-            >
-              Menu
-            </button>
+            <button onClick={() => setMenuDropdownOpen(!menuDropdownOpen)} className="font-Main text-xl lg:text-2xl text-white font-bold hover:text-gray-300 transition-colors">Menu</button>
             <AnimatePresence>
               {menuDropdownOpen && (
-                <motion.div
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={dropdownVariants}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="absolute z-20 top-11 -right-16 mt-2 w-48 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col"
-                >
-                  <button
-                    onClick={() => scrollToSection("home-section")}
-                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                  >
-                    Home
-                  </button>
-                  <button
-                    onClick={() => scrollToSection("events-section")}
-                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                  >
-                    Events
-                  </button>
-                  <button
-                    onClick={() => scrollToSection("team-section")}
-                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                  >
-                    Team
-                  </button>
-                  <button
-                    onClick={() => scrollToSection("sponsors-section")}
-                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                  >
-                    Sponsors
-                  </button>
+                <motion.div initial="hidden" animate="visible" exit="exit" variants={dropdownVariants} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="absolute z-20 top-11 -right-16 mt-2 w-48 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col">
+                  <button onClick={() => scrollToSection("home-section")} className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded">Home</button>
+                  <button onClick={() => scrollToSection("events-section")} className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded">Events</button>
+                  <button onClick={() => scrollToSection("team-section")} className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded">Team</button>
+                  <button onClick={() => scrollToSection("sponsors-section")} className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded">Sponsors</button>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-
           <div className="hidden md:block relative" ref={dropdownRef}>
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
-            >
-              Linktree
-            </button>
+            <button onClick={() => setDropdownOpen(!dropdownOpen)} className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors">Linktree</button>
             <AnimatePresence>
               {dropdownOpen && (
-                <motion.div
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={dropdownVariants}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="absolute z-20 top-11 left-1/2 transform -translate-x-1/2 mt-2 w-72 md:w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col items-center"
-                >
+                <motion.div initial="hidden" animate="visible" exit="exit" variants={dropdownVariants} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="absolute z-20 top-11 left-1/2 transform -translate-x-1/2 mt-2 w-72 md:w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col items-center">
                   <Linktree />
-                  <div className="bg-gray-100 mt-6 rounded-4xl border border-gray-200 shadow-2xs mb-5">
-                    <SocialIcons />
-                  </div>
+                  <div className="bg-gray-100 mt-6 rounded-4xl border border-gray-200 shadow-2xs mb-5"><SocialIcons /></div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-
           <div className="hidden md:flex items-center gap-4">
             <div className="relative" ref={accountDropdownRef}>
-              <SignedOut>
-                <button
-                  onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
-                  className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
-                >
-                  Account
-                </button>
-              </SignedOut>
-              <SignedIn>
-                <button
-                  onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
-                  className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
-                >
-                  Dashboard
-                </button>
-              </SignedIn>
-
+              <SignedOut><button onClick={() => setAccountDropdownOpen(!accountDropdownOpen)} className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors">Account</button></SignedOut>
+              <SignedIn>{isLoaded && (<button onClick={() => setAccountDropdownOpen(!accountDropdownOpen)} className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors">Dashboard</button>)}</SignedIn>
               <AnimatePresence>
                 {accountDropdownOpen && (
-                  <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={dropdownVariants}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="absolute z-20 top-11 -right-16 mt-2 w-64 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col"
-                  >
+                  <motion.div initial="hidden" animate="visible" exit="exit" variants={dropdownVariants} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="absolute z-20 top-11 -right-16 mt-2 w-64 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col">
                     <SignedOut>
-                      <SignInButton mode="modal">
-                        <button
-                          onClick={closeAccountDropdown}
-                          className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                        >
-                          Sign In
-                        </button>
-                      </SignInButton>
-                      <SignUpButton mode="modal">
-                        <button
-                          onClick={closeAccountDropdown}
-                          className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                        >
-                          Sign Up
-                        </button>
-                      </SignUpButton>
+                      <SignInButton mode="modal"><button onClick={closeAccountDropdown} className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded">Sign In</button></SignInButton>
+                      <SignUpButton mode="modal"><button onClick={closeAccountDropdown} className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded">Sign Up</button></SignUpButton>
                     </SignedOut>
                     <SignedIn>
-                      <div className="px-4 text-center text-4xl font-Header  text-black border-b my-2">
-                          Welcome, {user?.firstName || "User"}! <UserButton />
-                      </div>
-                      {isAdmin && (
-                        <Link
-                          href="/admin"
-                          onClick={closeAccountDropdown}
-                          className="block w-full text-center text-2xl px-4 py-2 text-purple-700 hover:bg-purple-50 rounded font-semibold"
-                        >
-                          Admin Panel
-                        </Link>
+                      {isLoaded && user && (
+                        <>
+                          <div className="px-4 text-center text-4xl font-Header text-black border-b my-2">Welcome, {user.firstName || "User"}! <UserButton afterSignOutUrl="/" /></div>
+                          {isAdmin && (<Link href="/admin" onClick={closeAccountDropdown} className="block w-full text-center text-2xl px-4 py-2 text-purple-700 hover:bg-purple-50 rounded font-semibold">Admin Panel</Link>)}
+                          <Link href="/events" onClick={closeAccountDropdown} className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded">Events</Link>
+                          {canShowUserCard && (<button onClick={() => { openUserCardModal(); closeAccountDropdown(); }} className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded">View My Card</button>)}
+                          <div className="border-t mt-1 pt-1"><SignOutButton><button onClick={closeAccountDropdown} className="w-full text-center text-2xl px-4 py-2 text-red-600 hover:bg-red-50 rounded">Log Out</button></SignOutButton></div>
+                        </>
                       )}
-                      <Link
-                        href="/events"
-                        onClick={closeAccountDropdown}
-                        className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                      >
-                        Events
-                      </Link>
-                      <Link
-                        href="/shop"
-                        onClick={closeAccountDropdown}
-                        className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                      >
-                        Shop
-                      </Link>
-                      <div className="border-t mt-1 pt-1">
-                        <SignOutButton>
-                          <button
-                            onClick={closeAccountDropdown}
-                            className="w-full text-center text-2xl px-4 py-2 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            Log Out
-                          </button>
-                        </SignOutButton>
-                      </div>
                     </SignedIn>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-
             <div className="relative" ref={langDropdownRef}>
-              <button
-                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md"
-              >
-                <img
-                  src="/languageSv.jpeg"
-                  alt="Language"
-                  className="w-full h-full object-cover"
-                />
-              </button>
+              <button onClick={() => setLangDropdownOpen(!langDropdownOpen)} className="flex w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md"><img src="/languageSv.jpeg" alt="Language" className="w-full h-full object-cover"/></button>
               <AnimatePresence>
                 {langDropdownOpen && (
-                  <motion.div
-                    initial={{ y: -10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -10, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute z-20 top-13 -right-12 mt-2 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center"
-                  >
-                    <button
-                      className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                      onClick={() => setLangDropdownOpen(false)}
-                    >
-                      English
-                    </button>
-                    <button
-                      className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                      onClick={() => setLangDropdownOpen(false)}
-                    >
-                      Swedish
-                    </button>
+                  <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -10, opacity: 0 }} transition={{ duration: 0.2 }} className="absolute z-20 top-13 -right-12 mt-2 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center">
+                    <button className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded" onClick={() => setLangDropdownOpen(false)}>English</button>
+                    <button className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded" onClick={() => setLangDropdownOpen(false)}>Swedish</button>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
           </div>
-
           <div className="md:hidden flex items-center justify-between w-full">
-            <img
-              src="/languageSv.jpeg"
-              alt="Language"
-              className="flex w-10 h-10 rounded-full overflow-hidden border-white"
-            />
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="text-white focus:outline-none p-2"
-              aria-label="Open menu"
-            >
-              <div className="space-y-1.5">
-                <div className="w-6 h-0.5 bg-white rounded"></div>
-                <div className="w-6 h-0.5 bg-white rounded"></div>
-                <div className="w-6 h-0.5 bg-white rounded"></div>
-              </div>
-            </button>
+            <img src="/languageSv.jpeg" alt="Language" className="flex w-10 h-10 rounded-full overflow-hidden border-white"/>
+            <button onClick={() => setMobileMenuOpen(true)} className="text-white focus:outline-none p-2" aria-label="Open menu"><div className="space-y-1.5"><div className="w-6 h-0.5 bg-white rounded"></div><div className="w-6 h-0.5 bg-white rounded"></div><div className="w-6 h-0.5 bg-white rounded"></div></div></button>
           </div>
         </div>
       </motion.header>
 
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.nav
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={mobileMenuVariants}
-            transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
-            className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col"
-          >
+          <motion.nav initial="hidden" animate="visible" exit="exit" variants={mobileMenuVariants} transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }} className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-white border-opacity-20 flex-shrink-0">
-              <button
-                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="relative w-12 h-12 rounded-full overflow-hidden border border-white border-opacity-50"
-              >
-                <img
-                  src="/languageSv.jpeg"
-                  alt="Language"
-                  className="w-full h-full object-cover"
-                />
-              </button>
+              <button onClick={() => setLangDropdownOpen(!langDropdownOpen)} className="relative w-12 h-12 rounded-full overflow-hidden border border-white border-opacity-50"><img src="/languageSv.jpeg" alt="Language" className="w-full h-full object-cover"/></button>
               <AnimatePresence>
                 {langDropdownOpen && (
-                  <motion.div
-                    initial={{ y: -10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -10, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute top-16 left-4 mt-1 w-28 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center z-50"
-                  >
-                    <button
-                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 rounded"
-                      onClick={() => {
-                        setLangDropdownOpen(false);
-                      }}
-                    >
-                      English
-                    </button>
-                    <button
-                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 rounded"
-                      onClick={() => {
-                        setLangDropdownOpen(false);
-                      }}
-                    >
-                      Swedish
-                    </button>
+                  <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -10, opacity: 0 }} transition={{ duration: 0.2 }} className="absolute top-16 left-4 mt-1 w-28 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center z-50">
+                    <button className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 rounded" onClick={() => { setLangDropdownOpen(false); }}>English</button>
+                    <button className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 rounded" onClick={() => { setLangDropdownOpen(false); }}>Swedish</button>
                   </motion.div>
                 )}
               </AnimatePresence>
-              <button
-                onClick={closeMobileMenu}
-                className="text-white p-2"
-                aria-label="Close menu"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-7 w-7"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+              <button onClick={closeMobileMenu} className="text-white p-2" aria-label="Close menu"><svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
-
             <div className="flex-grow flex flex-col items-center justify-center pb-16 px-4 space-y-8 overflow-y-auto">
               <SignedOut>
                 <div className="flex flex-col items-center space-y-6">
-                  <SignInButton mode="modal">
-                    <button
-                      onClick={closeMobileMenu}
-                      className="text-5xl font-semibold text-white hover:text-gray-300 transition-colors"
-                    >
-                      Sign In
-                    </button>
-                  </SignInButton>
-                  <SignUpButton mode="modal">
-                    <button
-                      onClick={closeMobileMenu}
-                      className="text-5xl font-semibold text-white hover:text-gray-300 transition-colors"
-                    >
-                      Sign Up
-                    </button>
-                  </SignUpButton>
+                  <SignInButton mode="modal"><button onClick={closeMobileMenu} className="text-5xl font-semibold text-white hover:text-gray-300 transition-colors">Sign In</button></SignInButton>
+                  <SignUpButton mode="modal"><button onClick={closeMobileMenu} className="text-5xl font-semibold text-white hover:text-gray-300 transition-colors">Sign Up</button></SignUpButton>
                 </div>
               </SignedOut>
               <SignedIn>
-                <div className="my-4">
-                  <p className="text-white font-Header text-5xl text-center mb-2">
-                    Welcome, {user?.firstName}! 
-                  </p><UserButton />
-                  {isAdmin && (
-                    <Link
-                      href="/admin"
-                      onClick={closeMobileMenu}
-                      className="block w-full text-4xl px-4 py-2 text-purple-300 hover:text-purple-200 text-center rounded font-semibold" // Adjusted mobile styling
-                    >
-                      Admin Panel
-                    </Link>
-                  )}
-                  <Link
-                    href="/events"
-                    onClick={closeMobileMenu}
-                    className="block w-full text-4xl px-4 py-2 text-white text-center rounded"
-                  >
-                    Events
-                  </Link>
-                  <Link
-                    href="/shop"
-                    onClick={closeMobileMenu}
-                    className="block w-full text-4xl text-center px-4 py-2 text-white rounded"
-                  >
-                    Shop
-                  </Link>
-                  <div className="border-t mt-1 pt-1">
-                    <SignOutButton>
-                      <button
-                        onClick={closeMobileMenu}
-                        className="w-full text-center font-bold text-2xl px-4 py-2 text-white hover:bg-red-50 rounded"
-                      >
-                        Log Out
-                      </button>
-                    </SignOutButton>
-                  </div>
-                </div>
+                 {isLoaded && user && (
+                    <div className="my-4 text-center">
+                      <p className="text-white font-Header text-5xl mb-2">Welcome, {user.firstName}!</p>
+                      <div className="inline-block mb-4"><UserButton afterSignOutUrl="/" /></div>
+                      {isAdmin && (<Link href="/admin" onClick={closeMobileMenu} className="block w-full text-4xl px-4 py-2 text-purple-300 hover:text-purple-200 text-center rounded font-semibold">Admin Panel</Link>)}
+                      <Link href="/events" onClick={closeMobileMenu} className="block w-full text-4xl px-4 py-2 text-white text-center rounded">Events</Link>
+                      {canShowUserCard && (<button onClick={() => { openUserCardModal(); closeMobileMenu(); }} className="block w-full text-4xl text-center px-4 py-2 text-white rounded">View My Card</button>)}
+                      <div className="border-t border-white/20 mt-4 pt-4"><SignOutButton><button onClick={closeMobileMenu} className="w-full text-center font-bold text-2xl px-4 py-2 text-red-300 hover:text-red-200 rounded">Log Out</button></SignOutButton></div>
+                    </div>
+                 )}
               </SignedIn>
-
-              <div className="w-full max-w-xs pt-4">
-                <Linktree />
-              </div>
-
-              <div className="pt-4">
-                <div className="bg-gray-100 rounded-4xl border border-gray-200 shadow-2xs mb-5">
-                  <SocialIcons />
-                </div>
-              </div>
+              <div className="w-full max-w-xs pt-4"><Linktree /></div>
+              <div className="pt-4"><div className="bg-gray-100 rounded-4xl border border-gray-200 shadow-2xs mb-5"><SocialIcons /></div></div>
             </div>
           </motion.nav>
         )}
       </AnimatePresence>
+
+      {isLoaded && (
+         <UserCardModal
+           isOpen={isUserCardModalOpen}
+           onClose={closeUserCardModal}
+           user={user}
+         />
+      )}
     </>
   );
 }
