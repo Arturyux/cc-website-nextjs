@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 
 const CARD_HEIGHT_MOBILE = 420;
 const CARD_PEEK_MOBILE = 30;
-
 const mobileCardVariants = {
   stack: (index) => ({
     opacity: index < 4 ? 1 - index * 0.2 : 0,
@@ -30,11 +29,6 @@ const mobileCardVariants = {
 
 export default function ActivitiesMobile({
   cards = [],
-  climbingImages = [],
-  funSwedishImages = [],
-  boardGamesImages = [],
-  dancingImages = [],
-  craftsImages = [],
   rotateLeft,
   rotateRight,
   openModal,
@@ -42,105 +36,46 @@ export default function ActivitiesMobile({
 }) {
   const stackContainerHeight = CARD_HEIGHT_MOBILE + CARD_PEEK_MOBILE * 3 + 20;
 
-  // Helper function to get the correct image source
-  const getImageSrc = (title) => {
-    switch (title) {
-      case 'Climbing':
-        return climbingImages[0]?.url;
-      case 'Fun Swedish':
-        return funSwedishImages[0]?.url;
-      case 'Board Games':
-        return boardGamesImages[0]?.url;
-      case 'Dancing':
-        return dancingImages[0]?.url;
-      case 'Crafts':
-        return craftsImages[0]?.url;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="flex flex-col items-center w-full max-w-sm mx-auto py-4">
-      <div
-        className="relative w-full mx-auto"
-        style={{ height: `${stackContainerHeight}px` }}
-      >
+      <div className="relative w-full mx-auto" style={{ height: `${stackContainerHeight}px` }}>
         {cards.map((card, index) => {
-          // Get the image source for the current card
-          const imageSrc = getImageSrc(card.title);
+          const imageSrc = card.imageUrl;
           return (
             <motion.div
               key={card.id}
               layout
               className="absolute w-full cursor-pointer origin-center"
-              style={{
-                height: `${CARD_HEIGHT_MOBILE}px`,
-                left: '0',
-                right: '0',
-                top: '0',
-                marginLeft: 'auto',
-                marginRight: 'auto',
-              }}
+              style={{ height: `${CARD_HEIGHT_MOBILE}px`, left: '0', right: '0', top: '0', marginLeft: 'auto', marginRight: 'auto' }}
               custom={index === 0 ? lastDirection : index}
               variants={mobileCardVariants}
               initial="stack"
               animate={index === 0 ? 'center' : 'stack'}
               exit="exit"
-              onClick={() => {
-                if (index === 0) {
-                  rotateRight();
-                }
-              }}
+              onClick={() => { if (index === 0) rotateRight(); }}
             >
-              <div
-                className={`card ${
-                  card.bgColor || 'bg-gradient-to-br from-gray-100 to-gray-200'
-                } w-full h-full flex flex-col rounded-xl border-2 border-black shadow-black shadow-lg overflow-hidden`}
-              >
+              <div className={`card ${card.bgColor || 'bg-gradient-to-br from-gray-100 to-gray-200'} w-full h-full flex flex-col rounded-xl border-2 border-black shadow-black shadow-lg overflow-hidden`}>
                 <div className="w-full h-1/2 bg-gray-300 relative flex-shrink-0">
-                  {/* Use the imageSrc variable */}
                   {imageSrc ? (
-                    <motion.img
-                      key={imageSrc}
-                      src={imageSrc}
-                      alt={card.title}
-                      className="object-cover w-full h-full"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.4 }}
-                    />
+                    <motion.img key={imageSrc} src={imageSrc} alt={card.title} className="object-cover w-full h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400">
-                      <span className="text-gray-600 text-2xl font-bold opacity-50">
-                        {card.title.substring(0, 3)}
-                      </span>
-                    </div>
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400"><span className="text-gray-600 text-2xl font-bold opacity-50">{card.title.substring(0, 3)}</span></div>
                   )}
                 </div>
                 <div className="w-full flex-grow flex flex-col justify-between p-4 text-left overflow-y-auto">
                   <div>
-                    <h2 className="card-title text-black text-xl font-bold mb-1">
-                      {card.title}
-                    </h2>
+                    <h2 className="card-title text-black text-xl font-bold mb-1">{card.title}</h2>
                     <div className="text-xs font-semibold mb-2 space-y-0.5">
-                      <p className="text-gray-800">
-                        <span className="font-bold">Date:</span> {card.date}
-                      </p>
-                      <p className="text-gray-800">
-                        <span className="font-bold">Time:</span> {card.time}
-                      </p>
-                      <p className="text-gray-800">
-                        <span className="font-bold">Location:</span>{' '}
-                        {card.location}
-                      </p>
+                      <p className="text-gray-800"><span className="font-bold">Date:</span> {card.date}</p>
+                      <p className="text-gray-800"><span className="font-bold">Time:</span> {card.time}</p>
+                      <p className="text-gray-800"><span className="font-bold">Location:</span> {card.location}</p>
                     </div>
                   </div>
                   <div className="mt-auto pt-2 flex justify-center">
                     <motion.button
                       onClick={(e) => {
                         e.stopPropagation();
-                        openModal(card.title);
+                        openModal(card.id ?? card.title);
                       }}
                       className="btn bg-blue-500 text-black text-center px-5 py-2 rounded border-2 border-black shadow-md shadow-black hover:shadow-none hover:bg-blue-400 transition-all text-sm font-semibold"
                       whileHover={{ scale: 1.05 }}
@@ -171,11 +106,6 @@ export default function ActivitiesMobile({
 
 ActivitiesMobile.propTypes = {
   cards: PropTypes.array.isRequired,
-  climbingImages: PropTypes.array,
-  funSwedishImages: PropTypes.array,
-  boardGamesImages: PropTypes.array, 
-  dancingImages: PropTypes.array,    
-  craftsImages: PropTypes.array,     
   rotateLeft: PropTypes.func.isRequired,
   rotateRight: PropTypes.func.isRequired,
   openModal: PropTypes.func.isRequired,
