@@ -14,8 +14,8 @@
     "isEnabled": true
   },
   {
-    "color": "bg-lime-400",
-    "text": "Committee sign up",
+    "color": "bg-lime-200",
+    "text": "Committee Sign Up",
     "link": "https://forms.gle/y7eDTap2WQ6yK5gt7",
     "textColor": "text-black",
     "isEnabled": false
