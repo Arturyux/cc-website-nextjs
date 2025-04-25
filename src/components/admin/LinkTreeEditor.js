@@ -94,33 +94,33 @@ function LinkTreeEditor({
 
           {editIndex === index && editedLink && (
             <div className="sm:w-[70%] p-2 mx-auto bg-white py-10 mt-6 rounded-lg border-2 border-black focus:outline-none placeholder">
-              <h4 className="text-4xl font-bold mb-2">Edit Link</h4>
+              <h4 className="text-4xl text-center font-bold mb-2">Edit Link</h4>
               <div className="mb-4">
-                <label className="block mb-2 font-semibold text-lg">Text</label>
+                <label className="block mb-2 text-center font-semibold text-lg">Text</label>
                 <input
                   type="text"
                   value={editedLink.text}
                   onChange={(e) =>
                     setEditedLink({ ...editedLink, text: e.target.value })
                   }
-                  className="sm:w-96 mx-auto mt-2 text-center font-bold p-4 rounded py-3 border-2 border-black focus:outline-none"
+                  className="sm:w-96 mx-auto flex mt-2 text-center font-bold p-4 rounded py-3 border-2 border-black focus:outline-none"
                 />
               </div>
 
               <div className="mb-4">
-                <label className="block mb-2 font-semibold text-lg">Link</label>
+                <label className="block mb-2 text-center font-semibold text-lg">Link</label>
                 <input
                   type="url"
                   value={editedLink.link}
                   onChange={(e) =>
                     setEditedLink({ ...editedLink, link: e.target.value })
                   }
-                  className="sm:w-96 mx-auto mt-2 text-center font-bold p-4 rounded py-3 border-2 border-black focus:outline-none"
+                  className="sm:w-96 mx-auto flex mt-2 text-center font-bold p-4 rounded py-3 border-2 border-black focus:outline-none"
                 />
               </div>
 
               <div className="mb-4">
-                 <label className="block mb-2 font-semibold text-lg">Color (Tailwind/Hex)</label>
+                 <label className="block mb-2 text-center font-semibold text-lg">Color (Tailwind/Hex)</label>
                  <input
                    type="text"
                    placeholder="e.g., bg-blue-500 or #ff00ff"
@@ -128,12 +128,12 @@ function LinkTreeEditor({
                    onChange={(e) =>
                      setEditedLink({ ...editedLink, color: e.target.value.trim() })
                    }
-                   className="sm:w-96 mx-auto mt-2 text-center font-bold p-4 rounded py-3 border-2 border-black focus:outline-none"
+                   className="sm:w-96 flex mx-auto mt-2 text-center font-bold p-4 rounded py-3 border-2 border-black focus:outline-none"
                  />
               </div>
 
               <div className="mb-4">
-                <label className="block mb-2 font-semibold text-lg">
+                <label className="block mb-2 text-center font-semibold text-lg">
                   Text Color
                 </label>
                 <div className="flex justify-center space-x-2">
@@ -174,7 +174,7 @@ function LinkTreeEditor({
               <button
                 onClick={handleSaveEdit}
                 disabled={isSaving}
-                className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 bg-green-400 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 disabled:opacity-50"
+                className="sm:w-96 flex justify-center mx-auto mt-6 text-center p-4 rounded py-3 bg-green-400 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 disabled:opacity-50"
               >
                 <p className="font-bold text-lg">Save Changes</p>
               </button>
