@@ -30,6 +30,16 @@ export default function Home() {
           <SponsorsCarousel />
         </section>
       </div>
+      <footer className="bg-gray-50 border-t border-gray-200 mt-16 py-6">
+      <div className="container mx-auto px-4 text-center text-gray-600 text-sm">
+        <p className="mb-1">
+          &copy; 2025 Culture Connection
+        </p>
+        <p>
+          website made by Artur Burlakin
+        </p>
+      </div>
+    </footer>
     </>
   );
 }
