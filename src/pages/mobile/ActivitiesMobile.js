@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
+import Link from 'next/link';
 
 const CARD_HEIGHT_MOBILE = 420;
 const CARD_PEEK_MOBILE = 30;
@@ -90,16 +91,20 @@ export default function ActivitiesMobile({
           );
         })}
       </div>
-      <motion.button
-        onClick={rotateRight}
-        className="relative px-10 p-4 text-white bg-baseColor rounded-full font-Header text-4xl"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        disabled={cards.length < 2}
-        aria-label="Next Activity"
-      >
-        <p>Next Card</p>
-      </motion.button>
+
+      <div className="flex items-center space-x-2 justify-center w-full">
+          <Link href="/events" className="relative px-10 p-4 text-white bg-baseColor rounded-full font-Header text-4xl hover:scale-110"> <p>Events</p> </Link>
+          <motion.button
+            onClick={rotateRight}
+            className="relative px-10 p-4 text-white bg-baseColor rounded-full font-Header text-4xl"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            disabled={cards.length < 2}
+            aria-label="Next Activity"
+          >
+            <p>Next Card</p>
+          </motion.button>
+       </div>
     </div>
   );
 }

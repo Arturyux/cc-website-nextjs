@@ -1,9 +1,9 @@
-// src/pages/ActivitiesPage.js
 "use client";
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from "@tanstack/react-query";
+import Link from 'next/link';
 
 import GenericActivityModal from '../components/ActivitiesModal/GenericActivityModal';
 import ActivitiesMobile from './mobile/ActivitiesMobile';
@@ -168,7 +168,10 @@ export default function ActivitiesPage() {
             </AnimatePresence>
           </div>
         </div>
-        <motion.button onClick={rotateRight} className="relative px-10 p-4 text-white bg-baseColor rounded-full font-Header text-4xl" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} disabled={displayCards.length < 2} aria-label="Next Activity"> <p>Next Card</p> </motion.button>
+        <div className="flex items-center space-x-5 justify-center w-full">
+          <Link href="/events" className="relative px-10 p-4 text-white bg-baseColor rounded-full font-Header text-4xl hover:scale-110"> <p>Events</p> </Link>
+          <motion.button onClick={rotateRight} className="relative px-10 p-4 text-white bg-baseColor rounded-full font-Header text-4xl" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} disabled={displayCards.length < 2} aria-label="Next Activity"> <p>Next Card</p> </motion.button>
+        </div>
       </div>
 
       <div className="md:hidden flex items-center justify-center px-4 py-4 w-full">
