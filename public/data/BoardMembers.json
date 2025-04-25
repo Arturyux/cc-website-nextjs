@@ -78,5 +78,13 @@
     "contact": "info@cultureconnection.se",
     "imageUrl": "https://via.placeholder.com/150/AAAAAA/FFFFFF?text=George",
     "bio": "Expert in... various things. Always present."
- }
+  },
+  {
+    "id": "m1745595043485",
+    "name": "Artur Burlakin",
+    "position": "Committee Member",
+    "contact": "Discord: Artur",
+    "imageUrl": "https://img.goodfon.com/wallpaper/nbig/d/55/aleksandr-plekhanov-shchurki-dvoe.webp",
+    "bio": "Founder of this mess"
+  }
 ]
