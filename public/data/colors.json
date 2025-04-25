@@ -1,0 +1,970 @@
+[
+  {
+    "colorName": "bg-slate-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-slate-100",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-slate-200",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-slate-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-slate-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-slate-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-slate-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-slate-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-slate-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-slate-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-slate-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-100",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-200",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-gray-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-100",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-200",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-zinc-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-100",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-200",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-neutral-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-100",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-200",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-stone-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-red-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-red-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-red-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-red-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-red-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-red-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-red-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-red-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-red-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-red-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-red-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-orange-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-orange-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-orange-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-orange-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-orange-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-orange-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-orange-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-orange-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-orange-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-orange-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-orange-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-amber-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-amber-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-amber-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-amber-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-amber-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-amber-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-amber-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-amber-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-amber-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-amber-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-amber-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-yellow-50",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-yellow-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-yellow-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-yellow-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-yellow-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-yellow-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-yellow-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-yellow-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-yellow-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-yellow-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-yellow-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-lime-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-lime-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-lime-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-lime-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-lime-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-lime-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-lime-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-lime-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-lime-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-lime-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-lime-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-green-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-green-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-green-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-green-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-green-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-green-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-green-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-green-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-green-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-green-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-green-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-emerald-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-emerald-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-emerald-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-emerald-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-emerald-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-emerald-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-emerald-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-emerald-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-emerald-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-emerald-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-emerald-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-teal-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-teal-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-teal-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-teal-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-teal-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-teal-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-teal-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-teal-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-teal-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-teal-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-teal-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-cyan-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-cyan-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-cyan-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-cyan-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-cyan-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-cyan-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-cyan-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-cyan-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-cyan-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-cyan-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-cyan-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-sky-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-sky-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-sky-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-sky-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-sky-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-sky-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-sky-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-sky-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-sky-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-sky-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-sky-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-blue-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-blue-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-blue-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-blue-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-blue-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-blue-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-blue-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-blue-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-blue-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-blue-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-blue-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-indigo-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-indigo-100",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-indigo-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-indigo-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-indigo-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-indigo-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-indigo-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-indigo-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-indigo-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-indigo-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-indigo-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-violet-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-violet-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-violet-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-violet-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-violet-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-violet-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-violet-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-violet-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-violet-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-violet-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-violet-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-purple-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-purple-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-purple-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-purple-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-purple-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-purple-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-purple-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-purple-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-purple-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-purple-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-purple-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-fuchsia-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-fuchsia-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-fuchsia-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-fuchsia-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-fuchsia-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-fuchsia-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-fuchsia-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-fuchsia-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-fuchsia-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-fuchsia-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-fuchsia-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-pink-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-pink-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-pink-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-pink-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-pink-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-pink-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-pink-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-pink-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-pink-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-pink-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-pink-950",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-rose-50",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-rose-100",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-rose-200",
+    "isFavorite": true
+  },
+  {
+    "colorName": "bg-rose-300",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-rose-400",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-rose-500",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-rose-600",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-rose-700",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-rose-800",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-rose-900",
+    "isFavorite": false
+  },
+  {
+    "colorName": "bg-rose-950",
+    "isFavorite": false
+  }
+]

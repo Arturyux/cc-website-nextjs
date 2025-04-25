@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import ColorPicker from "../ColorPicker";
 
 const fetchCards = async () => {
   const response = await fetch("/api/cards");
@@ -69,11 +70,18 @@ function CardForm({ initialData, onSubmit, onCancel, isSubmitting }) {
       : [],
     imageUrl: initialData?.imageUrl || "",
     url: initialData?.url || "",
+    bgColor: initialData?.bgColor || "bg-gray-200",
   });
+
+  const [showColorPicker, setShowColorPicker] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleColorSelect = (colorClass) => {
+    setFormData((prev) => ({ ...prev, bgColor: colorClass }));
   };
 
   const handleInDescriptionChange = (index, field, value) => {
@@ -176,8 +184,33 @@ function CardForm({ initialData, onSubmit, onCancel, isSubmitting }) {
         <input type="text" name="location" id="location" value={formData.location} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"/>
       </div>
       <div>
-        <label htmlFor="bgColor" className="block text-sm font-medium text-gray-700">Background Color (Tailwind Class)</label>
-        <input type="text" name="bgColor" id="bgColor" value={formData.bgColor} onChange={handleChange} placeholder="e.g., bg-blue-300" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"/>
+        <label className="block text-sm font-medium text-gray-700">Background Color</label>
+        <div className="mt-1 flex items-center gap-3">
+           <div className={`w-8 h-8 rounded border border-gray-400 ${formData.bgColor}`} title={formData.bgColor}></div>
+           <input
+             type="text"
+             name="bgColor"
+             value={formData.bgColor}
+             onChange={handleChange}
+             placeholder="e.g., bg-blue-300"
+             className="flex-grow border border-gray-300 rounded-md shadow-sm p-2 text-sm"
+           />
+           <button
+             type="button"
+             onClick={() => setShowColorPicker(!showColorPicker)}
+             className="px-3 py-1.5 border border-gray-300 rounded text-sm hover:bg-gray-50"
+           >
+             {showColorPicker ? 'Hide' : 'Pick'} Color
+           </button>
+        </div>
+        {showColorPicker && (
+          <div
+            className="mt-2 border rounded max-h-60 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+             <ColorPicker onSelectColor={handleColorSelect} />
+          </div>
+        )}
       </div>
 
       <div className="pt-4 border-t">
@@ -197,7 +230,7 @@ function CardForm({ initialData, onSubmit, onCancel, isSubmitting }) {
                  <label className="block text-xs font-medium text-gray-600 mb-1">Gallery Image URLs (Section {descIndex + 1})</label>
                  {(item.ImagesUrl || []).map((url, imgIndex) => (
                      <div key={imgIndex} className="flex items-center gap-2 mb-1">
-                         <input type="url" value={url} onChange={(e) => handleImageUrlChange(descIndex, imgIndex, e.target.value)} placeholder="https://example.com/gallery.jpg" className="flex-grow border border-gray-300 rounded-md shadow-sm p-1 text-xs"/>
+                         <input type="url" value={url || ''} onChange={(e) => handleImageUrlChange(descIndex, imgIndex, e.target.value)} placeholder="https://example.com/gallery.jpg" className="flex-grow border border-gray-300 rounded-md shadow-sm p-1 text-xs"/>
                          <button type="button" onClick={() => removeImageUrl(descIndex, imgIndex)} className="text-red-500 hover:text-red-700 text-xs p-0.5 leading-none" aria-label={`Remove image ${imgIndex + 1}`}>Remove</button>
                      </div>
                  ))}

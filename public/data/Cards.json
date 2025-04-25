@@ -6,7 +6,10 @@
     "time": "17:30",
     "location": "Bollgatan 1 (Town)",
     "bgColor": "bg-yellow-200",
-    "description": "WOoOOOOOOOOIOOOOOOOOWO"
+    "description": "WOoOOOOOOOOIOOOOOOOOWO",
+    "imageUrl": "",
+    "url": "",
+    "inDescription": []
   },
   {
     "id": 2,
@@ -38,7 +41,7 @@
     "date": "Every Wednesday",
     "time": "17:30",
     "location": "Olympus (Campus)",
-    "bgColor": "bg-pink-200",
+    "bgColor": "bg-emerald-200",
     "description": "YES",
     "imageUrl": "https://img.goodfon.com/wallpaper/nbig/e/7a/badfon-trehcvetnaya-koshka-zivaet-yazyk.webp",
     "url": "",
