@@ -16,7 +16,14 @@ export default function Background() {
   return (
     <>
     <div className="absolute w-full h-full">
-    <Blop centerX={1200} centerY={100}/>
+    <Blop
+        x={1400}
+        y={900}
+        size={650} 
+        color1="#f5dab0"
+        color2="#FFBE5A"
+        noiseAmplitude={50}
+      />
       <div className="absolute md:w-[8%] w-[15%] md:top-45 md:left-30 top-35 left-0 md:rotate-0 rotate-45 -z-1">
         <img src={selectedPattern} alt="Background Pattern" />
       </div>

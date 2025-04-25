@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import gsap from "gsap"; 
-import "../lib/noise"; 
+import "../lib/noise";
 
 const getNoise = (x, y) => {
   const noiseFn = window.noise?.simplex2;
@@ -10,58 +9,76 @@ const getNoise = (x, y) => {
 };
 
 export default function Blop({
-  centerX: propCenterX,
-  centerY: propCenterY,
+  x = 0,
+  y = 0,
+  size = 400,
+  color1 = "#f5dab0",
+  color2 = "#FFBE5A",
+  noiseAmplitude = 40,
+  noiseScale = 0.8,
+  noiseSpeed = 0.005,
 }) {
   const canvasRef = useRef(null);
   const animationFrameIdRef = useRef(null);
-  const timeRef = useRef(0); 
+  const timeRef = useRef(0);
+  const ctxRef = useRef(null);
+  const animatedColorsRef = useRef({
+    c1: color1,
+    c2: color2,
+  });
+
+  useEffect(() => {
+    animatedColorsRef.current.c1 = color1;
+    animatedColorsRef.current.c2 = color2;
+  }, [color1, color2]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      console.error("Failed to get 2D context");
-      return;
+    if (!ctxRef.current) {
+      ctxRef.current = canvas.getContext("2d");
+      if (!ctxRef.current) {
+        console.error("Failed to get 2D context");
+        return;
+      }
     }
-
-    // --- Parameters ---
-    const amplitude = 40;
-    const noiseScale = 0.8;
-    const steps = 360;
-
-    // --- State Variables (managed within useEffect) ---
-    let width;
-    let height;
-    let cx; 
-    let cy; 
-    let baseRadius;
-
+    const ctx = ctxRef.current;
+    const baseRadius = size / 2;
+    const steps = 180;
+    const cx = x;
+    const cy = y;
     const draw = () => {
-      if (!ctx || width === undefined || height === undefined) {
+      if (!ctx) {
         animationFrameIdRef.current = requestAnimationFrame(draw);
         return;
       }
 
-      timeRef.current += 0.005;
+      timeRef.current += noiseSpeed;
       const t = timeRef.current;
-      ctx.clearRect(0, 0, width, height);
+      const clearRadius = baseRadius + noiseAmplitude + 10;
+      const dpr = window.devicePixelRatio || 1;
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(
+        cx - clearRadius,
+        cy - clearRadius,
+        clearRadius * 2,
+        clearRadius * 2,
+      );
       ctx.beginPath();
-
       for (let i = 0; i <= steps; i++) {
         const angle = (i / steps) * 2 * Math.PI;
         const nx = Math.cos(angle) * noiseScale;
         const ny = Math.sin(angle) * noiseScale;
-        const offset = getNoise(nx + t, ny + t) * amplitude;
+        const offset = getNoise(nx + t, ny + t) * noiseAmplitude;
         const r = baseRadius + offset;
-        const x = cx + r * Math.cos(angle);
-        const y = cy + r * Math.sin(angle);
+        const pointX = cx + r * Math.cos(angle);
+        const pointY = cy + r * Math.sin(angle);
 
         if (i === 0) {
-          ctx.moveTo(x, y);
+          ctx.moveTo(pointX, pointY);
         } else {
-          ctx.lineTo(x, y);
+          ctx.lineTo(pointX, pointY);
         }
       }
       ctx.closePath();
@@ -72,30 +89,33 @@ export default function Blop({
         0,
         cx,
         cy,
-        baseRadius + amplitude,
+        baseRadius + noiseAmplitude,
       );
-      gradient.addColorStop(0, "#f5dab0");
-      gradient.addColorStop(1, "#FFBE5A");
+      gradient.addColorStop(0, animatedColorsRef.current.c1);
+      gradient.addColorStop(1, animatedColorsRef.current.c2);
 
       ctx.fillStyle = gradient;
       ctx.fill();
-
-      // Schedule the next frame for continuous animation
+      ctx.restore();
       animationFrameIdRef.current = requestAnimationFrame(draw);
     };
 
     const handleResize = () => {
-      // Update canvas dimensions
-      width = window.innerWidth;
-      height = window.innerHeight;
-      if (canvas) {
-        canvas.width = width;
-        canvas.height = height;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const newWidth = rect.width;
+      const newHeight = rect.height;
+      canvas.width = Math.round(newWidth * dpr);
+      canvas.height = Math.round(newHeight * dpr);
+      canvas.style.width = `${newWidth}px`;
+      canvas.style.height = `${newHeight}px`;
+      if (!animationFrameIdRef.current) {
+        console.log("Starting draw loop after resize.");
+        if (animationFrameIdRef.current) {
+            cancelAnimationFrame(animationFrameIdRef.current);
+        }
+        draw();
       }
-
-      baseRadius = Math.min(450, Math.min(width, height) * 0.25);
-      cx = propCenterX ?? width / 2;
-      cy = propCenterY ?? height / 2;
     };
 
     handleResize();
@@ -108,18 +128,16 @@ export default function Blop({
       window.removeEventListener("resize", handleResize);
       if (animationFrameIdRef.current) {
         cancelAnimationFrame(animationFrameIdRef.current);
+        animationFrameIdRef.current = null;
       }
-      if (canvas) {
-        gsap.killTweensOf(canvas);
-      }
+      ctxRef.current = null;
     };
-  }, []);
+  }, [x, y, size, noiseAmplitude, noiseScale, noiseSpeed]);
 
   return (
     <canvas
       ref={canvasRef}
-      // Fixed position, covers viewport, behind content, non-interactive
-      className= {`absolute top-[0px] left-[0px] w-full h-full z-[-1] pointer-events-none bg-transparent`}
+      className={`absolute top-[0px] left-[0px] w-full h-full z-[-1] pointer-events-none bg-transparent`}
     />
   );
 }
