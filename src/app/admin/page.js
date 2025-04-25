@@ -1,4 +1,3 @@
-// src/app/admin/page.js
 "use client";
 
 import { useUser } from "@clerk/nextjs";
@@ -53,14 +52,14 @@ export default function AdminPage() {
     return (
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 min-h-screen">
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 border-b pb-4 gap-4">
-            <h1 className="text-3xl font-bold text-purple-700">
+          <div className="flex flex-col sm:flex-row justify-center sm:items-center mb-6 border-b pb-4 gap-4">
+            <h1 className="text-3xl text-center font-bold text-purple-700">
               Admin Panel
             </h1>
           </div>
 
-          <p className="mb-6 text-gray-700">
-            Welcome, Admin {user?.firstName || user?.fullName || "User"}!
+          <p className="mb-6 text-3xl text-center text-black">
+            Welcome, {user?.firstName || user?.fullName || "User"}!
           </p>
           <p className="block text-center mx-auto w-full text-2xl font-Main font-bold">Admin Configuration options</p>
             <div>
