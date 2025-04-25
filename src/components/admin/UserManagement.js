@@ -1,3 +1,4 @@
+// components/UserManagement.js (or wherever you have it)
 "use client";
 
 import { useState, useMemo } from "react";
@@ -9,6 +10,7 @@ import {
 
 const filterOptions = [
   { key: "all", label: "All" },
+  { key: "pending", label: "Pending" },
   { key: "admin", label: "Admin" },
   { key: "committee", label: "Committee" },
   { key: "member", label: "Members" },
@@ -144,21 +146,26 @@ export default function UserManagement() {
   };
 
   const filteredUsers = useMemo(() => {
-    let tempUsers = [...users];
+    const safeUsers = Array.isArray(users) ? users : [];
+    let tempUsers = [...safeUsers];
+
     if (activeFilter !== "all") {
       tempUsers = tempUsers.filter((user) => {
         switch (activeFilter) {
+          case "pending":
+            return user.isPending === true;
           case "admin":
             return user.isAdmin === true;
           case "committee":
             return user.isCommittee === true;
           case "member":
-            return user.isMember === true && user.isAdmin !== true;
+            return user.isMember === true && !user.isAdmin && !user.isPending;
           case "user":
             return (
-              user.isAdmin === false &&
-              user.isMember === false &&
-              user.isCommittee === false
+              !user.isAdmin &&
+              !user.isMember &&
+              !user.isCommittee &&
+              !user.isPending
             );
           case "freezed":
             return user.isFreezed === true;
@@ -169,6 +176,7 @@ export default function UserManagement() {
         }
       });
     }
+
     const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
     if (lowerCaseSearchTerm) {
       tempUsers = tempUsers.filter((user) => {
@@ -178,7 +186,8 @@ export default function UserManagement() {
         const email = user.email?.toLowerCase() || "";
         return (
           fullName.includes(lowerCaseSearchTerm) ||
-          email.includes(lowerCaseSearchTerm)
+          email.includes(lowerCaseSearchTerm) ||
+          user.id.toLowerCase().includes(lowerCaseSearchTerm)
         );
       });
     }
@@ -214,7 +223,7 @@ export default function UserManagement() {
     return <p className="text-center text-gray-500 py-4">Loading users...</p>;
   }
 
-  if (isUsersError) {
+  if (isUsersError && users.length === 0) {
     return (
       <p className="text-center text-red-600 py-4">
         Error loading users: {usersFetchError?.message || "Unknown error"}
@@ -249,7 +258,7 @@ export default function UserManagement() {
           <input
             type="text"
             id="user-search"
-            placeholder="Search by name or email..."
+            placeholder="Search by name, email, or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
@@ -300,7 +309,7 @@ export default function UserManagement() {
           <thead className="bg-gray-100">
             <tr>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Full Name
+                Name / Email
               </th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 User Status
@@ -334,7 +343,30 @@ export default function UserManagement() {
               return (
                 <tr key={user.id}>
                   <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {userName}
+                    <div className="flex items-center space-x-2">
+                      {user.isPending && (
+                        <span title="Pending Verification">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 text-orange-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </span>
+                      )}
+                      <span>{userName}</span>
+                    </div>
+                    {userName !== user.email && (
+                      <div className="text-xs text-gray-500">{user.email}</div>
+                    )}
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm">
                     <span
@@ -398,11 +430,6 @@ export default function UserManagement() {
                             : "bg-orange-500 hover:bg-orange-600"
                       }`}
                       aria-label={`${user.isCommittee ? "Remove committee status from" : "Make"} ${userName} a committee member`}
-                      title={
-                        user.isAdmin
-                          ? "Admin status does not affect Committee status"
-                          : ""
-                      }
                     >
                       {isLoadingThisUser
                         ? "..."
@@ -421,20 +448,32 @@ export default function UserManagement() {
                           ? "bg-gray-400 cursor-not-allowed"
                           : user.isMember
                             ? "bg-red-500 hover:bg-red-600"
-                            : "bg-blue-500 hover:bg-blue-600"
+                            : user.isPending
+                              ? "bg-green-500 hover:bg-green-600"
+                              : "bg-blue-500 hover:bg-blue-600"
                       }`}
-                      aria-label={`${user.isMember ? "Remove member status from" : "Make"} ${userName} a member`}
+                      aria-label={
+                        user.isMember
+                          ? `Remove member status from ${userName}`
+                          : user.isPending
+                            ? `Approve ${userName} as member`
+                            : `Make ${userName} a member`
+                      }
                       title={
                         user.isAdmin
                           ? "Admins automatically have Member status"
-                          : ""
+                          : user.isPending
+                            ? "Approve pending request"
+                            : ""
                       }
                     >
                       {isLoadingThisUser
                         ? "..."
                         : user.isMember
                           ? "Remove Member"
-                          : "Make Member"}
+                          : user.isPending
+                            ? "Approve Member"
+                            : "Make Member"}
                     </button>
 
                     <button

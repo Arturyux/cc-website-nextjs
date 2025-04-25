@@ -1,6 +1,9 @@
+// app/api/admin/users/route.js
 import { NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { createClerkClient } from "@clerk/clerk-sdk-node";
+import fs from "fs/promises";
+import path from "path";
 
 const initializeClerk = () => {
   const secretKey = process.env.CLERK_SECRET_KEY;
@@ -39,6 +42,64 @@ async function verifyUserLoggedIn(request) {
   }
 }
 
+const verificationFilePath = path.join(
+  process.cwd(),
+  "public",
+  "data",
+  "MemberVerefication.json",
+);
+
+async function readVerificationData() {
+  try {
+    const fileContent = await fs.readFile(verificationFilePath, "utf-8");
+    const data = JSON.parse(fileContent);
+    if (
+      Array.isArray(data) &&
+      data.every((item) => typeof item === "object" && item !== null && "userID" in item)
+    ) {
+      return data;
+    }
+    console.warn("MemberVerefication.json format is invalid. Returning empty array.");
+    return [];
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      console.log("MemberVerefication.json not found, returning empty list.");
+      return [];
+    }
+    console.error("Error reading or parsing MemberVerefication.json:", error);
+    return [];
+  }
+}
+
+async function removeUserFromVerification(userIdToRemove) {
+  try {
+    const currentData = await readVerificationData();
+    const newData = currentData.filter(
+      (entry) => entry.userID !== userIdToRemove,
+    );
+
+    if (newData.length !== currentData.length) {
+      await fs.writeFile(
+        verificationFilePath,
+        JSON.stringify(newData, null, 2),
+        "utf-8",
+      );
+      console.log(
+        `Successfully removed user ${userIdToRemove} from MemberVerefication.json`,
+      );
+    } else {
+      console.log(
+        `User ${userIdToRemove} not found in MemberVerefication.json, no changes needed.`,
+      );
+    }
+  } catch (error) {
+    console.error(
+      `Error updating MemberVerefication.json for user ${userIdToRemove}:`,
+      error,
+    );
+  }
+}
+
 export async function GET(request) {
   const loggedInCheck = await verifyUserLoggedIn(request);
   if (!loggedInCheck.authorized) {
@@ -51,10 +112,17 @@ export async function GET(request) {
   let clerk;
   try {
     clerk = initializeClerk();
-    const userListResponse = await clerk.users.getUserList({ limit: 500 });
+
+    const [userListResponse, verificationList] = await Promise.all([
+      clerk.users.getUserList({ limit: 500 }),
+      readVerificationData(),
+    ]);
+
+    const pendingUserIds = new Set(
+      verificationList.map((entry) => entry.userID),
+    );
 
     const users = userListResponse?.data;
-    const totalCount = userListResponse?.totalCount;
 
     if (!Array.isArray(users)) {
       console.error(
@@ -66,23 +134,30 @@ export async function GET(request) {
       );
     }
 
-    const userData = users.map((user) => ({
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email:
-        user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
-          ?.emailAddress || "No primary email",
-      isAdmin: user.publicMetadata?.admin === true,
-      isMember: user.publicMetadata?.member === true,
-      isCommittee: user.publicMetadata?.committee === true,
-      isFreezed: user.publicMetadata?.freezed === true,
-    }));
+    const userData = users.map((user) => {
+      const isActuallyMember = user.publicMetadata?.member === true;
+      const isInVerificationFile = pendingUserIds.has(user.id);
+      const isPending = isInVerificationFile && !isActuallyMember;
+
+      return {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email:
+          user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
+            ?.emailAddress || "No primary email",
+        isAdmin: user.publicMetadata?.admin === true,
+        isMember: isActuallyMember,
+        isCommittee: user.publicMetadata?.committee === true,
+        isFreezed: user.publicMetadata?.freezed === true,
+        isPending: isPending,
+      };
+    });
 
     return NextResponse.json(userData);
   } catch (error) {
     console.error(
-      "API GET /api/admin/users - Error during user fetch or SDK init:",
+      "API GET /api/admin/users - Error during user fetch, verification read, or SDK init:",
       error,
     );
     if (
@@ -158,6 +233,15 @@ export async function PUT(request) {
     await clerk.users.updateUserMetadata(userId, {
       publicMetadata: finalMetadata,
     });
+
+    if (metadataKey === "member" && metadataValue === true) {
+      removeUserFromVerification(userId).catch((err) => {
+        console.error(
+          `Unhandled error during removeUserFromVerification for ${userId}:`,
+          err,
+        );
+      });
+    }
 
     return NextResponse.json({
       success: true,
