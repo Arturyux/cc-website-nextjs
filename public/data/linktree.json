@@ -3,17 +3,28 @@
     "color": "bg-green-300",
     "text": "Weekly Activities",
     "link": "https://activities.cultureconnection.se",
-    "textColor": "text-black"
+    "textColor": "text-black",
+    "isEnabled": true
   },
   {
     "color": "#FFB8D1",
     "text": "Bylaws",
-    "link": "https://bylaws.cultureconnection.se"
+    "link": "https://bylaws.cultureconnection.se",
+    "textColor": "text-black",
+    "isEnabled": true
   },
   {
     "color": "bg-lime-400",
     "text": "Committee sign up",
     "link": "https://forms.gle/y7eDTap2WQ6yK5gt7",
-    "textColor": "text-black"
+    "textColor": "text-black",
+    "isEnabled": true
+  },
+  {
+    "color": "#8f2c2c",
+    "text": "mnoncsd",
+    "link": "https://wdasdas.com",
+    "textColor": "text-black",
+    "isEnabled": false
   }
 ]
