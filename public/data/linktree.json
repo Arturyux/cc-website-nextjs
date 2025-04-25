@@ -1,6 +1,6 @@
 [
   {
-    "color": "bg-green-300",
+    "color": "bg-green-200",
     "text": "Weekly Activities",
     "link": "https://activities.cultureconnection.se",
     "textColor": "text-black",
@@ -17,13 +17,6 @@
     "color": "bg-lime-400",
     "text": "Committee sign up",
     "link": "https://forms.gle/y7eDTap2WQ6yK5gt7",
-    "textColor": "text-black",
-    "isEnabled": true
-  },
-  {
-    "color": "#8f2c2c",
-    "text": "mnoncsd",
-    "link": "https://wdasdas.com",
     "textColor": "text-black",
     "isEnabled": false
   }
