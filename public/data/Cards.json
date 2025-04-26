@@ -6,10 +6,36 @@
     "time": "17:30",
     "location": "Bollgatan 1 (Town)",
     "bgColor": "bg-yellow-200",
-    "description": "WOoOOOOOOOOIOOOOOOOOWO",
-    "imageUrl": "",
+    "description": "Event is Fully beginner friendly! Come and explore amazing sport in-door Climbing.",
+    "imageUrl": "https://api2.cultureconnection.se/assets/climbing-pictures/1294101530726760518_1294101528663167067.jpg",
     "url": "",
-    "inDescription": []
+    "inDescription": [
+      {
+        "title": "Climbing (Beginner Friendly)",
+        "description": "Join us every Monday for our climbing event! If you arrive early or late, please go to the counter, and the staff will guide you to the waiting area.",
+        "ImagesUrl": [
+          "https://api2.cultureconnection.se/assets/climbing-pictures/1312481384924840016_1312481382588485672.jpg",
+          "https://api2.cultureconnection.se/assets/climbing-pictures/1312481384924840016_1312481384631373854.jpg",
+          "https://api2.cultureconnection.se/assets/climbing-pictures/1294349290529095685_1294349290063396988.jpg",
+          "https://api2.cultureconnection.se/assets/climbing-pictures/1294348357560434719_1294348344226877480.jpg"
+        ]
+      },
+      {
+        "title": "",
+        "description": "Big thanks to Idrottshuset for their partnership! We're excited to offer a 50% discount on entry fees.",
+        "ImagesUrl": []
+      },
+      {
+        "title": "",
+        "description": "We'll provide all the gear, so just bring yourself! 😊 Whether you're new or experienced in climbing.",
+        "ImagesUrl": []
+      },
+      {
+        "title": "We Have Sauna!",
+        "description": "Grab a towel if you'd like to enjoy Idrottshuset's sauna!",
+        "ImagesUrl": []
+      }
+    ]
   },
   {
     "id": 2,
@@ -17,7 +43,38 @@
     "date": "Every Tuesday",
     "time": "18:00",
     "location": "F-Building (Campus)",
-    "bgColor": "bg-blue-200"
+    "bgColor": "bg-blue-200",
+    "description": "This Event is free of charge! Open for Everyone! ",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-games-pictures/1308499046989561886_1308499046582976532.jpg",
+    "url": "",
+    "inDescription": [
+      {
+        "title": "Free Board Game night (Beginner friendly)",
+        "description": "Board Game Night is happening every Tuesday at 18:00! Come and enjoy a fun evening; entry is free as always! We’ll be meeting in Building F.",
+        "ImagesUrl": [
+          "https://api2.cultureconnection.se/assets/board-games-pictures/1308499096364908555_1308499095492628530.jpg",
+          "https://api2.cultureconnection.se/assets/board-games-pictures/1308499046989561886_1308499041415467132.jpg",
+          "https://api2.cultureconnection.se/assets/board-games-pictures/1294106505418903564_1294106503653097604.jpg",
+          "https://api2.cultureconnection.se/assets/board-games-pictures/1308499210018226226_1308499205047975996.jpg",
+          "https://api2.cultureconnection.se/assets/board-games-pictures/1308499210018226226_1308499208478785546.jpg"
+        ]
+      },
+      {
+        "title": "",
+        "description": "We have an exciting selection of games, sponsored by the Nexus Game Store in town and Sensus.\n",
+        "ImagesUrl": []
+      },
+      {
+        "title": "",
+        "description": "Feel free to bring your own games to share with others!",
+        "ImagesUrl": []
+      },
+      {
+        "title": "",
+        "description": "Whether you’re a beginner or a veteran gamer, everyone is welcome. We look forward to seeing you there!",
+        "ImagesUrl": []
+      }
+    ]
   },
   {
     "id": 3,
@@ -25,7 +82,32 @@
     "date": "Every Thursday",
     "time": "20:00",
     "location": "H-Building Linnesalen (Campus)",
-    "bgColor": "bg-red-200"
+    "bgColor": "bg-red-200",
+    "description": "Come over and Explore new way of learning new language!",
+    "imageUrl": "https://api2.cultureconnection.se/assets/swedish-fun-pictures/1352377367334621305_1352377367103803464.jpg",
+    "url": "https://swedishfun.cultureconnection.se",
+    "inDescription": [
+      {
+        "title": "Swedish Fun Way",
+        "description": "Join us for a fun and immersive experience to improve your Swedish naturally, just like children do! We provide an environment where Swedish is spoken in an engaging and understandable way, helping you acquire the language effortlessly.",
+        "ImagesUrl": []
+      },
+      {
+        "title": "",
+        "description": "No prior study is necessary—simply show up, relax, and enjoy the sessions. We'll do the talking; all you need to do is listen and have fun. Sessions are filmed and uploaded to YouTube for you to revisit anytime, enhancing your learning through repetition.",
+        "ImagesUrl": []
+      },
+      {
+        "title": "",
+        "description": "Everyone is welcome, regardless of age or experience. Embrace the opportunity to grow your Swedish language skills naturally!",
+        "ImagesUrl": [
+          "https://api2.cultureconnection.se/assets/swedish-fun-pictures/1301178986587488277_1301178981932077117.jpg",
+          "https://api2.cultureconnection.se/assets/swedish-fun-pictures/1301178986587488277_1301178986432303125.jpg",
+          "https://api2.cultureconnection.se/assets/swedish-fun-pictures/1301178687814766615_1301178686502076487.jpg",
+          "https://api2.cultureconnection.se/assets/swedish-fun-pictures/1304208643956408412_1304208643067215872.png"
+        ]
+      }
+    ]
   },
   {
     "id": 4,
@@ -33,7 +115,42 @@
     "date": "Every Friday",
     "time": "18:00",
     "location": "B-Building (Campus)",
-    "bgColor": "bg-green-200"
+    "bgColor": "bg-green-200",
+    "description": "",
+    "imageUrl": "https://api2.cultureconnection.se/assets/crafts-pictures/1329877326598639678_1329877326363889674.jpg",
+    "url": "",
+    "inDescription": [
+      {
+        "title": "Cozy Crafting Night",
+        "description": "Enjoy a cozy night of crafting. Feel free to bring any current projects you’re working on, or if you’d like to learn something new, Sensus has provided us with materials for:",
+        "ImagesUrl": []
+      },
+      {
+        "title": "Bead melting",
+        "description": "",
+        "ImagesUrl": []
+      },
+      {
+        "title": "Cross stitching",
+        "description": "",
+        "ImagesUrl": []
+      },
+      {
+        "title": "Watercolor painting",
+        "description": "",
+        "ImagesUrl": []
+      },
+      {
+        "title": "",
+        "description": "We are happy to coach you through these activities. We hope to meet you soon!",
+        "ImagesUrl": [
+          "https://api2.cultureconnection.se/assets/crafts-pictures/1329877326598639678_1329877321775059004.jpg",
+          "https://api2.cultureconnection.se/assets/crafts-pictures/1312326558270095360_1312326556693037128.jpg",
+          "https://api2.cultureconnection.se/assets/crafts-pictures/1312326558270095360_1312326558043607071.jpg",
+          "https://api2.cultureconnection.se/assets/crafts-pictures/1285163302984351765_1285163302183501844.jpg"
+        ]
+      }
+    ]
   },
   {
     "id": 5,
@@ -41,18 +158,55 @@
     "date": "Every Wednesday",
     "time": "17:30",
     "location": "Olympus (Campus)",
-    "bgColor": "bg-emerald-200",
-    "description": "YES",
-    "imageUrl": "https://img.goodfon.com/wallpaper/nbig/e/7a/badfon-trehcvetnaya-koshka-zivaet-yazyk.webp",
+    "bgColor": "bg-fuchsia-200",
+    "description": "Don't forget to register!",
+    "imageUrl": "https://api2.cultureconnection.se/assets/dancing-pictures/5c77dfd2-486d-4441-bd72-40d2e9379014.jpg",
     "url": "",
     "inDescription": [
       {
-        "title": "lorem om lorem om lorem om lorem om lorem om lorem om lorem om",
-        "description": " lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om lorem om",
+        "title": "Dancing Class with Culture Connection!",
+        "description": "Come, enjoy, and learn how to dance Argentine Tango and Lindy Hop, begginer friendly with Culture Connection.",
         "ImagesUrl": [
-          "https://img.goodfon.com/wallpaper/nbig/2/85/koshka-kot-kotenok-ryzhiy-yazyk.webp",
-          "https://img.goodfon.com/wallpaper/nbig/2/d6/kotenok-ryzhii-osen-hellcat.webp"
+          "https://api2.cultureconnection.se/assets/dancing-pictures/75c12e69-744c-4b81-95c2-c7d23fbcb777.jpg",
+          "https://api2.cultureconnection.se/assets/dancing-pictures/e22a7a62-ee76-43c5-a7a6-728891250d7c.jpg",
+          "https://api2.cultureconnection.se/assets/dancing-pictures/ed75c047-2d16-4e04-94f2-31ce5c8705cf.jpg",
+          "https://api2.cultureconnection.se/assets/dancing-pictures/3f8ba1b5-e2f9-402f-be04-37313cd8c68a.jpg"
         ]
+      },
+      {
+        "title": "",
+        "description": "Unfortunately, our space is not expandable, so we can only accommodate 30 people.",
+        "ImagesUrl": []
+      },
+      {
+        "title": "",
+        "description": "Registration resets every Thursday, so make sure to secure your spot!",
+        "ImagesUrl": []
+      },
+      {
+        "title": "Recommended to bring:",
+        "description": "Water bottle\n",
+        "ImagesUrl": []
+      },
+      {
+        "title": "",
+        "description": "Comfy clothes to dance in\n",
+        "ImagesUrl": []
+      },
+      {
+        "title": "",
+        "description": "Clean indoor shoes (no outdoor shoes please!)\n",
+        "ImagesUrl": []
+      },
+      {
+        "title": "",
+        "description": "Clean socks (if you don’t bring dance shoes)",
+        "ImagesUrl": []
+      },
+      {
+        "title": "Thanks to Linnaeus Union, Euniwell and VUGI for a collaboration!",
+        "description": "",
+        "ImagesUrl": []
       }
     ]
   }
