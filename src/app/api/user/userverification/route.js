@@ -1,102 +1,132 @@
-// app/api/add-verification/route.js
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server"; // Use server-side auth
+import { getAuth } from "@clerk/nextjs/server";
 import fs from "fs/promises";
 import path from "path";
 
-const dataFilePath = path.join(
-  process.cwd(),
-  "public",
-  "data",
-  "MemberVerefication.json",
-);
-const dataDir = path.dirname(dataFilePath);
+const dataDir = path.join(process.cwd(), "public", "data");
+const verificationFilePath = path.join(dataDir, "MemberVerefication.json");
 
-// Helper function to ensure directory and file exist
-async function ensureFileExists() {
+async function ensureDataDirectoryExists() {
   try {
     await fs.access(dataDir);
   } catch (error) {
-    // Directory doesn't exist, create it
-    await fs.mkdir(dataDir, { recursive: true });
-  }
-  try {
-    await fs.access(dataFilePath);
-  } catch (error) {
-    // File doesn't exist, create it with an empty array
-    await fs.writeFile(dataFilePath, "[]", "utf-8");
+    if (error.code === "ENOENT") {
+      await fs.mkdir(dataDir, { recursive: true });
+      console.log(`Created data directory: ${dataDir}`);
+    } else {
+      console.error("Error accessing data directory:", error);
+      throw error;
+    }
   }
 }
 
-// Helper function to read data
-async function readVerificationData() {
-  await ensureFileExists(); // Make sure file exists before reading
+async function readVerificationList() {
   try {
-    const fileContent = await fs.readFile(dataFilePath, "utf-8");
+    await ensureDataDirectoryExists();
+    const fileContent = await fs.readFile(verificationFilePath, "utf-8");
     return JSON.parse(fileContent);
   } catch (error) {
-    console.error("Error reading verification file:", error);
-    // Return empty array or throw error depending on desired handling
-    return []; // Safer default
+    if (error.code === "ENOENT") {
+      console.log("Verification file not found, starting with empty list.");
+      return [];
+    } else if (error instanceof SyntaxError) {
+      console.error("Error parsing MemberVerefication.json:", error);
+      return [];
+    } else {
+      console.error("Error reading verification file:", error);
+      throw error;
+    }
   }
 }
 
-export async function POST(request) {
-  const { userId: authenticatedUserId } = auth(); // Get authenticated user ID
-
-  if (!authenticatedUserId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let userIdToAdd;
+async function writeVerificationList(data) {
   try {
-    const body = await request.json();
-    userIdToAdd = body.userId;
+    await ensureDataDirectoryExists();
+    const jsonData = JSON.stringify(data, null, 2);
+    await fs.writeFile(verificationFilePath, jsonData, "utf-8");
   } catch (error) {
-    return NextResponse.json(
-      { error: "Invalid request body" },
-      { status: 400 },
-    );
+    console.error("Error writing verification file:", error);
+    throw error;
   }
+}
 
-  // Security Check: Ensure the user being added is the authenticated user
-  if (authenticatedUserId !== userIdToAdd) {
-    console.warn(
-      `Security Warning: User ${authenticatedUserId} attempted to add ${userIdToAdd}`,
-    );
-    return NextResponse.json(
-      { error: "Forbidden: Cannot add another user" },
-      { status: 403 },
-    );
-  }
-
+export async function POST(req) {
   try {
-    const data = await readVerificationData();
-
-    // Check if user already exists
-    const userExists = data.some((entry) => entry.userID === userIdToAdd);
-
-    if (userExists) {
+    const { userId: authUserId } = getAuth(req);
+    if (!authUserId) {
       return NextResponse.json(
-        { message: "User already in verification list" },
-        { status: 200 }, // Or 409 Conflict if you prefer
+        { error: "Unauthorized. Please sign in." },
+        { status: 401 },
       );
     }
 
-    // Add the new user
-    data.push({ userID: userIdToAdd });
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid request body." },
+        { status: 400 },
+      );
+    }
 
-    // Write the updated data back to the file
-    await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), "utf-8");
+    const { userId: requestedUserId } = requestBody;
+
+    if (!requestedUserId) {
+      return NextResponse.json(
+        { error: "User ID is missing in the request body." },
+        { status: 400 },
+      );
+    }
+
+    if (authUserId !== requestedUserId) {
+      console.warn(
+        `Forbidden attempt: Auth user ${authUserId} tried to add user ${requestedUserId}`,
+      );
+      return NextResponse.json(
+        { error: "Forbidden. You can only add yourself." },
+        { status: 403 },
+      );
+    }
+
+    const verificationList = await readVerificationList();
+
+    const userExists = verificationList.some(
+      (entry) => entry.userID === authUserId,
+    );
+
+    if (userExists) {
+      console.log(`User ${authUserId} is already in the verification list.`);
+      return NextResponse.json(
+        {
+          message: "User already in verification list.",
+          userId: authUserId,
+        },
+        { status: 200 },
+      );
+    }
+
+    const newUserEntry = {
+      userID: authUserId,
+      requestedAt: new Date().toISOString(),
+    };
+    const updatedList = [...verificationList, newUserEntry];
+
+    await writeVerificationList(updatedList);
+
+    console.log(`User ${authUserId} added to the verification list.`);
 
     return NextResponse.json(
-      { success: true, message: "User added to verification list" },
-      { status: 201 }, // 201 Created
+      {
+        message: "User added to verification list successfully.",
+        userId: authUserId,
+      },
+      { status: 201 },
     );
   } catch (error) {
-    console.error("Error processing verification request:", error);
+    console.error("API Error in /api/user/userverification:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "An internal server error occurred." },
       { status: 500 },
     );
   }
