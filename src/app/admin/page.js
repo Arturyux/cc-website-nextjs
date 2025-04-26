@@ -10,7 +10,7 @@ import CardManagement from "@/components/admin/CardManagement";
 import BoardMemberManagement from "@/components/admin/BoardMemberManagement";
 import LinktreeManagement from "@/components/admin/LinktreeManagement";
 import SponsorManagement from "@/components/admin/SponsorManagement";
-import DiscordBotControl from "@/components/admin/DiscordBotControl";
+import DiscordSchedulerManagement from "@/components/admin/discordbot/DiscordSchedulerManagement";
 import CombinedFileManager from "@/components/admin/DriveManagment/CombinedFileManager";
 
 const adminSections = [
@@ -19,14 +19,16 @@ const adminSections = [
   { key: "boardMembers", label: "Board Members", component: BoardMemberManagement },
   { key: "linktree", label: "Linktree Links", component: LinktreeManagement },
   { key: "sponsors", label: "Sponsors", component: SponsorManagement },
-  { key: "discord", label: "Discord Bot", component: DiscordBotControl },
+  { key: "discord", label: "Discord Scheduler", component: DiscordSchedulerManagement},
   { key: "driveFiles", label: "Drive Files", component: CombinedFileManager },
 ];
 
 export default function AdminPage() {
   const { isLoaded, isSignedIn, user } = useUser();
   const isAdmin = user?.publicMetadata?.admin === true;
-  const [activeSectionKey, setActiveSectionKey] = useState(adminSections[0].key);
+  const [activeSectionKey, setActiveSectionKey] = useState(
+    adminSections[0].key,
+  );
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
