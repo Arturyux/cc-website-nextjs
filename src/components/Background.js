@@ -47,3 +47,22 @@ export default function Background() {
     </>
   );
 }
+export function BackgroundEvent() {
+  return (
+    <>
+    <div className="absolute w-full h-full">
+      <div className="absolute md:w-[8%] w-[15%] md:top-35 md:left-10 top-40 -left-5 md:rotate-55 rotate-45 -z-1">
+        <img src={selectedPattern} alt="Background Pattern" />
+      </div>
+      <div className="absolute md:top-170 md:left-150 md:w-[20%] w-[70%] top-150 left-70 -z-1">
+        <img src={selectedPattern1} alt="Background Pattern" />
+      </div>
+      <div className="absolute md:top-170 md:left-150 md:w-[20%] w-[70%] top-150 left-70 -z-1">
+        <img src={selectedPattern1} alt="Background Pattern" />
+      </div>
+
+    </div>
+    
+    </>
+  );
+}

@@ -1,0 +1,88 @@
+[
+  {
+    "id": "evt_1",
+    "title": "Summer Kick-off BBQ",
+    "date": "2025-06-15T14:00:00.000Z",
+    "description": "Join us for fun, food, and games to celebrate the start of summer!",
+    "location": "Central Park",
+    "imageUrl": "",
+    "cardColor": "bg-blue-200",
+    "cardEnabled": false,
+    "isLimitEnabled": true,
+    "attendanceLimit": 30,
+    "attendees": true,
+    "attendeesCounter": [
+      {
+        "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
+        "verified": false
+      }
+    ],
+    "inDescription": [
+      {
+        "title": "Loram va",
+        "description": "Loram va Loram va Loram va Loram vaLoram va Loram va Loram va "
+      }
+    ]
+  },
+  {
+    "id": "evt_2",
+    "title": "Tech Talk: The Future of AI",
+    "date": "2025-07-22T18:30:00.000Z",
+    "description": "An evening discussion with industry experts on AI trends.",
+    "location": "Innovation Hub Auditorium",
+    "cardColor": "bg-red-200",
+    "cardEnabled": true,
+    "imageUrl": "",
+    "isLimitEnabled": true,
+    "attendanceLimit": 2,
+    "attendees": true,
+    "attendeesCounter": [
+      {
+        "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
+        "verified": false
+      },
+      {
+        "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
+        "verified": false
+      }
+    ],
+    "indescription": [],
+    "inDescription": []
+  },
+  {
+    "id": "evt_3",
+    "title": "Annual Charity Gala",
+    "date": "2025-09-10T19:00:00.000Z",
+    "cardColor": "bg-yellow-200",
+    "description": "Support a good cause at our elegant evening gala.",
+    "location": "Grand Ballroom",
+    "imageUrl": "",
+    "cardEnabled": true,
+    "isLimitEnabled": true,
+    "attendanceLimit": 2,
+    "attendees": false,
+    "attendeesCounter": [],
+    "indescription": []
+  },
+  {
+    "id": "evt_4",
+    "title": "Community Workshop: Intro to Coding",
+    "date": "2025-10-05T10:00:00.000Z",
+    "description": "A beginner-friendly workshop covering the basics of programming.",
+    "location": "Local Library - Room B",
+    "imageUrl": "",
+    "isLimitEnabled": true,
+    "cardEnabled": true,
+    "attendanceLimit": 8,
+    "attendees": true,
+    "attendeesCounter": [
+      {
+        "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
+        "verified": false
+      }
+    ],
+    "cardColor": "bg-white",
+    "indescription": [],
+    "inDescription": []
+  }
+]
