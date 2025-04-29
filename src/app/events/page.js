@@ -34,35 +34,86 @@ const EventCard = ({
     } catch (e) { return { date: "Error", time: "" }; }
   };
   const { date, time } = formatDateTime(event.date);
-  const isCurrentUserAttending = isUserLoaded && user && Array.isArray(event.attendeesCounter) && event.attendeesCounter.some(att => att.userID === user.id);
-  const handleAttendClick = () => { if (!isUserLoaded || !user || isAttendingMutationLoading || isUserFreezed) return; attendMutation.mutate(event.id); };
-  const attendeeCount = Array.isArray(event.attendeesCounter) ? event.attendeesCounter.length : 0;
-  const cardBgClass = event.cardColor || "bg-white";
+
+  const attendeesList = Array.isArray(event.attendeesCounter) ? event.attendeesCounter : [];
+  const confirmedAttendees = attendeesList.filter(att => !att.waiting);
+  const waitingList = attendeesList.filter(att => att.waiting);
+  const confirmedCount = confirmedAttendees.length;
+  const waitingCount = waitingList.length;
+
   const limit = event.attendanceLimit;
   const isLimitActive = event.isLimitEnabled && typeof limit === 'number' && limit > 0;
-  const isFull = isLimitActive && attendeeCount >= limit;
-  let buttonText = "";
-  let isAttendButtonDisabled = isAttendingMutationLoading || isUserFreezed;
+  const isFull = isLimitActive && confirmedCount >= limit;
   const isCardDisabled = event.cardEnabled === false;
 
-  if (isUserFreezed) {
-  } else if (isAttendingMutationLoading) {
+  const currentUserEntry = isUserLoaded && user ? attendeesList.find(att => att.userID === user.id) : null;
+  const isCurrentUserConfirmed = !!currentUserEntry && !currentUserEntry.waiting;
+  const isCurrentUserWaiting = !!currentUserEntry && currentUserEntry.waiting;
+
+  const shouldEnforceFreeze = typeof event.freezenotallow === 'boolean' ? event.freezenotallow : true;
+  const showFreezeMessage = isUserFreezed && shouldEnforceFreeze;
+  const showFreezeWarning = shouldEnforceFreeze && isCurrentUserConfirmed && !isUserFreezed;
+
+  const handleAttendClick = () => {
+      if (!isUserLoaded || !user || isAttendingMutationLoading || showFreezeMessage) return;
+      if (isCurrentUserConfirmed && event.closed === true) return;
+      attendMutation.mutate(event.id);
+  };
+
+  let buttonText = "";
+  let buttonBgClass = "";
+  let buttonTextClass = "";
+  let buttonHoverBgClass = "";
+  let isAttendButtonDisabled = isAttendingMutationLoading || showFreezeMessage || (isCurrentUserConfirmed && event.closed === true);
+
+  if (isAttendingMutationLoading) {
     buttonText = "Updating...";
-  } else if (isCurrentUserAttending) {
-    buttonText = canViewAttendance ? `Attending (${attendeeCount}${isLimitActive ? `/${limit}` : ''})` : "Attending";
+    buttonBgClass = "bg-gray-200";
+    buttonTextClass = "text-gray-500";
+    buttonHoverBgClass = "hover:bg-gray-200";
+    isAttendButtonDisabled = true;
+  } else if (isCurrentUserConfirmed) {
+    if (event.closed === true) {
+        buttonText = canViewAttendance ? `Attending (Locked)` : "Attending";
+        buttonBgClass = "bg-green-200";
+        buttonTextClass = "text-green-800";
+        buttonHoverBgClass = "hover:bg-green-200";
+        isAttendButtonDisabled = true;
+    } else {
+        buttonText = canViewAttendance ? `Attending (${confirmedCount}${isLimitActive ? `/${limit}` : ''})` : "Attending";
+        buttonBgClass = "bg-green-200";
+        buttonTextClass = "text-green-800";
+        buttonHoverBgClass = "hover:bg-green-300";
+    }
+  } else if (isCurrentUserWaiting) {
+    buttonText = canViewAttendance ? `Waiting List (${waitingCount} waiting)` : "Waiting List";
+    buttonBgClass = "bg-yellow-200";
+    buttonTextClass = "text-yellow-800";
+    buttonHoverBgClass = "hover:bg-yellow-300";
   } else {
     if (isFull) {
-      buttonText = canViewAttendance ? `Full (${attendeeCount}/${limit})` : "Full";
-      isAttendButtonDisabled = true;
+      buttonText = canViewAttendance ? `Join Waitlist (${waitingCount} waiting)` : "Join Waitlist";
+      buttonBgClass = "bg-orange-200";
+      buttonTextClass = "text-orange-800";
+      buttonHoverBgClass = "hover:bg-orange-300";
     } else {
-      buttonText = canViewAttendance ? `Attend (${attendeeCount}${isLimitActive ? `/${limit}` : ''})` : "Attend";
+      buttonText = canViewAttendance ? `Attend (${confirmedCount}${isLimitActive ? `/${limit}` : ''})` : "Attend";
+      buttonBgClass = "bg-blue-200";
+      buttonTextClass = "text-blue-800";
+      buttonHoverBgClass = "hover:bg-blue-300";
     }
   }
 
-  const showAttendanceSection = event.attendees && (isUserLoaded && user);
+  if (isAttendButtonDisabled && !isAttendingMutationLoading) {
+      buttonBgClass = "bg-gray-200";
+      buttonTextClass = "text-gray-500";
+      buttonHoverBgClass = "hover:bg-gray-200";
+  }
+
+  const showAttendanceSection = event.attendees && isUserLoaded && user;
 
   return (
-    <div className={`relative w-full h-full flex rounded-xl border-2 border-black shadow-black shadow-xl overflow-hidden ${cardBgClass} ${isCardDisabled && canManageEvents ? 'opacity-60 border-dashed border-gray-400' : ''}`}>
+    <div className={`relative w-full h-full flex flex-col rounded-xl border-2 border-black shadow-black shadow-xl overflow-hidden ${event.cardColor || 'bg-white'} ${isCardDisabled && canManageEvents ? 'opacity-60 border-dashed border-gray-400' : ''}`}>
       {isCardDisabled && canManageEvents && (
           <div className="absolute top-2 right-2 bg-gray-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full z-10">
               Disabled
@@ -76,23 +127,23 @@ const EventCard = ({
         <p className="text-gray-700 mb-3 text-sm"><span className="font-medium text-gray-800">Location:</span> {event.location}</p>
         <p className="text-gray-800 text-base mb-4 flex-grow line-clamp-3">{event.description}</p>
 
+        {showFreezeWarning && (
+            <p className="text-xs text-center p-2 rounded border border-yellow-400 mb-3 bg-yellow-100 text-yellow-800 font-medium">
+                If you do not attend this event, your account will be frozen! Contact info@cultureconnection.se if needed!
+            </p>
+        )}
+
         {showAttendanceSection && (
-          <div className="mt-2 pt-2">
-            {isUserFreezed ? (
-              <p className="text-center p-3 rounded border-2 mb-5 border-black shadow-custom bg-red-200 text-red-800 font-semibold">
+          <div className="mt-auto pt-2">
+            {showFreezeMessage ? (
+              <p className="text-center p-3 rounded border-2 mb-5 border-black bg-red-800/40 text-red-800 font-semibold">
                 You are Freezed. Contact info@cultureconnection.se
               </p>
             ) : (
               <button
                 onClick={handleAttendClick}
                 disabled={isAttendButtonDisabled}
-                className={`w-full text-center p-3 mb-5 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5 font-semibold ${
-                  isCurrentUserAttending
-                    ? "border-black bg-green-200 text-green-800 hover:bg-green-300"
-                    : isFull
-                      ? "border-black bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "border-black bg-blue-200 text-blue-800 hover:bg-blue-300"
-                } ${isAttendingMutationLoading ? "opacity-50 cursor-wait" : ""} ${isAttendButtonDisabled && !isAttendingMutationLoading ? "cursor-not-allowed opacity-70" : ""}`}
+                className={`w-full text-center p-3 mb-5 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5 font-semibold ${buttonBgClass} ${buttonTextClass} ${buttonHoverBgClass} ${isAttendingMutationLoading ? "opacity-50 cursor-wait" : ""} ${isAttendButtonDisabled && !isAttendingMutationLoading ? "cursor-not-allowed opacity-70" : ""}`}
               >
                 {buttonText}
               </button>
@@ -129,7 +180,7 @@ const attendEvent = async (eventId) => {
     return response.json();
 };
 const createEvent = async (newEventData) => {
-    const response = await fetch("/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newEventData), });
+     const response = await fetch("/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newEventData), });
     if (!response.ok) { let errorData = { message: `Request failed with status ${response.status}` }; try { errorData = await response.json(); } catch (e) {} if (response.status === 403) { throw new Error(errorData.message || "You do not have permission to create events."); } throw new Error(errorData.message || "Failed to create event"); }
     return response.json();
 };
@@ -154,15 +205,48 @@ export default function EventsPage() {
   const [eventToEdit, setEventToEdit] = useState(null);
   const queryClient = useQueryClient();
 
-  const { data: eventsData, isLoading: isEventsLoading, isError: isEventsError, error: eventsError } = useQuery({ queryKey: ["events"], queryFn: fetchEvents, refetchInterval: 5000 });
-  const attendMutation = useMutation({ mutationFn: attendEvent, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["events"] }); }, onError: (error) => { alert(`Attend Error: ${error.message}`); }, });
-  const createEventMutation = useMutation({ mutationFn: createEvent, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["events"] }); }, onError: (error) => { console.error("Create Event Error:", error); }, });
-  const editEventMutation = useMutation({ mutationFn: editEvent, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["events"] }); }, onError: (error) => { console.error("Edit Event Error:", error); }, });
+  const { data: eventsData, isLoading: isEventsLoading, isError: isEventsError, error: eventsError } = useQuery({
+      queryKey: ["events"],
+      queryFn: fetchEvents,
+      refetchInterval: 5000
+  });
 
-  const allEvents = eventsData || [];
+  const attendMutation = useMutation({
+      mutationFn: attendEvent,
+      onSuccess: (updatedEvent) => {
+          queryClient.setQueryData(['events'], (oldData) => {
+              if (!oldData) return [];
+              return oldData.map(event =>
+                  event.id === updatedEvent.id ? updatedEvent : event
+              );
+          });
+      },
+      onError: (error) => { alert(`Action failed: ${error.message}`); },
+  });
+
+  const createEventMutation = useMutation({
+      mutationFn: createEvent,
+      onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["events"] }); },
+      onError: (error) => { console.error("Create Event Error:", error); },
+  });
+
+  const editEventMutation = useMutation({
+      mutationFn: editEvent,
+      onSuccess: (updatedEvent) => {
+           queryClient.setQueryData(['events'], (oldData) => {
+              if (!oldData) return [];
+              return oldData.map(event =>
+                  event.id === updatedEvent.id ? updatedEvent : event
+              );
+          });
+      },
+      onError: (error) => { console.error("Edit Event Error:", error); },
+  });
+
   const canManageEvents = isUserLoaded && user && (user.publicMetadata?.admin === true || user.publicMetadata?.committee === true);
-  const canViewAttendanceDetails = canManageEvents;
+  const canViewAttendance = canManageEvents;
   const isUserFreezed = isUserLoaded && user && user.publicMetadata?.freezed === true;
+  const allEvents = eventsData || [];
   const visibleEvents = canManageEvents ? allEvents : allEvents.filter(event => event.cardEnabled !== false);
 
   const openModal = (event) => { const formatDateTime = (isoDateString) => { if (!isoDateString) return { date: "N/A", time: "N/A" }; try { const dateObj = new Date(isoDateString); if (isNaN(dateObj.getTime())) return { date: "Invalid Date", time: "" }; const dateOptions = { year: "numeric", month: "long", day: "numeric" }; const timeOptions = { hour: "2-digit", minute: "2-digit", hour12: true }; return { date: dateObj.toLocaleDateString(undefined, dateOptions), time: dateObj.toLocaleTimeString(undefined, timeOptions) }; } catch (e) { return { date: "Error", time: "" }; } }; const { date, time } = formatDateTime(event.date); setSelectedEvent({ ...event, date: date, time: time }); document.body.style.overflow = "hidden"; };
@@ -197,7 +281,7 @@ export default function EventsPage() {
                     isUserLoaded={isUserLoaded}
                     attendMutation={attendMutation}
                     isAttendingMutationLoading={attendMutation.isPending}
-                    canViewAttendance={canViewAttendanceDetails}
+                    canViewAttendance={canViewAttendance}
                     canManageEvents={canManageEvents}
                     onOpenEditModal={openEditModal}
                     isUserFreezed={isUserFreezed}

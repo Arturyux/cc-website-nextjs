@@ -144,12 +144,6 @@ export default function UserCardModal({ isOpen, onClose, user }) {
                   {statusInfo.text}
                 </span>
               </div>
-              <div className="text-base md:text-xl drop-shadow-sm">
-                <span className="font-medium">Account Freezed:</span>{" "}
-                <span className={`font-semibold ${isUserFreezed ? "text-red-700" : "text-green-700"}`}>
-                  {isUserFreezed ? "Yes" : "No"}
-                </span>
-              </div>
             </div>
           )}
           {statusInfo.styleKey === 'default' && (

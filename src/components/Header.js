@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import SocialIcons from "./Socialmedia";
 import Linktree from "./Linktree";
 import UserCardModal from "./UserCardModal";
-import BecomeMemberModal from "./BecomeMemberModal"; // Import the new modal
+import BecomeMemberModal from "./BecomeMemberModal";
 import {
   SignedIn,
   SignedOut,
@@ -32,53 +32,45 @@ export default function Header() {
   const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
   const menuDropdownRef = useRef(null);
   const [isUserCardModalOpen, setIsUserCardModalOpen] = useState(false);
-  const [isBecomeMemberModalOpen, setIsBecomeMemberModalOpen] = useState(false); // State for new modal
+  const [isBecomeMemberModalOpen, setIsBecomeMemberModalOpen] = useState(false); 
 
   const { user, isLoaded } = useUser();
   const isAdmin = isLoaded && user?.publicMetadata?.admin === true;
   const isCommittee = isLoaded && user?.publicMetadata?.committee === true;
   const isMember = isLoaded && user?.publicMetadata?.member === true;
   const canShowUserCard = isLoaded && (isAdmin || isCommittee || isMember);
-  // Condition for showing "Become Member" button: Signed in, loaded, and NOT admin/committee/member
   const canShowBecomeMember =
     isLoaded && user && !isAdmin && !isCommittee && !isMember;
 
   const openUserCardModal = () => setIsUserCardModalOpen(true);
   const closeUserCardModal = () => setIsUserCardModalOpen(false);
 
-  // Functions for the new modal
   const openBecomeMemberModal = () => setIsBecomeMemberModalOpen(true);
   const closeBecomeMemberModal = () => setIsBecomeMemberModalOpen(false);
 
-  // --- Updated body overflow logic ---
   useEffect(() => {
-    // Apply style if *either* modal is open
     if (isUserCardModalOpen || isBecomeMemberModalOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
-    // Cleanup function ensures style is removed
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isUserCardModalOpen, isBecomeMemberModalOpen]); // Depend on both modal states
+  }, [isUserCardModalOpen, isBecomeMemberModalOpen]);
 
-  // Effect for mobile menu scroll lock (updated)
   useEffect(() => {
     if (isScrollDisabled || mobileMenuOpen) {
       document.body.style.overflow = "hidden";
-    } else if (!isUserCardModalOpen && !isBecomeMemberModalOpen) { // Only unset if NO modal is open
+    } else if (!isUserCardModalOpen && !isBecomeMemberModalOpen) {
       document.body.style.overflow = "";
     }
-    // No cleanup needed here as the other effect handles the final state
   }, [
     isScrollDisabled,
     mobileMenuOpen,
     isUserCardModalOpen,
-    isBecomeMemberModalOpen, // Add new dependency
+    isBecomeMemberModalOpen, 
   ]);
-  // --- End updated logic ---
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -86,12 +78,11 @@ export default function Header() {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     setMenuDropdownOpen(false);
-    closeMobileMenu(); // Close mobile menu on scroll link click
+    closeMobileMenu();
   };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Close dropdowns... (existing logic remains the same)
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
@@ -113,12 +104,11 @@ export default function Header() {
       ) {
         setMenuDropdownOpen(false);
       }
-      // Close mobile language dropdown if clicking outside it while mobile menu is open
       if (
         mobileMenuOpen &&
-        langDropdownRef.current && // Reuse langDropdownRef for mobile too if needed, or create a new one
+        langDropdownRef.current &&
         !langDropdownRef.current.contains(event.target) &&
-        !event.target.closest("button[aria-label='Open language menu']") // Don't close if clicking the button itself
+        !event.target.closest("button[aria-label='Open language menu']")
       ) {
         setLangDropdownOpen(false);
       }
@@ -126,11 +116,10 @@ export default function Header() {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [mobileMenuOpen]); // Added mobileMenuOpen dependency
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
-      // Prevent scroll effect if any modal/menu open (updated)
       if (mobileMenuOpen || isUserCardModalOpen || isBecomeMemberModalOpen)
         return;
       if (initialScrollRef.current === null) {
@@ -161,7 +150,7 @@ export default function Header() {
     controls,
     mobileMenuOpen,
     isUserCardModalOpen,
-    isBecomeMemberModalOpen, // Add new dependency
+    isBecomeMemberModalOpen,
   ]);
 
   const dropdownVariants = {
@@ -178,8 +167,7 @@ export default function Header() {
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
-    setLangDropdownOpen(false); // Close lang dropdown when closing mobile menu
-    // setIsScrollDisabled(false); // This might be redundant due to the useEffect handling overflow
+    setLangDropdownOpen(false);
   };
 
   const closeAccountDropdown = () => setAccountDropdownOpen(false);
@@ -190,9 +178,7 @@ export default function Header() {
         animate={controls}
         className={`fixed md:left-1/2 left-0 right-0 md:transform md:-translate-x-1/2 top-4 md:top-6 p-2 md:p-3 md:w-[75%] w-[90%] flex justify-center items-center bg-mainColor shadow-lg z-30 rounded-full mx-auto`}
       >
-        {/* Header content */}
         <div className="flex items-center justify-between w-full px-4 md:px-6">
-          {/* Menu Dropdown (Desktop) */}
           <div className="hidden md:block relative" ref={menuDropdownRef}>
             <button
               onClick={() => setMenuDropdownOpen(!menuDropdownOpen)}
@@ -210,18 +196,20 @@ export default function Header() {
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   className="absolute z-20 top-11 -right-16 mt-2 w-48 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col"
                 >
-                  <button
-                    onClick={() => scrollToSection("home-section")}
+                  <Link
+                    href="/"
+                    onClick={closeAccountDropdown}
                     className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
                   >
                     Home
-                  </button>
-                  <button
-                    onClick={() => scrollToSection("events-section")}
+                  </Link>
+                  <Link
+                    href="/events"
+                    onClick={closeAccountDropdown}
                     className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
                   >
                     Events
-                  </button>
+                  </Link>
                   <button
                     onClick={() => scrollToSection("team-section")}
                     className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
@@ -239,7 +227,6 @@ export default function Header() {
             </AnimatePresence>
           </div>
 
-          {/* Linktree Dropdown (Desktop) */}
           <div className="hidden md:block relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -266,7 +253,6 @@ export default function Header() {
             </AnimatePresence>
           </div>
 
-          {/* Account/Dashboard & Language (Desktop) */}
           <div className="hidden md:flex items-center gap-4">
             <div className="relative" ref={accountDropdownRef}>
               <SignedOut>
@@ -338,7 +324,6 @@ export default function Header() {
                           >
                             Events
                           </Link>
-                          {/* --- Conditional Button Rendering --- */}
                           {canShowUserCard && (
                             <button
                               onClick={() => {
@@ -353,15 +338,14 @@ export default function Header() {
                           {canShowBecomeMember && (
                             <button
                               onClick={() => {
-                                openBecomeMemberModal(); // Open the new modal
+                                openBecomeMemberModal();
                                 closeAccountDropdown();
                               }}
-                              className="block w-full text-center text-2xl px-4 py-2 text-green-600 hover:bg-green-50 rounded font-semibold" // Style as desired
+                              className="block w-full text-center text-2xl px-4 py-2 text-green-600 hover:bg-green-50 rounded font-semibold"
                             >
                               Become a Member
                             </button>
                           )}
-                          {/* --- End Conditional Button Rendering --- */}
                           <div className="border-t mt-1 pt-1">
                             <SignOutButton>
                               <button
@@ -379,7 +363,6 @@ export default function Header() {
                 )}
               </AnimatePresence>
             </div>
-            {/* Language Dropdown (Desktop) */}
             <div className="relative" ref={langDropdownRef}>
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
@@ -418,9 +401,7 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile Header Elements */}
           <div className="md:hidden flex items-center justify-between w-full">
-            {/* Mobile Language Button - Consider adding ref if needed for outside click */}
             <button
               onClick={() => setLangDropdownOpen(!langDropdownOpen)}
               className="relative w-10 h-10 rounded-full overflow-hidden border border-white border-opacity-50"
@@ -432,7 +413,6 @@ export default function Header() {
                 className="w-full h-full object-cover"
               />
             </button>
-            {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="text-white focus:outline-none p-2"
@@ -448,7 +428,6 @@ export default function Header() {
         </div>
       </motion.header>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.nav
@@ -459,12 +438,9 @@ export default function Header() {
             transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
             className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col"
           >
-            {/* Mobile Menu Header */}
             <div className="flex items-center justify-between p-4 border-b border-white border-opacity-20 flex-shrink-0">
-              {/* Mobile Language Button inside Menu */}
               <div className="relative" ref={langDropdownRef}>
                 {" "}
-                {/* Added ref here */}
                 <button
                   onClick={() => setLangDropdownOpen(!langDropdownOpen)}
                   className="relative w-12 h-12 rounded-full overflow-hidden border border-white border-opacity-50"
@@ -483,10 +459,10 @@ export default function Header() {
                       animate={{ y: 0, opacity: 1 }}
                       exit={{ y: -10, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-14 left-0 mt-1 w-28 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center z-50" // Adjusted position
+                      className="absolute top-14 left-0 mt-1 w-28 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center z-50"
                     >
                       <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-black hover:bg-gray-100 rounded" // Added text-black
+                        className="w-full text-left px-3 py-1.5 text-sm text-black hover:bg-gray-100 rounded"
                         onClick={() => {
                           setLangDropdownOpen(false);
                         }}
@@ -494,7 +470,7 @@ export default function Header() {
                         English
                       </button>
                       <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-black hover:bg-gray-100 rounded" // Added text-black
+                        className="w-full text-left px-3 py-1.5 text-sm text-black hover:bg-gray-100 rounded"
                         onClick={() => {
                           setLangDropdownOpen(false);
                         }}
@@ -505,7 +481,6 @@ export default function Header() {
                   )}
                 </AnimatePresence>
               </div>
-              {/* Mobile Close Button */}
               <button
                 onClick={closeMobileMenu}
                 className="text-white p-2"
@@ -528,38 +503,9 @@ export default function Header() {
               </button>
             </div>
 
-            {/* Mobile Menu Content */}
             <div className="flex-grow flex flex-col items-center justify-center pb-16 px-4 space-y-6 overflow-y-auto">
               {" "}
-              {/* Adjusted spacing */}
-              {/* --- Section Links --- */}
-              <button
-                onClick={() => scrollToSection("home-section")}
-                className="text-4xl font-semibold text-white hover:text-gray-300 transition-colors"
-              >
-                Home
-              </button>
-              <button
-                onClick={() => scrollToSection("events-section")}
-                className="text-4xl font-semibold text-white hover:text-gray-300 transition-colors"
-              >
-                Events
-              </button>
-              <button
-                onClick={() => scrollToSection("team-section")}
-                className="text-4xl font-semibold text-white hover:text-gray-300 transition-colors"
-              >
-                Team
-              </button>
-              <button
-                onClick={() => scrollToSection("sponsors-section")}
-                className="text-4xl font-semibold text-white hover:text-gray-300 transition-colors"
-              >
-                Sponsors
-              </button>
               <div className="w-3/4 border-t border-white/20 my-4"></div>{" "}
-              {/* Divider */}
-              {/* --- Auth Section --- */}
               <SignedOut>
                 <div className="flex flex-col items-center space-y-6">
                   <SignInButton mode="modal">
@@ -584,18 +530,17 @@ export default function Header() {
                 {isLoaded && user && (
                   <div className="text-center space-y-4 w-full">
                     {" "}
-                    {/* Added spacing */}
                     <p className="text-white font-Header text-4xl md:text-5xl mb-2">
                       Welcome, {user.firstName}!
                     </p>
                     <div className="inline-block mb-4">
-                      <UserButton afterSignOutUrl="/" />
+                      <UserButton />
                     </div>
                     {isAdmin && (
                       <Link
                         href="/admin"
                         onClick={closeMobileMenu}
-                        className="block w-full text-3xl md:text-4xl px-4 py-2 text-purple-300 hover:text-purple-200 text-center rounded font-semibold"
+                        className="block w-full text-3xl md:text-4xl px-4 py-2 text-purple-800 hover:text-purple-200 text-center rounded font-semibold"
                       >
                         Admin Panel
                       </Link>
@@ -607,7 +552,6 @@ export default function Header() {
                     >
                       Events
                     </Link>
-                    {/* --- Conditional Button Rendering (Mobile) --- */}
                     {canShowUserCard && (
                       <button
                         onClick={() => {
@@ -622,15 +566,14 @@ export default function Header() {
                     {canShowBecomeMember && (
                       <button
                         onClick={() => {
-                          openBecomeMemberModal(); // Open the new modal
+                          openBecomeMemberModal();
                           closeMobileMenu();
                         }}
-                        className="block w-full text-3xl md:text-4xl text-center px-4 py-2 text-green-300 hover:text-green-200 rounded font-semibold" // Style as desired
+                        className="block w-full text-3xl md:text-4xl text-center px-4 py-2 text-green-300 hover:text-green-200 rounded font-semibold"
                       >
                         Become a Member
                       </button>
                     )}
-                    {/* --- End Conditional Button Rendering (Mobile) --- */}
                     <div className="border-t border-white/20 mt-4 pt-4">
                       <SignOutButton>
                         <button
@@ -644,7 +587,6 @@ export default function Header() {
                   </div>
                 )}
               </SignedIn>
-              {/* --- Linktree & Socials --- */}
               <div className="w-full max-w-xs pt-4">
                 <Linktree />
               </div>
@@ -658,7 +600,6 @@ export default function Header() {
         )}
       </AnimatePresence>
 
-      {/* Modal Components */}
       {isLoaded && (
         <UserCardModal
           isOpen={isUserCardModalOpen}
@@ -666,7 +607,6 @@ export default function Header() {
           user={user}
         />
       )}
-      {/* Render the new modal */}
       <BecomeMemberModal
         isOpen={isBecomeMemberModalOpen}
         onClose={closeBecomeMemberModal}

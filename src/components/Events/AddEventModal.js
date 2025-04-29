@@ -1,4 +1,3 @@
-// components/AddEventModal.js
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -35,6 +34,8 @@ export default function AddEventModal({
   const [limitValue, setLimitValue] = useState(10);
   const [cardEnabled, setCardEnabled] = useState(true);
   const [inDescription, setInDescription] = useState([{ title: "", description: "" }]);
+  const [freezeNotAllowed, setFreezeNotAllowed] = useState(true);
+  const [isClosed, setIsClosed] = useState(false);
   const [activeTab, setActiveTab] = useState("main");
   const [error, setError] = useState("");
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
@@ -62,6 +63,8 @@ export default function AddEventModal({
       setAttendees(true); setCardColor("bg-white"); setIsLimitEnabled(false); setLimitValue(10);
       setCardEnabled(true);
       setInDescription([{ title: "", description: "" }]);
+      setFreezeNotAllowed(true);
+      setIsClosed(false);
       setActiveTab("main");
       setError(""); setIsColorPickerOpen(false);
     }
@@ -97,6 +100,8 @@ export default function AddEventModal({
       attendanceLimit: isLimitEnabled ? limitValue : null,
       cardEnabled,
       inDescription: finalInDescription,
+      freezenotallow: freezeNotAllowed,
+      closed: isClosed,
     };
 
     createEventMutation.mutate(newEventData, {
@@ -176,6 +181,30 @@ export default function AddEventModal({
                           )}
                       </div>
                   )}
+              </div>
+              <div className="flex items-center pt-2 border-t">
+                  <input
+                      id="freezeNotAllowed"
+                      type="checkbox"
+                      checked={freezeNotAllowed}
+                      onChange={(e) => setFreezeNotAllowed(e.target.checked)}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="freezeNotAllowed" className="ml-2 block text-sm font-medium text-gray-900">
+                      Disallow Frozen Users (Enforce Freeze)
+                  </label>
+              </div>
+              <div className="flex items-center pt-2 border-t">
+                  <input
+                      id="isClosed"
+                      type="checkbox"
+                      checked={isClosed}
+                      onChange={(e) => setIsClosed(e.target.checked)}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="isClosed" className="ml-2 block text-sm font-medium text-gray-900">
+                      Close Event (Prevent Unattending)
+                  </label>
               </div>
             </div>
           )}
