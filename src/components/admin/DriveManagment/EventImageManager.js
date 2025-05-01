@@ -10,7 +10,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_FETCHPICTURE_URL;
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 48;
 
 const fetchApiItems = async (channelName = null) => {
   if (!API_BASE_URL) { throw new Error("API base URL not configured (NEXT_PUBLIC_FETCHPICTURE_URL)."); }

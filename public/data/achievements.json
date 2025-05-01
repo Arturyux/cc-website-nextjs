@@ -1,0 +1,380 @@
+[
+  {
+    "id": "ach_climb_green",
+    "title": "Green Tape Climber",
+    "category": "Climbing",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/fabcde07-f149-45d5-8392-86f65e2e3035.png",
+    "description": "You get this badge when you climb green tape.",
+    "achiveDescription": "Congratulations! You have achieved the Green Tape Climber badge.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "userHas": [
+      {
+        "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
+        "achived": true,
+        "attendanceCount": 0,
+        "date": "2023-10-01T12:00:00.000Z"
+      },
+      {
+        "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
+        "achived": false,
+        "attendanceCount": 0
+      }
+    ]
+  },
+  {
+    "id": "ach_first_event",
+    "title": "First Event Attendee",
+    "category": "Other Events",
+    "imgurl": "https://not-real-url.gg",
+    "description": "Awarded for attending your first official Culture Connection event.",
+    "achiveDescription": "Welcome aboard! You attended your first Culture Connection event.",
+    "silhouetteColor": "bg-blue-300",
+    "isEnabled": true,
+    "attendanceCounter": true,
+    "attendanceNeed": 1,
+    "userHas": [
+      {
+        "userID": "user_2wF1OH3xP2SHs0pIuTGXADktrmu",
+        "achived": false,
+        "attendanceCount": 1
+      },
+      {
+        "userID": "user_2pp7rzrjxuiyK4Y2QUSXRHnZg02",
+        "achived": true,
+        "attendanceCount": 1,
+        "date": "2025-04-29T21:29:39.134Z"
+      },
+      {
+        "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
+        "achived": true,
+        "attendanceCount": 1,
+        "date": "2025-04-29T21:30:24.126Z"
+      }
+    ],
+    "onScore": false
+  },
+  {
+    "id": "ach_workshop_wiz",
+    "title": "Terraforming Mars",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/b569f7ba-ccad-42ed-949a-dbbb0ce21bd2.png",
+    "description": "Play a game in Terraforming Mars.",
+    "achiveDescription": "You played a game of Terraforming Mars.",
+    "onScrore": true,
+    "isEnabled": true,
+    "attendanceCounter": true,
+    "attendanceNeed": 3,
+    "userHas": [
+      {
+        "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
+        "achived": true,
+        "attendanceCount": 3,
+        "score": 120,
+        "date": "2025-05-01T01:56:27.182Z"
+      },
+      {
+        "userID": "user_2pp7rzrjxuiyK4Y2QUSXRHnZg02",
+        "achived": false,
+        "attendanceCount": 1
+      },
+      {
+        "userID": "user_2wF1OH3xP2SHs0pIuTGXADktrmu",
+        "achived": false,
+        "attendanceCount": 0,
+        "score": 200
+      },
+      {
+        "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
+        "achived": true,
+        "attendanceCount": 0,
+        "score": 200,
+        "date": "2025-05-01T02:18:50.012Z"
+      },
+      {
+        "userID": "user_2qXu8y18WaPojogJ6wu2AkjwlYf",
+        "achived": false,
+        "attendanceCount": 0,
+        "score": 0
+      }
+    ],
+    "onScore": true
+  },
+  {
+    "id": "ach_community_helper",
+    "title": "Wooden Participation Badge",
+    "category": "Community",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/de5453ef-a08f-4476-85a7-ea18070ab961.png",
+    "description": "Attend minimum of 5 Culture Connection Event to achieve Wooden Participation Badge",
+    "achiveDescription": "Thank you atteding this events!",
+    "silhouetteColor": "bg-green-300",
+    "isEnabled": true,
+    "attendanceCounter": true,
+    "attendanceNeed": 5,
+    "userHas": [
+      {
+        "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
+        "achived": true,
+        "attendanceCount": 5,
+        "date": "2025-04-29T22:12:16.830Z"
+      }
+    ]
+  },
+  {
+    "id": "ach_1745965059520_kblpp",
+    "title": "Bronze Participation Badge",
+    "category": "Community",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/d601b74a-b157-4fbd-9013-db00146834be.png",
+    "description": "Attend minimum of 25 Culture Connection Event to achieve Bronze Participation Badge",
+    "achiveDescription": "Thank you attending majority events!",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": true,
+    "attendanceNeed": 25,
+    "userHas": []
+  },
+  {
+    "id": "ach_1745965126295_q9b85",
+    "title": "Silver Participation Badge",
+    "category": "Community",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/8efc6a09-0e4b-4d52-97e4-284fbc010273.png",
+    "description": "Attend minimum of 50 Culture Connection Event to achieve Silver Participation Badge",
+    "achiveDescription": "Thank you attending events keep up on your hard work!",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": true,
+    "attendanceNeed": 50,
+    "userHas": []
+  },
+  {
+    "id": "ach_1745965188140_ykbit",
+    "title": "Gold Participation Badge",
+    "category": "Community",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/5dd971c2-d5d8-48dd-9cd0-c3fee8dccf6e.png",
+    "description": "Attend minimum of 75 Culture Connection Event to achieve Gold Participation Badge",
+    "achiveDescription": "Thank you attending events keep up on your hard work! BE BETTER!!!",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": true,
+    "attendanceNeed": 75,
+    "userHas": []
+  },
+  {
+    "id": "ach_1745965859478_y7hm1",
+    "title": "Prismatic Participation Badge",
+    "category": "Community",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/10558da5-1c75-4ac9-9cf8-bfd69761cd96.png",
+    "description": "Attend minimum of 100 Culture Connection Event to achieve Prismatic Participation Badge",
+    "achiveDescription": "Attend minimum of 100 Culture Connection Event to achieve Prismatic Participation Badge",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": true,
+    "attendanceNeed": 100,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746066790275_i40z7",
+    "title": "Blue Tape Climber",
+    "category": "Climbing",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/4347d423-e7e4-4f32-86ce-cd7b1cfb3421.png",
+    "description": "You get this badge when you climb blue tape problem.",
+    "achiveDescription": "Congratulations! You have achieved the Green Tape Climber badge.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746066852836_a3nx6",
+    "title": "Red Tape Climber",
+    "category": "Climbing",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/cb803d16-b090-4cd4-8892-3fdb14c24d44.png",
+    "description": "You get this badge when you climb red tape problem.",
+    "achiveDescription": "Congratulations! You have achieved the Green Tape Climber badge.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746066933224_8f5hb",
+    "title": "Black Tape Climber",
+    "category": "Climbing",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/2dad6d0c-f4fa-4135-ab9e-a6abd2770edc.png",
+    "description": "You get this badge when you climb black tape problem.",
+    "achiveDescription": "Congratulations! You have achieved the Black Tape Climber badge.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746067023065_egs7g",
+    "title": "White Tape Climber",
+    "category": "Climbing",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/c4bbab18-79b7-407c-a8e8-5081517db738.png",
+    "description": "You get this badge when you climb white tape.",
+    "achiveDescription": "Congratulations! You have achieved the Green Tape Climber badge.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746067843548_0uz27",
+    "title": "Ticket to Ride",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/0714028a-3fd1-45f1-a5cb-033b33be4a6f.png",
+    "description": "Play a game in Terraforming Mars.",
+    "achiveDescription": "Play a game in Terraforming Mars.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": true,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746067894157_vevz8",
+    "title": "Bang*!",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/f6db0e1e-2416-4bdf-a70e-95ceab9cac78.png",
+    "description": "Play a game of Bang!",
+    "achiveDescription": "Play a game of Bang!",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": true,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746067933320_b1un9",
+    "title": "Catan",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/1e1dd820-f605-49f4-aad7-371727c23ffe.png",
+    "description": "Play a game on Catan.",
+    "achiveDescription": "Play a game on Catan.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": true,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746067966691_wfzkd",
+    "title": "Wingspan!",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/91107c27-f64c-417c-a299-3a8cac1daac6.png",
+    "description": "Play a game in Wingspan!",
+    "achiveDescription": "Play a game in Wingspan!",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746067991504_jbk7j",
+    "title": "Skull",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/f834d340-2fd2-4336-baf5-ff66d8e75f3c.png",
+    "description": "Play a game in Terraforming Mars.",
+    "achiveDescription": "Play a game in Terraforming Mars.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746068035358_s3o4b",
+    "title": "ROOT!",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/7979a1cc-3f3e-45ab-81a5-2380c4654ac7.png",
+    "description": "Play a game of Root.",
+    "achiveDescription": "Play a game of Root.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": [
+      {
+        "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
+        "achived": true,
+        "attendanceCount": 0,
+        "date": "2025-05-01T03:04:45.279Z"
+      }
+    ]
+  },
+  {
+    "id": "ach_1746068088801_l2s6p",
+    "title": "7 Wonders",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/85d3dea6-8244-4932-b54f-5a505509e6cf.png",
+    "description": "Play a game of Wonders.",
+    "achiveDescription": "Play a game of Wonders.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": true,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746068137334_i2ba5",
+    "title": "UNO!",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/e6d45994-c00c-4dd2-ac4e-e64fdf445dfa.png",
+    "description": "Play a game of UNO!",
+    "achiveDescription": "Play a game of UNO!",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746068167374_515hf",
+    "title": "Code Names!",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/46c3553d-977a-4e58-906f-e84c747accfa.png",
+    "description": "Play a game of Code Names.",
+    "achiveDescription": "Play a game of Code Names.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746068200839_x1d76",
+    "title": "Mysterium",
+    "category": "Board Games",
+    "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/14310c9c-dfa4-4766-befb-9dd17cb3258e.png",
+    "description": "Play a game of Terraforming Mars.",
+    "achiveDescription": "Play a game of Terraforming Mars.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": []
+  }
+]

@@ -19,7 +19,7 @@
       },
       {
         "userID": "user_confirmed_2",
-        "verified": false
+        "verified": true
       },
       {
         "userID": "user_waiting_1",
@@ -54,16 +54,11 @@
     "cardColor": "bg-red-200",
     "cardEnabled": true,
     "imageUrl": "",
-    "isLimitEnabled": true,
-    "attendanceLimit": 1,
+    "isLimitEnabled": false,
+    "attendanceLimit": null,
     "closed": false,
-    "attendees": true,
-    "attendeesCounter": [
-      {
-        "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
-        "verified": false
-      }
-    ],
+    "attendees": false,
+    "attendeesCounter": [],
     "inDescription": [],
     "freezenotallow": false
   },
@@ -82,6 +77,10 @@
     "attendees": true,
     "attendeesCounter": [
       {
+        "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
+        "verified": false
+      },
+      {
         "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
         "verified": false
       }
@@ -96,19 +95,15 @@
     "description": "A beginner-friendly workshop covering the basics of programming.",
     "location": "Local Library - Room B",
     "imageUrl": "",
-    "isLimitEnabled": false,
+    "isLimitEnabled": true,
     "cardEnabled": true,
-    "attendanceLimit": null,
+    "attendanceLimit": 1,
     "closed": false,
     "attendees": true,
     "attendeesCounter": [
       {
         "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
-        "verified": false
-      },
-      {
-        "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
-        "verified": false
+        "verified": true
       }
     ],
     "cardColor": "bg-white",

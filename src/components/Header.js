@@ -210,12 +210,13 @@ export default function Header() {
                   >
                     Events
                   </Link>
-                  <button
-                    onClick={() => scrollToSection("team-section")}
+                  <Link
+                    href="/achievements"
+                    onClick={closeAccountDropdown}
                     className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
                   >
-                    Team
-                  </button>
+                    Badges
+                  </Link>
                   <button
                     onClick={() => scrollToSection("sponsors-section")}
                     className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
@@ -317,13 +318,6 @@ export default function Header() {
                               Admin Panel
                             </Link>
                           )}
-                          <Link
-                            href="/events"
-                            onClick={closeAccountDropdown}
-                            className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                          >
-                            Events
-                          </Link>
                           {canShowUserCard && (
                             <button
                               onClick={() => {
@@ -551,6 +545,13 @@ export default function Header() {
                       className="block w-full text-3xl md:text-4xl px-4 py-2 text-white hover:text-gray-300 text-center rounded"
                     >
                       Events
+                    </Link>
+                    <Link
+                      href="/achievements"
+                      onClick={closeMobileMenu}
+                      className="block w-full text-3xl md:text-4xl px-4 py-2 text-white hover:text-gray-300 text-center rounded"
+                    >
+                      Badges
                     </Link>
                     {canShowUserCard && (
                       <button
