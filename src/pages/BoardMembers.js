@@ -213,7 +213,7 @@ function BoardMembers() {
                       <img
                         src={member.imageUrl || DEFAULT_IMAGE_URL}
                         alt={member.name || 'Association Member'}
-                        className="w-full h-48 object-cover"
+                        className="w-full h-80 object-cover"
                         loading="lazy"
                         onError={handleImageError}
                       />

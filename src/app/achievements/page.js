@@ -1,4 +1,3 @@
-// src/app/achievements/page.js
 "use client";
 
 import { useState, useMemo } from "react";
@@ -9,8 +8,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import AchievementBadge from "@/components/Achievements/AchievementBadge";
 import AchievementModal from "@/components/Achievements/AchievementModal";
 import AddEditAchievementModal from "@/components/Achievements/AddEditAchievementModal";
-import ManageAchievementUsersModal from "@/components/Achievements/ManageAchievementUsersModal";
+import QRCodeGrantModal from "@/components/Achievements/QRCodeGrantModal";
+import ScannerModal from "@/components/ScannerModal";
 import { AnimatePresence } from "framer-motion";
+import toast, { Toaster } from 'react-hot-toast';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faQrcode } from '@fortawesome/free-solid-svg-icons';
 
 const fetchAchievements = async () => {
     const response = await fetch("/api/achievements");
@@ -58,16 +61,10 @@ const deleteAchievement = async (achievementId) => {
     return response.json();
 };
 
-const patchUserAchievement = async ({ achievementId, targetUserId, action, achieved, countChange, score }) => {
-    let body = { achievementId, targetUserId, action };
-    if (action === 'setAchieved') {
-        body.achieved = achieved;
-    } else if (action === 'updateCount') {
-        body.countChange = countChange;
-    } else if (action === 'updateScore') {
-        body.score = score;
-    } else {
-        throw new Error("Invalid patch action");
+const patchUserAchievement = async (payload) => {
+    let body = { ...payload };
+    if (!body.action || !body.achievementId || !body.targetUserId) {
+        throw new Error("Invalid payload for patchUserAchievement");
     }
 
     const response = await fetch("/api/achievements", {
@@ -77,7 +74,7 @@ const patchUserAchievement = async ({ achievementId, targetUserId, action, achie
     });
      if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: `Request failed with status ${response.status}` }));
-        throw new Error(errorData.message || `Failed to ${action}`);
+        throw new Error(errorData.message || `Failed to ${body.action}`);
     }
     return response.json();
 };
@@ -91,6 +88,21 @@ const fetchAllUsers = async () => {
     return response.json();
 };
 
+const scanQrCodeApi = async (scannedData) => {
+  const response = await fetch("/api/qr/scan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scannedData }),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(
+      result.message || `Scan processing failed with status ${response.status}`,
+    );
+  }
+  return result;
+};
+
 
 export default function AchievementsPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -98,14 +110,16 @@ export default function AchievementsPage() {
 
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
-  const [isManageUsersModalOpen, setIsManageUsersModalOpen] = useState(false);
-
+  const [isQrCodeModalOpen, setIsQrCodeModalOpen] = useState(false);
+  const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
   const [selectedAchievementForDetail, setSelectedAchievementForDetail] = useState(null);
   const [achievementToEdit, setAchievementToEdit] = useState(null);
-  const [achievementToManageUsers, setAchievementToManageUsers] = useState(null);
-
+  const [achievementForQrCode, setAchievementForQrCode] = useState(null);
   const [filterMode, setFilterMode] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const canManage = isUserLoaded && user && (user.publicMetadata?.admin === true || user.publicMetadata?.committee === true);
+  const isAdmin = isUserLoaded && user && user.publicMetadata?.admin === true;
 
   const {
       data: achievementsData,
@@ -118,31 +132,44 @@ export default function AchievementsPage() {
       enabled: isUserLoaded,
   });
 
+  const {
+      data: allUsersData,
+      isLoading: isLoadingUsers,
+      isError: isUsersError,
+      error: usersError
+  } = useQuery({
+      queryKey: ['allUsers'],
+      queryFn: fetchAllUsers,
+      enabled: !!canManage,
+      staleTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+  });
+
+
   const commonMutationOptions = {
-     onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['achievements'] });
-     },
-     onError: (error) => {
+     onError: (error, variables, context) => {
         console.error("Mutation failed:", error);
-        alert(`Error: ${error.message}`);
+        toast.error(`Error: ${error.message}`);
      },
   };
 
   const createAchievementMutation = useMutation({
     mutationFn: createAchievement,
     ...commonMutationOptions,
-    onSuccess: () => {
-        commonMutationOptions.onSuccess();
+    onSuccess: (data) => {
+        queryClient.invalidateQueries({ queryKey: ['achievements'] });
         closeAddEditModal();
+        toast.success("Achievement created!");
     }
   });
 
   const editAchievementMutation = useMutation({
     mutationFn: editAchievement,
     ...commonMutationOptions,
-     onSuccess: () => {
-        commonMutationOptions.onSuccess();
+     onSuccess: (data) => {
+        queryClient.invalidateQueries({ queryKey: ['achievements'] });
         closeAddEditModal();
+        toast.success("Achievement updated!");
     }
   });
 
@@ -150,49 +177,125 @@ export default function AchievementsPage() {
     mutationFn: deleteAchievement,
     ...commonMutationOptions,
      onSuccess: (data) => {
-        commonMutationOptions.onSuccess();
-        alert(data.message || "Achievement deleted.");
+        queryClient.invalidateQueries({ queryKey: ['achievements'] });
+        toast.success(data.message || "Achievement deleted.");
     }
   });
 
    const patchUserAchievementMutation = useMutation({
-    mutationFn: patchUserAchievement,
-    // onSuccess handled by invalidate in ManageUsersModal save logic
-    onError: (error) => {
-        console.error("Patch failed:", error);
-        // Error handled in ManageUsersModal save logic
-        // alert(`Update failed: ${error.message}`);
-     },
-  });
+     mutationFn: patchUserAchievement,
+     onMutate: async (payload) => {
+       const { achievementId, targetUserId, action } = payload;
+       await queryClient.cancelQueries({ queryKey: ['achievements'] });
+       const previousAchievements = queryClient.getQueryData(['achievements']);
+       queryClient.setQueryData(['achievements'], (oldData) => {
+         if (!oldData) return oldData;
+         const achIndex = oldData.findIndex(ach => ach.id === achievementId);
+         if (achIndex === -1) return oldData;
+         const achievementToUpdate = oldData[achIndex];
+         const userHas = achievementToUpdate.userHas || [];
+         const userIndex = userHas.findIndex(u => u.userID === targetUserId);
+         let newUserEntry = null;
+         let updatedUserHas = [...userHas];
+         const currentUserEntry = userIndex !== -1 ? userHas[userIndex] : { userID: targetUserId, achived: false, attendanceCount: 0, score: null, date: null };
 
-  const canManage = isUserLoaded && user && (user.publicMetadata?.admin === true || user.publicMetadata?.committee === true);
-  const isAdmin = isUserLoaded && user && user.publicMetadata?.admin === true;
+         if (action === 'setAchieved') {
+           const { achieved } = payload;
+           newUserEntry = {
+             ...currentUserEntry,
+             achived: achieved,
+             date: achieved ? new Date().toISOString() : null,
+             attendanceCount: achieved ? currentUserEntry.attendanceCount : 0,
+             score: achieved ? currentUserEntry.score : null,
+           };
+         } else if (action === 'updateCount') {
+           const { countChange } = payload;
+           const newCount = Math.max(0, (currentUserEntry.attendanceCount || 0) + countChange);
+           let achieved = currentUserEntry.achived;
+           let date = currentUserEntry.date;
+           if (!achieved && achievementToUpdate.attendanceNeed && newCount >= achievementToUpdate.attendanceNeed) {
+               achieved = true;
+               date = new Date().toISOString();
+           }
+           newUserEntry = {
+             ...currentUserEntry,
+             attendanceCount: newCount,
+             achived: achieved,
+             date: date,
+           };
+         } else if (action === 'updateScore') {
+           const { score } = payload;
+           newUserEntry = {
+             ...currentUserEntry,
+             score: (typeof score === 'number' && !isNaN(score)) ? score : 0,
+           };
+         } else {
+           return oldData;
+         }
+
+         if (userIndex !== -1) {
+           updatedUserHas[userIndex] = newUserEntry;
+         } else {
+           updatedUserHas.push(newUserEntry);
+         }
+
+         const updatedAchievement = {
+           ...achievementToUpdate,
+           userHas: updatedUserHas,
+         };
+
+         const newData = [...oldData];
+         newData[achIndex] = updatedAchievement;
+         return newData;
+       });
+       return { previousAchievements };
+     },
+     onError: (err, payload, context) => {
+       toast.error(`Update failed: ${err.message}. Reverting.`);
+       if (context?.previousAchievements) {
+         queryClient.setQueryData(['achievements'], context.previousAchievements);
+       }
+       throw err;
+     },
+     onSettled: (data, error, payload, context) => {
+       console.log("onSettled: Refetching achievements after mutation.");
+       queryClient.invalidateQueries({ queryKey: ['achievements'] });
+     },
+   });
+
+   const scanQrCodeMutation = useMutation({
+     mutationFn: scanQrCodeApi,
+     onSuccess: (data) => {
+       toast.success(data.message || "Scan processed successfully!");
+       queryClient.invalidateQueries({ queryKey: ["achievements"] });
+       closeScannerModal();
+     },
+     onError: (error) => {
+       console.error("Scan mutation failed:", error);
+       toast.error(`Scan Error: ${error.message}`);
+     },
+   });
 
   const { groupedAchievements, sortedCategoryNames: allSortedCategoryNames } = useMemo(() => {
     if (!achievementsData) return { groupedAchievements: {}, sortedCategoryNames: [] };
     const visibleAchievements = achievementsData.filter(ach => ach.isEnabled || canManage);
     const groups = {};
     const categorySet = new Set();
+    let hasUncategorized = false;
     visibleAchievements.forEach(ach => {
       const category = ach.category || "Uncategorized";
-      if (category && category !== "Uncategorized") {
+      if (category !== "Uncategorized") {
           categorySet.add(category);
+      } else {
+          hasUncategorized = true;
       }
       if (!groups[category]) { groups[category] = []; }
       groups[category].push(ach);
     });
     const sortedNames = Array.from(categorySet).sort((a, b) => a.localeCompare(b));
-
-     if (groups["Uncategorized"] && !categorySet.has("Uncategorized")) {
-     } else if (!groups["Uncategorized"] && visibleAchievements.some(ach => !ach.category)) {
-         groups["Uncategorized"] = visibleAchievements.filter(ach => !ach.category);
-     }
-
-    const finalSortedNames = sortedNames.filter(name => groups[name]?.length > 0);
-    if (groups["Uncategorized"]?.length > 0) {
-        finalSortedNames.push("Uncategorized");
+    if (hasUncategorized) {
+        sortedNames.push("Uncategorized");
     }
-
     return { groupedAchievements: groups, sortedCategoryNames: sortedNames };
   }, [achievementsData, canManage]);
 
@@ -200,41 +303,47 @@ export default function AchievementsPage() {
   const { displayedAchievements, displayMode, categoriesToDisplay } = useMemo(() => {
     if (!achievementsData) return { displayedAchievements: {}, displayMode: 'loading', categoriesToDisplay: [] };
 
-    const visibleAchievements = achievementsData.filter(ach => ach.isEnabled || canManage);
+    let processedAchievements = achievementsData.filter(ach => ach.isEnabled || canManage);
+
+    processedAchievements.sort((a, b) => {
+        const achievedCompare = (b.currentUserAchieved ? 1 : 0) - (a.currentUserAchieved ? 1 : 0);
+        if (achievedCompare !== 0) {
+            return achievedCompare;
+        }
+        return a.title.localeCompare(b.title);
+    });
+
+    let filteredForDisplay = processedAchievements;
+    let finalDisplayMode = filterMode;
 
     if (filterMode === 'achieved') {
-        const achieved = visibleAchievements.filter(ach => ach.currentUserAchieved);
-        const groups = {};
-         achieved.forEach(ach => {
-            const category = ach.category || "Uncategorized";
-            if (!groups[category]) { groups[category] = []; }
-            groups[category].push(ach);
-         });
-         const achievedCategories = Object.keys(groups).sort((a, b) => {
-             if (a === "Uncategorized") return 1; if (b === "Uncategorized") return -1; return a.localeCompare(b);
-         });
-        return { displayedAchievements: groups, displayMode: 'achieved', categoriesToDisplay: achievedCategories };
+        filteredForDisplay = processedAchievements.filter(ach => ach.currentUserAchieved);
+    } else if (filterMode === 'uncompleted') {
+        filteredForDisplay = processedAchievements.filter(ach => !ach.currentUserAchieved);
+    } else if (filterMode === 'category' && selectedCategory) {
+        filteredForDisplay = processedAchievements.filter(ach => (ach.category || "Uncategorized") === selectedCategory);
     }
 
     const groups = {};
-    visibleAchievements.forEach(ach => {
-      const category = ach.category || "Uncategorized";
-      if (!groups[category]) { groups[category] = []; }
-      groups[category].push(ach);
+    filteredForDisplay.forEach(ach => {
+        const category = ach.category || "Uncategorized";
+        if (!groups[category]) { groups[category] = []; }
+        groups[category].push(ach);
     });
 
-    let categoriesToRender = allSortedCategoryNames;
-     if (groups["Uncategorized"]?.length > 0 && !categoriesToRender.includes("Uncategorized")) {
-         categoriesToRender.push("Uncategorized");
-     }
+    let categoriesToRender = Object.keys(groups).sort((a, b) => {
+        if (a === "Uncategorized") return 1;
+        if (b === "Uncategorized") return -1;
+        return a.localeCompare(b);
+    });
 
-    if (filterMode === 'category' && selectedCategory) {
-        categoriesToRender = groups[selectedCategory] ? [selectedCategory] : [];
-    }
+    return {
+        displayedAchievements: groups,
+        displayMode: finalDisplayMode,
+        categoriesToDisplay: categoriesToRender
+    };
 
-    return { displayedAchievements: groups, displayMode: filterMode, categoriesToDisplay: categoriesToRender };
-
-  }, [achievementsData, canManage, filterMode, selectedCategory, allSortedCategoryNames]);
+  }, [achievementsData, canManage, filterMode, selectedCategory]);
 
 
   const openDetailModal = (achievement) => {
@@ -264,33 +373,46 @@ export default function AchievementsPage() {
     document.body.style.overflow = "";
   };
 
-   const openManageUsersModal = (achievement) => {
-    setAchievementToManageUsers(achievement);
-    setIsManageUsersModalOpen(true);
+  const openQrCodeModal = (achievement) => {
+    setAchievementForQrCode(achievement);
+    setIsQrCodeModalOpen(true);
     setIsDetailModalOpen(false);
     setSelectedAchievementForDetail(null);
     document.body.style.overflow = "hidden";
   };
-   const closeManageUsersModal = () => {
-    setIsManageUsersModalOpen(false);
-    setAchievementToManageUsers(null);
+  const closeQrCodeModal = () => {
+    setIsQrCodeModalOpen(false);
+    setAchievementForQrCode(null);
     document.body.style.overflow = "";
   };
 
-   const handleAddEditSubmit = (achievementData) => {
+  const openScannerModal = () => {
+      if (!user) {
+          toast.error("Please sign in to scan QR codes.");
+          return;
+      }
+      setIsScannerModalOpen(true);
+      document.body.style.overflow = "hidden";
+  };
+  const closeScannerModal = () => {
+      setIsScannerModalOpen(false);
+      document.body.style.overflow = "";
+  };
+
+  const handleAddEditSubmit = (achievementData) => {
     if (achievementToEdit) {
         editAchievementMutation.mutate(achievementData);
     } else {
         createAchievementMutation.mutate(achievementData);
     }
-   };
+  };
 
-   const handleDeleteClick = (achievementId) => {
+  const handleDeleteClick = (achievementId) => {
        if (confirm(`Are you sure you want to delete achievement ${achievementId}? This cannot be undone.`)) {
            deleteAchievementMutation.mutate(achievementId);
            if (selectedAchievementForDetail?.id === achievementId) closeDetailModal();
            if (achievementToEdit?.id === achievementId) closeAddEditModal();
-           if (achievementToManageUsers?.id === achievementId) closeManageUsersModal();
+           if (achievementForQrCode?.id === achievementId) closeQrCodeModal();
        }
    };
 
@@ -299,9 +421,19 @@ export default function AchievementsPage() {
       setSelectedCategory(category);
   };
 
+  const handleScanSuccess = (decodedText) => {
+      if (scanQrCodeMutation.isPending) return;
+      scanQrCodeMutation.mutate(decodedText);
+  };
+
+  const handleScanError = (errorMessage) => {
+      toast.error(`Scanner Error: ${errorMessage}`);
+  };
+
 
   return (
     <>
+      <Toaster position="top-center" reverseOrder={false} />
       <BackgroundAchievements />
       <div className="relative z-10 p-4 md:p-8 mt-24 md:mt-32">
         <Header />
@@ -310,9 +442,17 @@ export default function AchievementsPage() {
             <h1 className="text-5xl md:text-7xl font-Header text-mainColor font-bold text-center mx-auto sm:text-center flex-grow">
               Achievement Board
             </h1>
-
+            <button
+                onClick={openScannerModal}
+                className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-md"
+                title="Scan Achievement QR Code"
+                aria-label="Scan Achievement QR Code"
+                disabled={!isUserLoaded}
+            >
+                <FontAwesomeIcon icon={faQrcode} className="h-6 w-6" />
+            </button>
           </div>
-        
+
           {!isAchievementsLoading && !isAchievementsError && (achievementsData?.length > 0 || allSortedCategoryNames.length > 0) && (
             <div className="flex flex-wrap justify-center gap-2 mb-8 px-4">
               <button
@@ -332,6 +472,15 @@ export default function AchievementsPage() {
                              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}`}
               >
                 My Badges
+              </button>
+              <button
+                onClick={() => handleFilterClick('uncompleted')}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-500
+                           ${filterMode === 'uncompleted'
+                             ? 'bg-gray-600 text-white border-gray-700 shadow-sm'
+                             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}`}
+              >
+                Uncompleted
               </button>
               {allSortedCategoryNames.map((category) => (
                 <button
@@ -359,32 +508,18 @@ export default function AchievementsPage() {
 
           {isAchievementsLoading && ( <p className="text-center text-gray-500 text-lg">Loading badges...</p> )}
           {isAchievementsError && ( <p className="text-center text-red-600 bg-red-100 p-3 rounded border border-red-300">Error loading badges: {achievementsError instanceof Error ? achievementsError.message : "Unknown error"}</p> )}
-          {!isAchievementsLoading && !isAchievementsError && categoriesToDisplay.length === 0 && Object.keys(displayedAchievements).length === 0 && (
+          {!isAchievementsLoading && !isAchievementsError && categoriesToDisplay.length === 0 && (
              <p className="text-center text-gray-500 text-lg mt-10">
                 {filterMode === 'achieved' ? 'You haven\'t achieved any badges yet!' :
+                 filterMode === 'uncompleted' ? 'No uncompleted badges found (Great job!)' :
                  filterMode === 'category' && selectedCategory ? `No badges found in the '${selectedCategory}' category.` :
                  'No achievement badges found.'}
              </p>
           )}
 
-          {!isAchievementsLoading && !isAchievementsError && (
+          {!isAchievementsLoading && !isAchievementsError && categoriesToDisplay.length > 0 && (
             <>
-              {displayMode === 'achieved' && categoriesToDisplay.length > 0 && (
-                  <div className="bg-gray-400/80 p-4 md:p-6 rounded-lg shadow-xl border-4 border-gray-600/50 mb-12">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 justify-items-center">
-                          {Object.values(displayedAchievements).flat().map((achievement) => (
-                              <AchievementBadge
-                                  key={achievement.id}
-                                  achievement={achievement}
-                                  isAdminView={canManage}
-                                  onOpenModal={openDetailModal}
-                              />
-                          ))}
-                      </div>
-                  </div>
-              )}
-
-              {displayMode !== 'achieved' && categoriesToDisplay.map((category) => (
+              {categoriesToDisplay.map((category) => (
                 <section key={category} className="mb-12">
                   <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
                     {category}
@@ -400,7 +535,7 @@ export default function AchievementsPage() {
                         />
                       ))}
                       {(!displayedAchievements[category] || displayedAchievements[category].length === 0) && (
-                          <p className="col-span-full text-center text-gray-700 italic">No badges in this category.</p>
+                          <p className="col-span-full text-center text-gray-700 italic">No badges in this category for the current filter.</p>
                       )}
                     </div>
                   </div>
@@ -419,7 +554,7 @@ export default function AchievementsPage() {
         isAdminOrCommittee={canManage}
         onEdit={() => selectedAchievementForDetail && openEditModal(selectedAchievementForDetail)}
         onDelete={() => selectedAchievementForDetail && handleDeleteClick(selectedAchievementForDetail.id)}
-        onManageUsers={() => selectedAchievementForDetail && openManageUsersModal(selectedAchievementForDetail)}
+        onOpenQrCodeModal={() => selectedAchievementForDetail && openQrCodeModal(selectedAchievementForDetail)}
       />
 
       <AddEditAchievementModal
@@ -432,13 +567,25 @@ export default function AchievementsPage() {
         availableCategories={allSortedCategoryNames}
       />
 
-       <ManageAchievementUsersModal
-         isOpen={isManageUsersModalOpen}
-         onClose={closeManageUsersModal}
-         achievementData={achievementToManageUsers}
+      <QRCodeGrantModal
+         isOpen={isQrCodeModalOpen}
+         onClose={closeQrCodeModal}
+         achievementData={achievementForQrCode}
          patchUserMutation={patchUserAchievementMutation}
          isAdmin={isAdmin}
+         usersData={allUsersData}
+         isLoadingUsers={isLoadingUsers}
+         isUsersError={isUsersError}
+         usersError={usersError}
        />
+
+       <ScannerModal
+         isOpen={isScannerModalOpen}
+         onClose={closeScannerModal}
+         onScanSuccess={handleScanSuccess}
+         onScanError={handleScanError}
+       />
+
     </>
   );
 }

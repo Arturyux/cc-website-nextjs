@@ -100,7 +100,7 @@
         "score": 0
       }
     ],
-    "onScore": true
+    "onScore": false
   },
   {
     "id": "ach_community_helper",
@@ -242,7 +242,15 @@
     "attendanceCounter": false,
     "attendanceNeed": null,
     "onScore": true,
-    "userHas": []
+    "userHas": [
+      {
+        "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
+        "achived": true,
+        "attendanceCount": 0,
+        "score": 0,
+        "date": "2025-05-03T09:08:18.406Z"
+      }
+    ]
   },
   {
     "id": "ach_1746067894157_vevz8",
@@ -370,6 +378,20 @@
     "imgurl": "https://api2.cultureconnection.se/assets/achievments-badges/14310c9c-dfa4-4766-befb-9dd17cb3258e.png",
     "description": "Play a game of Terraforming Mars.",
     "achiveDescription": "Play a game of Terraforming Mars.",
+    "silhouetteColor": "bg-gray-400",
+    "isEnabled": true,
+    "attendanceCounter": false,
+    "attendanceNeed": null,
+    "onScore": false,
+    "userHas": []
+  },
+  {
+    "id": "ach_1746209623464_jq838",
+    "title": "Silver Grade Master!",
+    "category": "Climbing",
+    "imgurl": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExazkzb3hqc2hqNmx4YTEycG03bjJ0d3k0OGp2cHk5aDZkcGUwc3R3ciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/i46XTNsTFpmfdy5tIm/giphy.gif",
+    "description": "You need to Climb a silver problem",
+    "achiveDescription": "Congratz still weak!",
     "silhouetteColor": "bg-gray-400",
     "isEnabled": true,
     "attendanceCounter": false,

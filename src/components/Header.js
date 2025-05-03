@@ -329,6 +329,17 @@ export default function Header() {
                               View My Card
                             </button>
                           )}
+                          {canShowUserCard && (
+                            <button
+                              onClick={() => {
+                                openUserCardModal();
+                                closeAccountDropdown();
+                              }}
+                              className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                            >
+                              Membership
+                            </button>
+                          )}
                           {canShowBecomeMember && (
                             <button
                               onClick={() => {
@@ -539,6 +550,13 @@ export default function Header() {
                         Admin Panel
                       </Link>
                     )}
+                    <Link
+                      href="/"
+                      onClick={closeAccountDropdown}
+                      className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                    >
+                      Home
+                    </Link>
                     <Link
                       href="/events"
                       onClick={closeMobileMenu}

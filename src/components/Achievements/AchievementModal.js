@@ -1,7 +1,6 @@
-// src/components/Achievements/AchievementModal.js
-"use client";
-
 import { motion, AnimatePresence } from 'framer-motion';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXmark } from '@fortawesome/free-solid-svg-icons';
 
 const modalVariants = {
   hidden: { opacity: 0, scale: 0.95 },
@@ -28,7 +27,7 @@ export default function AchievementModal({
     isAdminOrCommittee = false,
     onEdit = () => {},
     onDelete = () => {},
-    onManageUsers = () => {},
+    onOpenQrCodeModal = () => {},
  }) {
   if (!isOpen || !achievementData) return null;
 
@@ -52,8 +51,8 @@ export default function AchievementModal({
             onClick={(e) => e.stopPropagation()} variants={modalVariants}
           >
             <div className="p-6 flex flex-col items-center flex-grow">
-                <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 z-20 bg-white rounded-full p-1" aria-label="Close modal">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 z-20 bg-white rounded-full p-1 h-7 w-7 flex items-center justify-center" aria-label="Close modal">
+                    <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
                 </button>
 
                 <div className={`w-full h-full items-center ${hasAchieved}`}>
@@ -89,7 +88,7 @@ export default function AchievementModal({
                   </p>
 
                 <div className="text-xs text-center text-gray-500 mt-1 space-y-0.5">
-                    
+
                     {hasAchieved && achievedDate && (
                         <p>Badge Achieved: {achievedDate}</p>
                     )}
@@ -114,7 +113,7 @@ export default function AchievementModal({
 
             {isAdminOrCommittee && (
                 <div className="p-4 bg-gray-100 border-t border-gray-200 flex flex-wrap justify-center gap-2">
-                     <button onClick={onManageUsers} className="px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 border border-blue-300 rounded hover:bg-blue-200 transition"> Manage Users </button>
+                     <button onClick={onOpenQrCodeModal} className="px-3 py-1.5 text-xs font-medium bg-cyan-100 text-cyan-700 border border-cyan-300 rounded hover:bg-cyan-200 transition"> QR Code / Grant </button>
                     <button onClick={onEdit} className="px-3 py-1.5 text-xs font-medium bg-yellow-100 text-yellow-700 border border-yellow-300 rounded hover:bg-yellow-200 transition"> Edit Details </button>
                     <button onClick={onDelete} className="px-3 py-1.5 text-xs font-medium bg-red-100 text-red-700 border border-red-300 rounded hover:bg-red-200 transition"> Delete Badge </button>
                 </div>

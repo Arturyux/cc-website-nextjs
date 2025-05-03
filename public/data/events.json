@@ -14,24 +14,6 @@
     "attendees": true,
     "attendeesCounter": [
       {
-        "userID": "user_confirmed_1",
-        "verified": true
-      },
-      {
-        "userID": "user_confirmed_2",
-        "verified": true
-      },
-      {
-        "userID": "user_waiting_1",
-        "verified": false,
-        "waiting": true
-      },
-      {
-        "userID": "user_waiting_2",
-        "verified": false,
-        "waiting": true
-      },
-      {
         "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
         "verified": false,
         "waiting": true
@@ -73,20 +55,20 @@
     "cardEnabled": true,
     "isLimitEnabled": true,
     "attendanceLimit": 2,
-    "closed": false,
+    "closed": true,
     "attendees": true,
     "attendeesCounter": [
       {
-        "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
+        "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
         "verified": false
       },
       {
-        "userID": "user_2povtzWFpBSSbPk2HoixJ7PLWMZ",
+        "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
         "verified": false
       }
     ],
     "inDescription": [],
-    "freezenotallow": false
+    "freezenotallow": true
   },
   {
     "id": "evt_4",
@@ -103,7 +85,7 @@
     "attendeesCounter": [
       {
         "userID": "user_2pqP82JwMdsHwmdbxVOLgAzKA6Y",
-        "verified": true
+        "verified": false
       }
     ],
     "cardColor": "bg-white",

@@ -79,13 +79,13 @@
   },
   {
     "id": 3,
-    "title": "Fun Swedish",
+    "title": "Swedish Fun",
     "date": "Every Thursday",
     "time": "20:00",
     "location": "H-Building Linnesalen (Campus)",
     "bgColor": "bg-red-200",
     "description": "Come over and Explore new way of learning new language!",
-    "imageUrl": "https://api2.cultureconnection.se/assets/swedish-fun-pictures/1352377367334621305_1352377367103803464.jpg",
+    "imageUrl": "https://api2.cultureconnection.se/assets/swedish-fun-pictures/1301178986587488277_1301178982850363435.jpg",
     "url": "https://swedishfun.cultureconnection.se",
     "inDescription": [
       {
