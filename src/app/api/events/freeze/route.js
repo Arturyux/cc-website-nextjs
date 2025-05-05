@@ -1,30 +1,18 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
-import fs from "fs/promises";
-import path from "path";
 import { createClerkClient } from "@clerk/clerk-sdk-node";
+import db from "@/lib/db";
 import { env } from "@/env";
 
 const clerkClient = createClerkClient({ secretKey: env.CLERK_SECRET_KEY });
-const eventsFilePath = path.join(process.cwd(), "public", "data", "events.json");
-
-async function readEvents() {
-  try {
-    const jsonData = await fs.readFile(eventsFilePath, "utf8");
-    return JSON.parse(jsonData);
-  } catch (error) {
-    if (error.code === "ENOENT") throw new Error("Events data file not found.");
-    throw new Error("Could not read events data.");
-  }
-}
 
 export async function POST(request) {
     const { userId, sessionClaims } = getAuth(request);
-
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     const isAdmin = sessionClaims?.metadata?.admin === true;
     const isCommittee = sessionClaims?.metadata?.committee === true;
     if (!isAdmin && !isCommittee) return NextResponse.json({ message: "Forbidden: User cannot freeze attendees." }, { status: 403 });
+    if (!db) return NextResponse.json({ message: "Database connection failed." }, { status: 500 });
 
     let body;
     try {
@@ -32,52 +20,50 @@ export async function POST(request) {
         if (!body.eventId) {
             throw new Error("Missing required field: eventId");
         }
-    } catch (error) { return NextResponse.json({ message: "Invalid request body", error: error.message }, { status: 400 }); }
+    } catch (error) {
+        return NextResponse.json({ message: "Invalid request body", error: error.message }, { status: 400 });
+    }
 
     const { eventId } = body;
 
     try {
-        const events = await readEvents();
-        const event = events.find((e) => e.id === eventId);
+        const stmt = db.prepare("SELECT user_id FROM EventAttendees WHERE event_id = ? AND verified = 0");
+        const unverifiedUsers = stmt.all(eventId);
 
-        if (!event) return NextResponse.json({ message: "Event not found" }, { status: 404 });
-        if (!Array.isArray(event.attendeesCounter)) return NextResponse.json({ message: "No attendees list for this event." }, { status: 400 });
-
-        const unverifiedUserIds = event.attendeesCounter
-            .filter(att => att.verified === false)
-            .map(att => att.userID);
-
-        if (unverifiedUserIds.length === 0) {
-            return NextResponse.json({ message: "No unverified users to freeze." }, { status: 200 });
+        if (unverifiedUsers.length === 0) {
+            return NextResponse.json({ message: "No unverified attendees found for this event." }, { status: 200 });
         }
 
+        const userIdsToFreeze = unverifiedUsers.map(u => u.user_id);
         let frozenCount = 0;
-        const errors = [];
+        let errors = [];
 
-        for (const attendeeId of unverifiedUserIds) {
+        for (const targetUserId of userIdsToFreeze) {
             try {
-                await clerkClient.users.updateUserMetadata(attendeeId, {
+                await clerkClient.users.updateUserMetadata(targetUserId, {
                     publicMetadata: {
                         freezed: true
                     }
                 });
                 frozenCount++;
+                console.log(`Admin ${userId} froze user ${targetUserId} for not attending event ${eventId}`);
             } catch (clerkError) {
-                console.error(`Failed to freeze user ${attendeeId}:`, clerkError);
-                errors.push(`User ${attendeeId}: ${clerkError.message || 'Unknown error'}`);
+                console.error(`Failed to freeze user ${targetUserId}:`, clerkError);
+                errors.push(`User ${targetUserId}: ${clerkError.errors?.[0]?.message || 'Unknown Clerk error'}`);
             }
         }
 
         if (errors.length > 0) {
              return NextResponse.json({
-                 message: `Processed freeze request. Frozen: ${frozenCount}. Errors: ${errors.length}`,
+                 message: `Processed freeze request. Successfully froze ${frozenCount} user(s). Errors occurred for ${errors.length} user(s).`,
                  errors: errors
-             }, { status: frozenCount > 0 ? 207 : 500 });
+             }, { status: 207 });
         }
 
-        return NextResponse.json({ message: `Successfully froze ${frozenCount} unverified users.` }, { status: 200 });
+        return NextResponse.json({ message: `Successfully froze ${frozenCount} unverified attendee(s).` }, { status: 200 });
 
     } catch (error) {
-        return NextResponse.json({ message: error.message || "Failed to process freeze request" }, { status: 500 });
+        console.error("POST /api/events/freeze Error:", error);
+        return NextResponse.json({ message: error.message || "Failed to process freeze request." }, { status: 500 });
     }
 }

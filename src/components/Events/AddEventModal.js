@@ -1,3 +1,5 @@
+// src/components/Events/AddEventModal.js
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -88,14 +90,29 @@ export default function AddEventModal({
 
   const handleSubmit = (e) => {
     e.preventDefault(); setError("");
-    if (!title || !date || !description || !location) { setError("Please fill in required fields on the Main Card tab."); setActiveTab('main'); return; }
+
+    const trimmedTitle = title.trim();
+    const trimmedDesc = description.trim();
+    const trimmedLocation = location.trim();
+
+    // Stricter Validation
+    if (!trimmedTitle) { setError("Title is required."); setActiveTab('main'); return; }
+    if (!date || isNaN(date?.getTime())) { setError("A valid Date and Time is required."); setActiveTab('main'); return; }
+    if (!trimmedDesc) { setError("Description is required."); setActiveTab('main'); return; }
+    if (!trimmedLocation) { setError("Location is required."); setActiveTab('main'); return; }
     if (isLimitEnabled && (!Number.isInteger(limitValue) || limitValue <= 0)) { setError("Attendance limit must be a positive whole number when enabled."); setActiveTab('main'); return; }
+    // End Stricter Validation
 
     const finalInDescription = inDescription.filter(item => item.title?.trim() || item.description?.trim());
 
     const newEventData = {
-      title, date: date.toISOString(), description, location, imageUrl,
-      attendees, cardColor,
+      title: trimmedTitle,
+      date: date.toISOString(),
+      description: trimmedDesc,
+      location: trimmedLocation,
+      imageUrl,
+      attendees,
+      cardColor,
       isLimitEnabled,
       attendanceLimit: isLimitEnabled ? limitValue : null,
       cardEnabled,
@@ -104,11 +121,14 @@ export default function AddEventModal({
       closed: isClosed,
     };
 
+    console.log("Submitting Event Data:", JSON.stringify(newEventData, null, 2));
+
     createEventMutation.mutate(newEventData, {
       onSuccess: () => { onClose(); },
       onError: (apiError) => { setError(apiError.message || "Failed to create event."); },
     });
   };
+
 
   const handleColorSelect = (selectedColorClass) => {
       setCardColor(selectedColorClass);

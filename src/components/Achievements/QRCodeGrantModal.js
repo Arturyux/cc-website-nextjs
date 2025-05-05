@@ -9,7 +9,7 @@ function QRCodeGrantModal({
     isOpen,
     onClose,
     achievementData,
-    patchUserMutation, // Expect the mutation hook itself
+    patchUserMutation, 
     isAdmin,
     usersData = [],
     isLoadingUsers = false,
@@ -23,9 +23,7 @@ function QRCodeGrantModal({
     const [manualActionStatus, setManualActionStatus] = useState({ message: '', error: false });
     const [userViewFilter, setUserViewFilter] = useState('all');
     const [scoreInput, setScoreInput] = useState('');
-    // --- Local state for immediate UI feedback for the selected user ---
     const [optimisticSelectedUserStatus, setOptimisticSelectedUserStatus] = useState(null);
-
     const achievementId = achievementData?.id;
     const achievementTitle = achievementData?.title;
     const isAttendance = achievementData?.attendanceCounter === true;
@@ -40,7 +38,6 @@ function QRCodeGrantModal({
         });
     }, [achievementId]);
 
-    // Base status map from props (React Query cache)
     const userStatusMap = useMemo(() => {
         const map = new Map();
         achievementData?.userHas?.forEach(u => {
@@ -49,7 +46,6 @@ function QRCodeGrantModal({
         return map;
     }, [achievementData]);
 
-    // Filter users based on search term and view filter (using base status map)
     const filteredUsers = useMemo(() => {
         if (!usersData) return [];
         let usersToFilter = usersData;
@@ -66,18 +62,13 @@ function QRCodeGrantModal({
         );
     }, [usersData, searchTerm, userViewFilter, userStatusMap]);
 
-    // --- Determine the status to display for the *selected* user ---
-    // Prioritize local optimistic state if it exists for the selected user
     const selectedUserDisplayStatus = useMemo(() => {
         if (!selectedUserId) return null;
-        // If there's an optimistic override for the selected user, use it
         if (optimisticSelectedUserStatus && optimisticSelectedUserStatus.userId === selectedUserId) {
             return optimisticSelectedUserStatus.status;
         }
-        // Otherwise, use the status from the main data prop
         return userStatusMap.get(selectedUserId) || { achieved: false, count: 0, score: null };
     }, [selectedUserId, userStatusMap, optimisticSelectedUserStatus]);
-    // --- End status calculation ---
 
     const handleManualAction = async (actionType) => {
         if (!selectedUserId || !achievementId || !patchUserMutation || patchUserMutation.isPending) return;
@@ -86,9 +77,8 @@ function QRCodeGrantModal({
 
         let action;
         let payload = { achievementId, targetUserId: selectedUserId };
-        let predictedStatus = { ...selectedUserDisplayStatus }; // Start with current display status
+        let predictedStatus = { ...selectedUserDisplayStatus };
 
-        // Calculate the predicted state change
         if (actionType === 'grant') {
             action = 'setAchieved';
             payload.action = action;
@@ -99,8 +89,8 @@ function QRCodeGrantModal({
             payload.action = action;
             payload.achieved = false;
             predictedStatus.achieved = false;
-            predictedStatus.count = 0; // Predict reset
-            predictedStatus.score = null; // Predict reset
+            predictedStatus.count = 0; 
+            predictedStatus.score = null;
         } else if (actionType === 'increment') {
             action = 'updateCount';
             payload.action = action;
@@ -108,7 +98,7 @@ function QRCodeGrantModal({
             const newCount = (predictedStatus.count || 0) + 1;
             predictedStatus.count = newCount;
             if (isAttendance && attendanceNeed && newCount >= attendanceNeed) {
-                predictedStatus.achieved = true; // Predict auto-grant
+                predictedStatus.achieved = true; 
             }
         } else if (actionType === 'decrement') {
             action = 'updateCount';
@@ -130,45 +120,31 @@ function QRCodeGrantModal({
             return;
         }
 
-        // --- Apply local optimistic update for the selected user ---
         setOptimisticSelectedUserStatus({ userId: selectedUserId, status: predictedStatus });
-        // --- End local optimistic update ---
 
         try {
-            // Call the actual mutation (parent handles cache update & invalidation)
             await patchUserMutation.mutateAsync(payload);
-            // Success message - UI already updated locally
             setManualActionStatus({ message: `Action '${actionType}' sent.`, error: false });
-            // Clear local override *after* mutation succeeds and parent invalidates/refetches
-            // We rely on the useEffect watching achievementData to clear the override
         } catch (error) {
-            // Error handled by parent mutation's onError (which includes cache rollback)
             console.error(`Manual action '${actionType}' failed:`, error);
             setManualActionStatus({ message: error.message || `Failed to ${actionType}`, error: true });
-            // --- Clear local override on error to revert UI ---
             setOptimisticSelectedUserStatus(null);
-            // --- End clear local override ---
         }
     };
 
-    // Update score input based on display status (which includes optimistic)
     useEffect(() => {
         if (selectedUserDisplayStatus) {
             setScoreInput(selectedUserDisplayStatus.score ?? '');
         } else {
-            // Clear score input if no user is selected
              setScoreInput('');
         }
     }, [selectedUserDisplayStatus]);
 
-    // Clear local overrides when the main data prop changes (after refetch)
-    // or when the selected user changes
     useEffect(() => {
         setOptimisticSelectedUserStatus(null);
     }, [achievementData, selectedUserId]);
 
 
-    // Reset state when modal closes
     useEffect(() => {
         if (!isOpen) {
             setActiveTab('qr');
@@ -177,9 +153,9 @@ function QRCodeGrantModal({
             setManualActionStatus({ message: '', error: false });
             setUserViewFilter('all');
             setScoreInput('');
-            setOptimisticSelectedUserStatus(null); // Clear overrides on close
+            setOptimisticSelectedUserStatus(null);
         } else {
-            setActiveTab('qr'); // Reset tab on open
+            setActiveTab('qr');
         }
     }, [isOpen]);
 
@@ -281,7 +257,7 @@ function QRCodeGrantModal({
                                                     onChange={(e) => {
                                                         setSearchTerm(e.target.value);
                                                         setSelectedUserId(null);
-                                                        setOptimisticSelectedUserStatus(null); // Clear override on search
+                                                        setOptimisticSelectedUserStatus(null);
                                                         setManualActionStatus({ message: '', error: false });
                                                     }}
                                                     className="flex-grow px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
@@ -302,13 +278,10 @@ function QRCodeGrantModal({
                                             <div className="max-h-60 overflow-y-auto border rounded bg-white p-2 space-y-1">
                                                 {filteredUsers.length === 0 && <p className="text-center text-gray-500 italic p-2">No users match criteria.</p>}
                                                 {filteredUsers.map(user => {
-                                                    // Use base status for filtering list, display status comes later
                                                     const baseStatus = userStatusMap.get(user.id);
                                                     const hasBadgeInCache = baseStatus?.achieved;
                                                     const isUserSelected = selectedUserId === user.id;
                                                     const isUserPending = patchUserMutation?.isPending && patchUserMutation?.variables?.targetUserId === user.id;
-
-                                                    // Determine display status for *this specific user* in the list
                                                     const displayStatus = isUserSelected ? selectedUserDisplayStatus : baseStatus || { achieved: false, count: 0, score: null };
                                                     const displayHasBadge = displayStatus?.achieved;
                                                     const displayCount = displayStatus?.count ?? 0;
@@ -321,7 +294,7 @@ function QRCodeGrantModal({
                                                             type="button"
                                                             onClick={() => {
                                                                 setSelectedUserId(user.id);
-                                                                setOptimisticSelectedUserStatus(null); // Clear previous override
+                                                                setOptimisticSelectedUserStatus(null);
                                                                 setManualActionStatus({ message: '', error: false });
                                                             }}
                                                             className={`w-full text-left p-2 rounded flex justify-between items-center transition-colors ${
@@ -330,7 +303,7 @@ function QRCodeGrantModal({
                                                             disabled={isUserPending}
                                                         >
                                                             <div>
-                                                                <span className="font-medium text-sm">{user.username || `${user.firstName || ''} ${user.lastName || ''}`}</span>
+                                                                <span className="font-medium text-sm">{`${user.firstName || ''} ${user.lastName || ''}` || user.username}</span>
                                                                 <span className="block text-xs text-gray-500">{user.primaryEmailAddress}</span>
                                                             </div>
                                                             <div className="flex items-center gap-2 flex-shrink-0 ml-2 text-xs">
