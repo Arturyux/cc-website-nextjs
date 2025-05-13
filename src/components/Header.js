@@ -217,12 +217,6 @@ export default function Header() {
                   >
                     Badges
                   </Link>
-                  <button
-                    onClick={() => scrollToSection("sponsors-section")}
-                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                  >
-                    Sponsors
-                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -368,7 +362,7 @@ export default function Header() {
                 )}
               </AnimatePresence>
             </div>
-            <div className="relative" ref={langDropdownRef}>
+            {/* TODO <div className="relative" ref={langDropdownRef}>
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
                 className="flex w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md"
@@ -403,17 +397,17 @@ export default function Header() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </div> */}
           </div>
 
           <div className="md:hidden flex items-center justify-between w-full">
             <button
               onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-              className="relative w-10 h-10 rounded-full overflow-hidden border border-white border-opacity-50"
+              className="relative w-14 h-14 rounded-full overflow-hidden"
               aria-label="Open language menu"
             >
               <img
-                src="/languageSv.jpeg"
+                src="/cc.svg"
                 alt="Language"
                 className="w-full h-full object-cover"
               />
@@ -444,7 +438,8 @@ export default function Header() {
             className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col"
           >
             <div className="flex items-center justify-between p-4 border-b border-white border-opacity-20 flex-shrink-0">
-              <div className="relative" ref={langDropdownRef}>
+              
+              {/* TODO: <div className="relative" ref={langDropdownRef}>
                 {" "}
                 <button
                   onClick={() => setLangDropdownOpen(!langDropdownOpen)}
@@ -485,7 +480,7 @@ export default function Header() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </div> */}
               <button
                 onClick={closeMobileMenu}
                 className="text-white p-2"
@@ -509,8 +504,29 @@ export default function Header() {
             </div>
 
             <div className="flex-grow flex flex-col items-center justify-center pb-16 px-4 space-y-6 overflow-y-auto">
-              {" "}
-              <div className="w-3/4 border-t border-white/20 my-4"></div>{" "}
+              <Link
+                href="/"
+                onClick={closeMobileMenu}
+                className="text-3xl font-semibold text-white hover:text-gray-300 transition-colors"
+              >
+                Home
+              </Link>
+              <Link
+                href="/events"
+                onClick={closeMobileMenu}
+                className="text-3xl font-semibold text-white hover:text-gray-300 transition-colors"
+              >
+                Events
+              </Link>
+              <Link
+                href="/achievements"
+                onClick={closeMobileMenu}
+                className="text-3xl font-semibold text-white hover:text-gray-300 transition-colors"
+              >
+                Badges
+              </Link>
+              <div className="w-3/4 border-t border-white/20 my-4">
+              </div>
               <SignedOut>
                 <div className="flex flex-col items-center space-y-6">
                   <SignInButton mode="modal">

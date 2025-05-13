@@ -24,22 +24,22 @@ export default function Background() {
         color2="#FFBE5A"
         noiseAmplitude={50}
       />
-      <div className="absolute md:w-[8%] w-[15%] md:top-45 md:left-30 top-35 left-0 md:rotate-0 rotate-45 -z-1">
+      <div className="absolute md:w-[8%] w-[15%] md:top-35 md:left-30 top-20 left-0 md:rotate-0 rotate-45 -z-1">
         <img src={selectedPattern} alt="Background Pattern" />
       </div>
-      <div className="absolute md:top-170 md:left-150 md:w-[20%] w-[70%] top-150 left-70 -z-1">
+      <div className="absolute md:top-160 md:left-150 md:w-[20%] w-[70%] top-135 left-70 -z-1">
         <img src={selectedPattern1} alt="Background Pattern" />
       </div>
-      <div className="absolute md:top-380 md:left-280 md:w-[10%] w-[30%] top-350 left-90 -z-1 rotate-220">
+      <div className="absolute md:top-360 md:left-280 md:w-[10%] w-[30%] top-345 left-82 -z-1 rotate-220">
         <img src={selectedPattern} alt="Background Pattern" />
       </div>
-      <div className="absolute md:top-270 md:left-45 md:w-[20%] w-[70%] top-205 -left-15 -z-1 md:rotate-240 rotate-260">
+      <div className="absolute md:top-250 md:left-45 md:w-[20%] w-[70%] top-205 -left-15 -z-1 md:rotate-240 rotate-260">
         <img src={selectedPattern2} alt="Background Pattern" />
       </div>
-      <div className="absolute md:top-460 md:left-40 md:w-[20%] w-[60%] top-405 -left-15 -z-1 md:scale-x-[-1] md:rotate-0 -rotate-40">
+      <div className="absolute md:top-440 md:left-40 md:w-[20%] w-[60%] top-420 -left-15 -z-1 md:scale-x-[-1] md:rotate-0 -rotate-40">
         <img src={selectedPattern1} alt="Background Pattern" />
       </div>
-      <div className="absolute md:top-640 md:left-290 md:w-[20%] w-[60%] top-550 left-50 -z-1 scale-x-[-1] md:rotate-180 rotate-180">
+      <div className="absolute md:top-620 md:left-290 md:w-[20%] w-[60%] top-585 left-50 -z-1 scale-x-[-1] md:rotate-180 rotate-180">
         <img src={selectedPattern2} alt="Background Pattern" />
       </div>
     </div>

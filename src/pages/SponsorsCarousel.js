@@ -84,7 +84,7 @@ function SponsorsCarousel() {
   return (
     <section className="py-12 md:py-16 overflow-hidden">
       <div className="container mx-auto px-4">
-        <h2 className="text-7xl font-bold text-center text-mainColor font-Header mb-5 md:mb-5">
+        <h2 className="text-7xl font-bold text-center text-mainColor font-Header">
           Sponsors
         </h2>
 
