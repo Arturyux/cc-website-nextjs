@@ -18,6 +18,6 @@
     "text": "Committee Sign Up",
     "link": "https://forms.gle/y7eDTap2WQ6yK5gt7",
     "textColor": "text-black",
-    "isEnabled": false
+    "isEnabled": true
   }
 ]
