@@ -103,7 +103,7 @@ export function SettingsView({
   const actualUsername = userFromPage?.username || "";
 
   return (
-    <div className="w-full max-w-md rounded-xl bg-slate-800 p-6 text-white shadow-2xl">
+    <div className="w-full max-w-md mx-auto rounded-xl bg-slate-800 p-6 text-white shadow-2xl">
       <h2 className="mb-6 text-center text-3xl font-bold text-yellow-400">
         Display Settings
       </h2>
