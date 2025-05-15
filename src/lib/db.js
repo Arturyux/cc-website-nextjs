@@ -45,16 +45,14 @@ try {
             ON UPDATE CASCADE
     );`;
 
-    const createGameScoresTable = `
+  const createGameScoresTable = `
     CREATE TABLE IF NOT EXISTS GameScores (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL,
-        -- user_name TEXT, -- We decided to fetch this dynamically for scoreboard
         game_name TEXT NOT NULL,
         score INTEGER NOT NULL,
         played_at TEXT DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'now', 'localtime')),
-        -- Add a UNIQUE constraint on user_id and game_name
-        UNIQUE(user_id, game_name) 
+        UNIQUE(user_id, game_name)
     );`;
 
   const createIndexUserStatus = `CREATE INDEX IF NOT EXISTS idx_user_achievement ON UserAchievementStatus (user_id, achievement_id);`;
@@ -78,7 +76,6 @@ process.on("exit", () => {
     db.close((err) => {
       if (err) {
         console.error("Error closing SQLite connection:", err.message);
-      } else {
       }
     });
   }

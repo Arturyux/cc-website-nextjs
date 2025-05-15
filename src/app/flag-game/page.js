@@ -1,17 +1,18 @@
-// app/flag-game/page.jsx
+// app/flag-game/page.js
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FlagFlipperGame } from "@/components/game/flag-flipper/FlagFlipperGame";
 import { Scoreboard } from "@/components/game/flag-flipper/Scoreboard";
-// import { SettingsView } from "@/components/game/flag-flipper/SettingsView"; 
+// import { SettingsView } from "@/components/game/flag-flipper/SettingsView";
 import {
   SignedIn,
   SignedOut,
   SignInButton,
   useUser,
 } from "@clerk/nextjs";
+import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
 
 export default function FlagGamePage() {
   const [currentView, setCurrentView] = useState("menu");
@@ -19,6 +20,7 @@ export default function FlagGamePage() {
   const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
   const [countdown, setCountdown] = useState(3);
+  const queryClient = useQueryClient(); // Get the query client instance
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -45,6 +47,17 @@ export default function FlagGamePage() {
   };
 
   const handleShowScoreboard = () => {
+    // Invalidate the rawGameScores query for "flag_flipper"
+    // This will cause it to refetch when the Scoreboard component is viewed
+    if (queryClient) {
+      queryClient.invalidateQueries({
+        queryKey: ["rawGameScores", "flag_flipper"],
+      });
+      // Note: The usersDetails query in Scoreboard.js depends on userIdsToFetch,
+      // which is derived from rawScores. If rawScores changes and new user IDs appear,
+      // the usersDetails query key will change, triggering its own refetch.
+      // So, invalidating just rawGameScores should be sufficient.
+    }
     setCurrentView("scoreboard");
   };
 
@@ -58,6 +71,11 @@ export default function FlagGamePage() {
 
   const handleGameEnd = (score) => {
     setLastGameScore(score);
+    // Optionally, you could also invalidate scores here if you want the scoreboard
+    // to be fresh if the user immediately clicks it after a game.
+    // if (queryClient) {
+    //   queryClient.invalidateQueries({ queryKey: ["rawGameScores", "flag_flipper"] });
+    // }
     setCurrentView("menu");
   };
 
@@ -84,9 +102,14 @@ export default function FlagGamePage() {
               Get ready, {userNameForDisplay}!
             </p>
             {userIdForDisplay && (
-              <p className="mb-6 text-sm text-slate-400">ID: {userIdForDisplay}</p>
+              <p className="mb-6 text-sm text-slate-400">
+                ID: {userIdForDisplay}
+              </p>
             )}
-            <p className="text-9xl font-bold text-yellow-400 animate-ping" style={{ animationDuration: '1s' }}>
+            <p
+              className="animate-ping text-9xl font-bold text-yellow-400"
+              style={{ animationDuration: "1s" }}
+            >
               {countdown > 0 ? countdown : "Go!"}
             </p>
           </div>
@@ -94,8 +117,9 @@ export default function FlagGamePage() {
       case "game":
         return <FlagFlipperGame onGameEnd={handleGameEnd} />;
       case "scoreboard":
+        // The Scoreboard component will now use the potentially invalidated (and thus refetched) data
         return <Scoreboard onBackToMenu={handleBackToMenu} />;
-      // case "settings": 
+      // case "settings":
       //   return <SettingsView onBackToMenu={handleBackToMenu} />;
       case "menu":
       default:
@@ -106,11 +130,6 @@ export default function FlagGamePage() {
                 Welcome, {userNameForDisplay}!
               </p>
             )}
-            {/* {userIdForDisplay && (
-              <p className="mb-3 text-xs text-slate-400">
-                ID: {userIdForDisplay}
-              </p>
-            )} */}
             {lastGameScore !== null && (
               <p className="mb-4 text-xl text-yellow-300">
                 Your last score: {lastGameScore}
@@ -128,7 +147,7 @@ export default function FlagGamePage() {
             >
               Scoreboard
             </button>
-            {/* <button 
+            {/* <button
               onClick={handleShowSettings}
               className="w-64 rounded-lg bg-gray-500 px-8 py-4 text-xl font-bold text-white shadow-lg transition-transform duration-150 hover:scale-105 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-75"
             >
@@ -140,40 +159,46 @@ export default function FlagGamePage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-sky-800 p-4 text-white">
-      <header className="mb-8 text-center">
-        <h1 className="mb-2 text-5xl font-bold text-yellow-400">
-          Flag Flipper Challenge!
-        </h1>
-        {isLoaded && isSignedIn && (currentView === "menu" || currentView === "countdown" || currentView === "settings") && (
-          <p className="text-lg text-slate-300">
-            Test your flag knowledge. 15 seconds on the clock!
-          </p>
-        )}
-      </header>
-      <SignedIn>{renderView()}</SignedIn>
-      <SignedOut>
-        {isLoaded && (
-          <div className="mt-8 flex flex-col items-center rounded-lg bg-slate-800 p-8 shadow-xl">
-            <p className="mb-4 text-xl text-slate-200">Redirecting...</p>
-            <p className="mb-6 text-slate-300">
-              You need to be signed in to play. If you are not redirected,
-              please
-              <SignInButton mode="modal" afterSignInUrl="/flag-game">
-                <button className="ml-1 text-sky-400 underline hover:text-sky-300">
-                  sign in
-                </button>
-              </SignInButton>
-              .
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 text-white">
+      <div className="w-full max-w-2xl rounded-xl bg-slate-800 p-6 shadow-2xl outline-none md:p-8">
+        <header className="mb-8 text-center">
+          <h1 className="mb-2 text-5xl font-bold text-yellow-400">
+            Flag Flipper Challenge!
+          </h1>
+          {isLoaded &&
+            isSignedIn &&
+            (currentView === "menu" ||
+              currentView === "countdown" ||
+              currentView === "settings") && ( // Assuming settings might be added back
+              <p className="text-lg text-slate-300">
+                Test your flag knowledge. 15 seconds on the clock!
+              </p>
+            )}
+        </header>
+        <SignedIn>{renderView()}</SignedIn>
+        <SignedOut>
+          {isLoaded && (
+            <div className="mt-8 flex flex-col items-center rounded-lg bg-slate-800 p-8 shadow-xl">
+              <p className="mb-4 text-xl text-slate-200">Redirecting...</p>
+              <p className="mb-6 text-slate-300">
+                You need to be signed in to play. If you are not redirected,
+                please
+                <SignInButton mode="modal" afterSignInUrl="/flag-game">
+                  <button className="ml-1 text-sky-400 underline hover:text-sky-300">
+                    sign in
+                  </button>
+                </SignInButton>
+                .
+              </p>
+            </div>
+          )}
+          {!isLoaded && (
+            <p className="text-center text-xl text-slate-300">
+              Loading authentication...
             </p>
-          </div>
-        )}
-        {!isLoaded && (
-          <p className="text-center text-xl text-slate-300">
-            Loading authentication...
-          </p>
-        )}
-      </SignedOut>
+          )}
+        </SignedOut>
+      </div>
     </div>
   );
 }

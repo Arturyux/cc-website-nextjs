@@ -200,7 +200,7 @@ export function FlagFlipperGame({ onGameEnd }) {
         tabIndex={-1}
         className="w-full max-w-2xl text-center text-xl text-slate-300 outline-none"
       >
-        Loading next flag...
+        You have poor internet connection. Loading next flag...
       </div>
     );
   }

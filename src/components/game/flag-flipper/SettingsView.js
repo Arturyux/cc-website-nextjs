@@ -6,12 +6,11 @@ import { useUser } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-// Function now only expects showPublicName
 async function updateShowPublicNameSetting(showPublicName) {
   const response = await fetch("/api/user/settings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ showPublicName }), // Only send showPublicName
+    body: JSON.stringify({ showPublicName }),
   });
   if (!response.ok) {
     const errorData = await response.json();
@@ -36,24 +35,24 @@ export function SettingsView({ onBackToMenu }) {
   }, [isLoaded, user]);
 
   const mutation = useMutation({
-    mutationFn: updateShowPublicNameSetting, // Pass only showPublicName
+    mutationFn: updateShowPublicNameSetting,
     onSuccess: (data) => {
       toast.success("Preference updated!");
     },
-    onError: (error, variables_showPublicName) => { // variables is now just showPublicName
+    onError: (error, variables_showPublicName) => { 
       toast.error(`Error: ${error.message}`);
-      setShowNameLocally(!variables_showPublicName); // Revert optimistic update
+      setShowNameLocally(!variables_showPublicName);
     },
   });
 
   const handleToggleShowName = () => {
-    if (!isSignedIn) { // Simplified check
+    if (!isSignedIn) { 
       toast.error("You must be signed in to change settings.");
       return;
     }
     const newShowNameState = !showNameLocally;
     setShowNameLocally(newShowNameState);
-    mutation.mutate(newShowNameState); // Pass only the boolean
+    mutation.mutate(newShowNameState);
   };
 
   if (!isLoaded) {
