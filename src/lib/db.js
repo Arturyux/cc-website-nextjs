@@ -1,11 +1,9 @@
-// src/lib/db.js
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 
-const dbPath = path.join(process.cwd(), "data", "achievements.db"); // Store DB outside public
+const dbPath = path.join(process.cwd(), "data", "achievements.db");
 
-// Ensure the directory exists
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
@@ -14,17 +12,12 @@ if (!fs.existsSync(dbDir)) {
 let db;
 
 try {
-  db = new Database(dbPath, { /* verbose: console.log */ }); // Uncomment verbose for debugging SQL
+  db = new Database(dbPath, {});
   console.log("Connected to the SQLite database.");
 
-  // Enable WAL mode for better concurrency (optional but recommended)
   db.pragma("journal_mode = WAL");
-  // Enable foreign key constraints
   db.pragma("foreign_keys = ON");
 
-  // --- Initialize Schema if tables don't exist ---
-  // You might run your schema.sql script separately once,
-  // but this ensures tables exist if the DB file is new/deleted.
   const createAchievementsTable = `
     CREATE TABLE IF NOT EXISTS Achievements (
         id TEXT PRIMARY KEY,
@@ -54,26 +47,35 @@ try {
             ON UPDATE CASCADE
     );`;
 
-  // Create indexes for faster lookups
+    const createGameScoresTable = `
+    CREATE TABLE IF NOT EXISTS GameScores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
+        -- user_name TEXT, -- We decided to fetch this dynamically for scoreboard
+        game_name TEXT NOT NULL,
+        score INTEGER NOT NULL,
+        played_at TEXT DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'now', 'localtime')),
+        -- Add a UNIQUE constraint on user_id and game_name
+        UNIQUE(user_id, game_name) 
+    );`;
+
   const createIndexUserStatus = `CREATE INDEX IF NOT EXISTS idx_user_achievement ON UserAchievementStatus (user_id, achievement_id);`;
   const createIndexAchieved = `CREATE INDEX IF NOT EXISTS idx_achieved ON UserAchievementStatus (achievement_id, achieved);`;
+  const createIndexGameScoresUser = `CREATE INDEX IF NOT EXISTS idx_game_scores_user_game ON GameScores (user_id, game_name);`;
 
   db.exec(createAchievementsTable);
   db.exec(createUserStatusTable);
+  db.exec(createGameScoresTable);
   db.exec(createIndexUserStatus);
   db.exec(createIndexAchieved);
+  db.exec(createIndexGameScoresUser);
 
-  console.log("Database schema checked/initialized.");
+  console.log("Database schema checked/initialized (including GameScores).");
 } catch (err) {
   console.error("Error connecting to or initializing SQLite database:", err);
-  // Depending on your error handling strategy, you might want to exit
-  // or handle this differently. For now, we log and continue,
-  // but API routes using `db` will likely fail.
-  db = null; // Ensure db is null if connection failed
+  db = null;
 }
 
-// Close the database connection when the application exits
-// This is important for graceful shutdowns
 process.on("exit", () => {
   if (db && db.open) {
     db.close((err) => {
@@ -85,6 +87,6 @@ process.on("exit", () => {
     });
   }
 });
-process.on("SIGINT", () => process.exit()); // Handle Ctrl+C
+process.on("SIGINT", () => process.exit());
 
 export default db;

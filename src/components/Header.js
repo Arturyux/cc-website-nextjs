@@ -32,7 +32,7 @@ export default function Header() {
   const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
   const menuDropdownRef = useRef(null);
   const [isUserCardModalOpen, setIsUserCardModalOpen] = useState(false);
-  const [isBecomeMemberModalOpen, setIsBecomeMemberModalOpen] = useState(false); 
+  const [isBecomeMemberModalOpen, setIsBecomeMemberModalOpen] = useState(false);
 
   const { user, isLoaded } = useUser();
   const isAdmin = isLoaded && user?.publicMetadata?.admin === true;
@@ -69,7 +69,7 @@ export default function Header() {
     isScrollDisabled,
     mobileMenuOpen,
     isUserCardModalOpen,
-    isBecomeMemberModalOpen, 
+    isBecomeMemberModalOpen,
   ]);
 
   const scrollToSection = (sectionId) => {
@@ -198,24 +198,39 @@ export default function Header() {
                 >
                   <Link
                     href="/"
-                    onClick={closeAccountDropdown}
+                    onClick={() => {
+                      setMenuDropdownOpen(false);
+                    }}
                     className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
                   >
                     Home
                   </Link>
                   <Link
                     href="/events"
-                    onClick={closeAccountDropdown}
+                    onClick={() => {
+                      setMenuDropdownOpen(false);
+                    }}
                     className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
                   >
                     Events
                   </Link>
                   <Link
                     href="/achievements"
-                    onClick={closeAccountDropdown}
+                    onClick={() => {
+                      setMenuDropdownOpen(false);
+                    }}
                     className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
                   >
                     Badges
+                  </Link>
+                  <Link
+                    href="/flag-game"
+                    onClick={() => {
+                      setMenuDropdownOpen(false);
+                    }}
+                    className="block w-full text-center text-2xl px-4 py-2 text-blue-600 hover:bg-blue-50 rounded font-semibold"
+                  >
+                    Flag Game
                   </Link>
                 </motion.div>
               )}
@@ -362,42 +377,6 @@ export default function Header() {
                 )}
               </AnimatePresence>
             </div>
-            {/* TODO <div className="relative" ref={langDropdownRef}>
-              <button
-                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md"
-              >
-                <img
-                  src="/languageSv.jpeg"
-                  alt="Language"
-                  className="w-full h-full object-cover"
-                />
-              </button>
-              <AnimatePresence>
-                {langDropdownOpen && (
-                  <motion.div
-                    initial={{ y: -10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -10, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute z-20 top-13 -right-12 mt-2 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center"
-                  >
-                    <button
-                      className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                      onClick={() => setLangDropdownOpen(false)}
-                    >
-                      English
-                    </button>
-                    <button
-                      className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                      onClick={() => setLangDropdownOpen(false)}
-                    >
-                      Swedish
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div> */}
           </div>
 
           <div className="md:hidden flex items-center justify-between w-full">
@@ -438,49 +417,6 @@ export default function Header() {
             className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col"
           >
             <div className="flex items-center justify-between p-4 border-b border-white border-opacity-20 flex-shrink-0">
-              
-              {/* TODO: <div className="relative" ref={langDropdownRef}>
-                {" "}
-                <button
-                  onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                  className="relative w-12 h-12 rounded-full overflow-hidden border border-white border-opacity-50"
-                  aria-label="Open language menu"
-                >
-                  <img
-                    src="/languageSv.jpeg"
-                    alt="Language"
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-                <AnimatePresence>
-                  {langDropdownOpen && (
-                    <motion.div
-                      initial={{ y: -10, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -10, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-14 left-0 mt-1 w-28 p-1 bg-white border border-gray-200 rounded-md shadow-lg flex flex-col items-center z-50"
-                    >
-                      <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-black hover:bg-gray-100 rounded"
-                        onClick={() => {
-                          setLangDropdownOpen(false);
-                        }}
-                      >
-                        English
-                      </button>
-                      <button
-                        className="w-full text-left px-3 py-1.5 text-sm text-black hover:bg-gray-100 rounded"
-                        onClick={() => {
-                          setLangDropdownOpen(false);
-                        }}
-                      >
-                        Swedish
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div> */}
               <button
                 onClick={closeMobileMenu}
                 className="text-white p-2"
@@ -525,8 +461,14 @@ export default function Header() {
               >
                 Badges
               </Link>
-              <div className="w-3/4 border-t border-white/20 my-4">
-              </div>
+              <Link
+                href="/flag-game"
+                onClick={closeMobileMenu}
+                className="text-3xl font-semibold text-blue-300 hover:text-blue-200 transition-colors"
+              >
+                Flag Game
+              </Link>
+              <div className="w-3/4 border-t border-white/20 my-4"></div>
               <SignedOut>
                 <div className="flex flex-col items-center space-y-6">
                   <SignInButton mode="modal">
@@ -566,27 +508,6 @@ export default function Header() {
                         Admin Panel
                       </Link>
                     )}
-                    <Link
-                      href="/"
-                      onClick={closeAccountDropdown}
-                      className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                    >
-                      Home
-                    </Link>
-                    <Link
-                      href="/events"
-                      onClick={closeMobileMenu}
-                      className="block w-full text-3xl md:text-4xl px-4 py-2 text-white hover:text-gray-300 text-center rounded"
-                    >
-                      Events
-                    </Link>
-                    <Link
-                      href="/achievements"
-                      onClick={closeMobileMenu}
-                      className="block w-full text-3xl md:text-4xl px-4 py-2 text-white hover:text-gray-300 text-center rounded"
-                    >
-                      Badges
-                    </Link>
                     {canShowUserCard && (
                       <button
                         onClick={() => {
