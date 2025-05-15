@@ -13,8 +13,6 @@ let db;
 
 try {
   db = new Database(dbPath, {});
-  console.log("Connected to the SQLite database.");
-
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
 
@@ -70,7 +68,6 @@ try {
   db.exec(createIndexAchieved);
   db.exec(createIndexGameScoresUser);
 
-  console.log("Database schema checked/initialized (including GameScores).");
 } catch (err) {
   console.error("Error connecting to or initializing SQLite database:", err);
   db = null;
@@ -82,7 +79,6 @@ process.on("exit", () => {
       if (err) {
         console.error("Error closing SQLite connection:", err.message);
       } else {
-        console.log("SQLite connection closed.");
       }
     });
   }

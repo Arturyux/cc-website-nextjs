@@ -18,7 +18,7 @@ async function fetchUsersDetails(userIds) {
   if (!userIds || userIds.length === 0) {
     return {};
   }
-  const response = await fetch(`/api/user/details`, { // UPDATED URL HERE
+  const response = await fetch(`/api/user/details`, { 
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userIds }),

@@ -1,20 +1,17 @@
 // src/app/api/user/details/route.js
 import { NextResponse } from "next/server";
-import { createClerkClient } from "@clerk/clerk-sdk-node"; // Use this
+import { createClerkClient } from "@clerk/clerk-sdk-node";
 import { z } from "zod";
 
 const userDetailsSchema = z.object({
   userIds: z.array(z.string().min(1)).min(1).max(50),
 });
 
-// Initialize clerkClient at the module scope
 const clerkClient = process.env.CLERK_SECRET_KEY
   ? createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
   : null;
 
 export async function POST(request) {
-  console.log("API POST /api/user/details: Request received.");
-
   if (!clerkClient) {
     console.error("API POST /api/user/details: Clerk client not initialized (CLERK_SECRET_KEY missing or invalid).");
     return NextResponse.json({ message: "Server configuration error" }, { status: 500 });
@@ -25,11 +22,6 @@ export async function POST(request) {
   }
 
   try {
-    // Optional: Add auth() check here if you only want authenticated users to fetch user details
-    // const { auth } = await import("@clerk/nextjs/server");
-    // const { userId: requestingUserId } = auth();
-    // if (!requestingUserId) { ... }
-
     const body = await request.json();
     const validation = userDetailsSchema.safeParse(body);
 
@@ -42,8 +34,6 @@ export async function POST(request) {
     }
 
     const { userIds } = validation.data;
-    console.log("API POST /api/user/details: Fetching details for user IDs:", userIds);
-
     if (!userIds || userIds.length === 0) {
       return NextResponse.json({}, { status: 200 });
     }
@@ -70,7 +60,6 @@ export async function POST(request) {
       };
     });
 
-    console.log("API POST /api/user/details: Returning user details map:", usersMap);
     return NextResponse.json(usersMap, { status: 200 });
 
   } catch (error) {

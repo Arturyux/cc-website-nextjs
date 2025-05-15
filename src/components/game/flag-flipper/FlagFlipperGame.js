@@ -30,7 +30,6 @@ export function FlagFlipperGame({ onGameEnd }) {
   const { mutate: saveScore, isPending: isSavingScore } = useMutation({
     mutationFn: async (gameResult) => {
       const { score: finalScore, userId: clientUserId } = gameResult;
-      console.log("Mutation: saveScore called with score:", finalScore, "and clientUserId:", clientUserId);
       if (!clientUserId) {
         console.error("Mutation: Client-side userId is MISSING when trying to save score.");
         throw new Error("User ID missing on client for saving score");
@@ -44,18 +43,15 @@ export function FlagFlipperGame({ onGameEnd }) {
           userId: clientUserId,
         }),
       });
-      console.log("Mutation: API response status:", response.status);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: "Failed to parse error response" }));
         console.error("Mutation: API error response data:", errorData);
         throw new Error(errorData.message || "Failed to save score");
       }
       const responseData = await response.json();
-      console.log("Mutation: API success response data:", responseData);
       return responseData;
     },
     onSuccess: (data) => {
-      console.log("Mutation: onSuccess triggered with data:", data);
       toast.success("Score saved successfully!");
       confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
     },
@@ -153,26 +149,21 @@ export function FlagFlipperGame({ onGameEnd }) {
 
   useEffect(() => {
     if (internalGameState === "over") {
-      console.log("Game Over Effect: Final Score:", score, "User from useUser():", JSON.stringify(user), "isLoaded:", isLoaded, "isSignedIn:", isSignedIn);
       if (wrongAnswerFreezeTimeoutRef.current) {
         clearTimeout(wrongAnswerFreezeTimeoutRef.current);
       }
       if (score > 0 && !isSavingScore) {
         if (isLoaded && isSignedIn && user && user.id) {
-          console.log("Game Over Effect: Attempting to save score:", score, "for userId:", user.id);
           saveScore({ score: score, userId: user.id });
         } else {
           console.error("Game Over Effect: Cannot save score, client-side user session issue.", { userId: user?.id, isLoaded, isSignedIn });
           toast.error("Could not save score: User session issue. Please refresh or sign in again.");
         }
       } else if (score <= 0) {
-        console.log("Game Over Effect: Score is 0 or less, not saving.");
       } else if (isSavingScore) {
-        console.log("Game Over Effect: Already attempting to save score.");
       }
       setIsTransitioning(false);
       if (onGameEnd) {
-        console.log("Game Over Effect: Calling onGameEnd callback.");
         onGameEnd(score);
       }
     }

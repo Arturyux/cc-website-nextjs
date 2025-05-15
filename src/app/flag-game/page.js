@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FlagFlipperGame } from "@/components/game/flag-flipper/FlagFlipperGame";
 import { Scoreboard } from "@/components/game/flag-flipper/Scoreboard";
-import { SettingsView } from "@/components/game/flag-flipper/SettingsView"; // Import SettingsView
+// import { SettingsView } from "@/components/game/flag-flipper/SettingsView"; 
 import {
   SignedIn,
   SignedOut,
@@ -14,7 +14,6 @@ import {
 } from "@clerk/nextjs";
 
 export default function FlagGamePage() {
-  // 'menu', 'countdown', 'game', 'scoreboard', 'settings'
   const [currentView, setCurrentView] = useState("menu");
   const [lastGameScore, setLastGameScore] = useState(null);
   const { user, isLoaded, isSignedIn } = useUser();
@@ -49,9 +48,9 @@ export default function FlagGamePage() {
     setCurrentView("scoreboard");
   };
 
-  const handleShowSettings = () => { // New handler
-    setCurrentView("settings");
-  };
+  // const handleShowSettings = () => {
+  //   setCurrentView("settings");
+  // };
 
   const handleBackToMenu = () => {
     setCurrentView("menu");
@@ -96,22 +95,22 @@ export default function FlagGamePage() {
         return <FlagFlipperGame onGameEnd={handleGameEnd} />;
       case "scoreboard":
         return <Scoreboard onBackToMenu={handleBackToMenu} />;
-      case "settings": // New case
-        return <SettingsView onBackToMenu={handleBackToMenu} />;
+      // case "settings": 
+      //   return <SettingsView onBackToMenu={handleBackToMenu} />;
       case "menu":
       default:
         return (
           <div className="flex flex-col items-center space-y-6">
             {userNameForDisplay !== "Player" && (
-              <p className="mb-1 text-2xl font-semibold text-sky-300">
+              <p className="mb-8 text-2xl font-semibold text-sky-300">
                 Welcome, {userNameForDisplay}!
               </p>
             )}
-            {userIdForDisplay && (
+            {/* {userIdForDisplay && (
               <p className="mb-3 text-xs text-slate-400">
                 ID: {userIdForDisplay}
               </p>
-            )}
+            )} */}
             {lastGameScore !== null && (
               <p className="mb-4 text-xl text-yellow-300">
                 Your last score: {lastGameScore}
@@ -129,12 +128,12 @@ export default function FlagGamePage() {
             >
               Scoreboard
             </button>
-            <button // New Settings button
+            {/* <button 
               onClick={handleShowSettings}
               className="w-64 rounded-lg bg-gray-500 px-8 py-4 text-xl font-bold text-white shadow-lg transition-transform duration-150 hover:scale-105 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-75"
             >
               Settings
-            </button>
+            </button> */}
           </div>
         );
     }
