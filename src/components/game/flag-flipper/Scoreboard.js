@@ -104,13 +104,9 @@ export function Scoreboard({ onBackToMenu, gameName = "flag_flipper" }) {
     if (!rawScores || !usersDetailsMap) return [];
     return rawScores.map((scoreItem) => {
       const userData = usersDetailsMap[scoreItem.user_id];
-      const displayName =
-        userData && userData.showPublicName
-          ? userData.name
-          : "Anonymous Player";
       return {
         ...scoreItem,
-        user_name: displayName || "Player",
+        user_name: userData ? userData.name : "Player",
       };
     });
   }, [rawScores, usersDetailsMap]);
@@ -120,7 +116,7 @@ export function Scoreboard({ onBackToMenu, gameName = "flag_flipper" }) {
   const error = scoresError || userDetailsError;
 
   return (
-    <div className="w-full max-w-md mx-auto rounded-xl bg-slate-800 p-6 text-white shadow-2xl">
+    <div className="w-full max-w-md rounded-xl bg-slate-800 p-6 text-white shadow-2xl">
       <h2 className="mb-6 text-center text-3xl font-bold text-yellow-400">
         High Scores
       </h2>

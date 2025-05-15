@@ -1,18 +1,17 @@
-// app/flag-game/page.js
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FlagFlipperGame } from "@/components/game/flag-flipper/FlagFlipperGame";
 import { Scoreboard } from "@/components/game/flag-flipper/Scoreboard";
-// import { SettingsView } from "@/components/game/flag-flipper/SettingsView";
+import { SettingsView } from "@/components/game/flag-flipper/SettingsView";
 import {
   SignedIn,
   SignedOut,
   SignInButton,
   useUser,
 } from "@clerk/nextjs";
-import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function FlagGamePage() {
   const [currentView, setCurrentView] = useState("menu");
@@ -20,7 +19,8 @@ export default function FlagGamePage() {
   const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
   const [countdown, setCountdown] = useState(3);
-  const queryClient = useQueryClient(); // Get the query client instance
+  const queryClient = useQueryClient();
+  const [settingsViewKey, setSettingsViewKey] = useState(Date.now());
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -47,23 +47,26 @@ export default function FlagGamePage() {
   };
 
   const handleShowScoreboard = () => {
-    // Invalidate the rawGameScores query for "flag_flipper"
-    // This will cause it to refetch when the Scoreboard component is viewed
     if (queryClient) {
       queryClient.invalidateQueries({
         queryKey: ["rawGameScores", "flag_flipper"],
       });
-      // Note: The usersDetails query in Scoreboard.js depends on userIdsToFetch,
-      // which is derived from rawScores. If rawScores changes and new user IDs appear,
-      // the usersDetails query key will change, triggering its own refetch.
-      // So, invalidating just rawGameScores should be sufficient.
+      queryClient.invalidateQueries({ queryKey: ["usersDetails"] });
     }
     setCurrentView("scoreboard");
   };
 
-  // const handleShowSettings = () => {
-  //   setCurrentView("settings");
-  // };
+  const handleShowSettings = async () => {
+    if (user && typeof user.revalidate === "function") {
+      try {
+        await user.revalidate();
+      } catch (error) {
+        console.error("Error revalidating user data:", error);
+      }
+    }
+    setSettingsViewKey(Date.now());
+    setCurrentView("settings");
+  };
 
   const handleBackToMenu = () => {
     setCurrentView("menu");
@@ -71,11 +74,6 @@ export default function FlagGamePage() {
 
   const handleGameEnd = (score) => {
     setLastGameScore(score);
-    // Optionally, you could also invalidate scores here if you want the scoreboard
-    // to be fresh if the user immediately clicks it after a game.
-    // if (queryClient) {
-    //   queryClient.invalidateQueries({ queryKey: ["rawGameScores", "flag_flipper"] });
-    // }
     setCurrentView("menu");
   };
 
@@ -117,10 +115,22 @@ export default function FlagGamePage() {
       case "game":
         return <FlagFlipperGame onGameEnd={handleGameEnd} />;
       case "scoreboard":
-        // The Scoreboard component will now use the potentially invalidated (and thus refetched) data
-        return <Scoreboard onBackToMenu={handleBackToMenu} />;
-      // case "settings":
-      //   return <SettingsView onBackToMenu={handleBackToMenu} />;
+        return (
+          <Scoreboard
+            onBackToMenu={handleBackToMenu}
+            gameName="flag_flipper"
+          />
+        );
+      case "settings":
+        return (
+          <SettingsView
+            key={settingsViewKey}
+            userFromPage={user}
+            isLoadedFromPage={isLoaded}
+            isSignedInFromPage={isSignedIn}
+            onBackToMenu={handleBackToMenu}
+          />
+        );
       case "menu":
       default:
         return (
@@ -147,12 +157,12 @@ export default function FlagGamePage() {
             >
               Scoreboard
             </button>
-            {/* <button
+            <button
               onClick={handleShowSettings}
               className="w-64 rounded-lg bg-gray-500 px-8 py-4 text-xl font-bold text-white shadow-lg transition-transform duration-150 hover:scale-105 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-75"
             >
               Settings
-            </button> */}
+            </button>
           </div>
         );
     }
@@ -169,7 +179,7 @@ export default function FlagGamePage() {
             isSignedIn &&
             (currentView === "menu" ||
               currentView === "countdown" ||
-              currentView === "settings") && ( // Assuming settings might be added back
+              currentView === "settings") && (
               <p className="text-lg text-slate-300">
                 Test your flag knowledge. 15 seconds on the clock!
               </p>
