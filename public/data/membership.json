@@ -1,0 +1,24 @@
+[
+  {
+    "id": "mem_json_1",
+    "name": "The Book Nook",
+    "description": "Your friendly neighborhood bookstore with a wide selection of genres. Members get early access to sales.",
+    "address": "789 Library Lane, Readsville",
+    "discount": "5% off all purchases over $20",
+    "imgurl": "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=800&auto=format&fit=crop",
+    "websiteUrl": "https://thebooknook.example.com",
+    "googleMapUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.086402390009!2d-122.41941548468157!3d37.77492977975805!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8085808c1c0e0e0b%3A0x1c0e0e0b1c0e0e0b!2sSan%20Francisco%20City%20Hall!5e0!3m2!1sen!2sus!4v1620000000000!5m2!1sen!2sus",
+    "createdAt": "2025-05-10T10:00:00.000Z"
+  },
+  {
+    "id": "mem_json_2",
+    "name": "Green Thumb Gardens",
+    "description": "All your gardening needs, from seeds to tools. Culture Connection members receive a special plant on their first visit.",
+    "address": "101 Blossom Boulevard, Bloomtown",
+    "discount": "10% off all plant food",
+    "imgurl": "https://images.unsplash.com/photo-1461354464878-ad92f492a5a0?q=80&w=800&auto=format&fit=crop",
+    "websiteUrl": null,
+    "googleMapUrl": null,
+    "createdAt": "2025-05-12T14:30:00.000Z"
+  }
+]

@@ -338,16 +338,14 @@ export default function Header() {
                               View My Card
                             </button>
                           )}
-                          {canShowUserCard && (
-                            <button
-                              onClick={() => {
-                                openUserCardModal();
-                                closeAccountDropdown();
-                              }}
-                              className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                          {canShowBecomeMember && (
+                          <Link
+                              href="/membership"
+                              onClick={closeAccountDropdown}
+                              className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-purple-50 rounded font-semibold"
                             >
                               Membership
-                            </button>
+                          </Link>
                           )}
                           {canShowBecomeMember && (
                             <button
@@ -518,6 +516,15 @@ export default function Header() {
                       >
                         View My Card
                       </button>
+                    )}
+                    {canShowBecomeMember && (
+                    <Link
+                        href="/membership"
+                        onClick={closeMobileMenu}
+                        className="block w-full text-3xl md:text-4xl px-4 py-2 text-black hover:text-purple-200 text-center rounded font-semibold"
+                      >
+                        Membership Benefits
+                      </Link>
                     )}
                     {canShowBecomeMember && (
                       <button
