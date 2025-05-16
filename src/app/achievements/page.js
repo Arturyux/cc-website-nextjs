@@ -674,27 +674,6 @@ export default function AchievementsPage() {
             <h1 className="text-5xl md:text-7xl font-Header text-mainColor font-bold text-center mx-auto sm:text-center flex-grow">
               Achievement Board
             </h1>
-            <div className="flex gap-2">
-              {user && (
-                <button
-                  onClick={openCardSkinModal}
-                  className="p-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors shadow-md"
-                  title="Select Card Skin"
-                  aria-label="Select Card Skin"
-                >
-                  <FontAwesomeIcon icon={faPalette} className="h-6 w-6" />
-                </button>
-              )}
-              <button
-                onClick={openScannerModal}
-                className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-md"
-                title="Scan Achievement QR Code"
-                aria-label="Scan Achievement QR Code"
-                disabled={!isUserLoaded}
-              >
-                <FontAwesomeIcon icon={faQrcode} className="h-6 w-6" />
-              </button>
-            </div>
           </div>
 
           {user && !isLoadingFavorites && (
@@ -730,6 +709,32 @@ export default function AchievementsPage() {
               </div>
             </section>
           )}
+
+            <div className="mx-auto">
+              {user && (
+                <button
+                  onClick={openCardSkinModal}
+                  className="flex my-5 px-4 py-2 mx-auto w-64 bg-purple-300 font-bold justify-center text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
+                  title="Select Card Skin"
+                  aria-label="Select Card Skin"
+                >
+                  Card Skin{" "}
+                  <FontAwesomeIcon icon={faPalette} className="h-6 w-6" />
+                </button>
+              )}
+              {user && (
+              <button
+                onClick={openScannerModal}
+                className="flex mb-15 px-4 py-2 mx-auto w-64 bg-green-300 font-bold justify-center text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
+                title="Scan Achievement QR Code"
+                aria-label="Scan Achievement QR Code"
+                disabled={!isUserLoaded}
+              >
+                QR Code Scanner{" "}
+                <FontAwesomeIcon icon={faQrcode} className="h-6 w-6" />
+              </button>
+              )}
+            </div>
 
           {!isAchievementsLoading &&
             !isAchievementsError &&

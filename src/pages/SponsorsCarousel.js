@@ -84,8 +84,8 @@ function SponsorsCarousel() {
   return (
     <section className="py-12 md:py-16 overflow-hidden">
       <div className="container mx-auto px-4">
-        <h2 className="text-7xl font-bold text-center text-mainColor font-Header">
-          Sponsors
+        <h2 className="text-7xl font-bold text-center mb-5 text-mainColor font-Header">
+          Colabarators
         </h2>
 
         {isLoading && (
@@ -115,7 +115,7 @@ function SponsorsCarousel() {
                   <img
                     src={sponsor.imageUrl || DEFAULT_SPONSOR_LOGO}
                     alt={sponsor.name}
-                    className="h-64 w-64 mx-auto object-contain rounded-full transition duration-300"
+                    className="h-48 w-48 mx-auto object-contain rounded-full transition duration-300"
                     loading="lazy"
                     onError={handleImageError}
                   />
