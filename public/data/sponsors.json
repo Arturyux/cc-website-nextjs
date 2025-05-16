@@ -8,43 +8,31 @@
   {
     "id": "sp2",
     "name": "Innovate Solutions",
-    "imageUrl": "https://img.goodfon.com/wallpaper/nbig/d/7f/nvidia-the-way-its-meant-to.webp",
-    "websiteUrl": "https://img.goodfon.com/wallpaper/nbig/d/7f/nvidia-the-way-its-meant-to.webp"
+    "imageUrl": "https://api2.cultureconnection.se/assets/sponsores-logo/7677c357-fcb3-4f60-b0ad-755fe0ad7dff.jpg",
+    "websiteUrl": "https://linnek.se"
   },
   {
     "id": "sp3",
-    "name": "jaguar",
-    "imageUrl": "https://img.goodfon.com/wallpaper/nbig/0/37/jaguar-logo-mashiny.webp",
-    "websiteUrl": "https://img.goodfon.com/wallpaper/nbig/0/37/jaguar-logo-mashiny.webp"
+    "name": "SIP",
+    "imageUrl": "https://api2.cultureconnection.se/assets/sponsores-logo/4b25fffe-3281-44b9-9e0c-cf0a040ae895.png",
+    "websiteUrl": "https://www.sip.se"
   },
   {
     "id": "sp4",
-    "name": "apple",
-    "imageUrl": "https://img.goodfon.com/wallpaper/nbig/4/95/bright-apple-logo-apple-glass.webp",
-    "websiteUrl": "https://img.goodfon.com/wallpaper/nbig/4/95/bright-apple-logo-apple-glass.webp"
+    "name": "Sensus",
+    "imageUrl": "https://api2.cultureconnection.se/assets/sponsores-logo/1583e77f-f928-4afd-96bd-f1446689e770.jpg",
+    "websiteUrl": "https://sensus.se"
   },
   {
     "id": "sp5",
-    "name": "Playstation",
-    "imageUrl": "https://img.goodfon.com/wallpaper/nbig/c/1e/playstation-sony-logo-ps.webp",
-    "websiteUrl": "https://img.goodfon.com/wallpaper/nbig/c/1e/playstation-sony-logo-ps.webp"
+    "name": "LNUBTQ",
+    "imageUrl": "https://api2.cultureconnection.se/assets/sponsores-logo/878eb5d3-dcfe-4744-beba-10318e2c6bf5.png",
+    "websiteUrl": ""
   },
   {
     "id": "sp6",
-    "name": "Beta Logistics",
-    "imageUrl": "https://img.goodfon.com/wallpaper/nbig/0/fa/ac-milan-milan-italy-logo-football-soccer.webp",
-    "websiteUrl": "https://img.goodfon.com/wallpaper/nbig/0/fa/ac-milan-milan-italy-logo-football-soccer.webp"
-  },
-  {
-    "id": "sp7",
-    "name": "Omega Group",
-    "imageUrl": "https://img.goodfon.com/wallpaper/nbig/6/85/internazionale-inter-inter-milan-football-logo-soccer-crest.webp",
-    "websiteUrl": "https://img.goodfon.com/wallpaper/nbig/6/85/internazionale-inter-inter-milan-football-logo-soccer-crest.webp"
-  },
-  {
-    "id": "sp8",
-    "name": "Delta Dynamics",
-    "imageUrl": "https://img.goodfon.com/wallpaper/big/a/18/asus-logotip-asus-logo-brend-khai-tek-brand-high-tech-dig-16.webp",
-    "websiteUrl": "https://img.goodfon.com/wallpaper/big/a/18/asus-logotip-asus-logo-brend-khai-tek-brand-high-tech-dig-16.webp"
+    "name": "Idrottshuset",
+    "imageUrl": "https://api2.cultureconnection.se/assets/sponsores-logo/099e83ef-a3f3-444a-bd99-eee514d5ce2f.png",
+    "websiteUrl": "https://idrottshuset.se"
   }
 ]

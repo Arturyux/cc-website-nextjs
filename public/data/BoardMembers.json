@@ -1,106 +1,98 @@
 [
   {
     "id": "m1",
-    "name": "Aaron",
+    "name": "Aaron Mátray",
     "position": "President",
-    "contact": "info@cultureconnection.se",
-    "imageUrl": "https://via.placeholder.com/150/FF5733/FFFFFF?text=Alice",
-    "bio": "Leading the association towards new horizons with enthusiasm."
+    "contact": "president@cultureconnection.se",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/0617df5c-2a08-4098-ae84-1e8cd1606d2e.jpg",
+    "bio": "Aaron boy..."
   },
   {
     "id": "m2",
     "name": "Linnea",
-    "position": "Vice President",
-    "contact": "info@cultureconnection.se",
-    "imageUrl": "https://via.placeholder.com/150/33FF57/FFFFFF?text=Bob",
+    "position": "Vice-President",
+    "contact": "president@cultureconnection.se",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/9af69eaa-ca36-4ddf-a0b2-d0bc11f81152.jpg",
     "bio": "Supporting the president and managing internal affairs."
   },
   {
     "id": "m3",
-    "name": "Charlie Chaplin",
+    "name": "William",
     "position": "Secretary",
-    "contact": "info@cultureconnection.se",
-    "imageUrl": "https://via.placeholder.com/150/3357FF/FFFFFF?text=Charlie",
+    "contact": "secretary@cultureconnection.se",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/c0238ff8-e3d8-4e46-85ce-8961c7eb2a06.jpg",
     "bio": "Keeping records straight and communication flowing."
   },
   {
     "id": "m4",
-    "name": "Diana Prince",
+    "name": "Kaj",
     "position": "Treasurer",
-    "contact": "info@cultureconnection.se",
-    "imageUrl": "https://via.placeholder.com/150/FFFF33/000000?text=Diana",
+    "contact": "treasurer@cultureconnection.se",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/be62830e-4f5a-4f85-86cc-61c0f56bd66c.jpg",
     "bio": "Managing the finances with precision and transparency."
   },
   {
     "id": "m5",
-    "name": "Harley Quinn",
+    "name": "Fezan",
     "position": "Social Media",
-    "contact": "info@cultureconnection.se",
-    "imageUrl": "https://via.placeholder.com/150/FF69B4/FFFFFF?text=Harley",
+    "contact": "socialmedia@cultureconnection.se",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/e9e9c42c-937b-4b32-a706-3bb87b59df92.jpg",
     "bio": "Organizing fun and engaging events for everyone."
   },
   {
     "id": "m6",
-    "name": "Harley Quinn",
+    "name": "Linnea",
     "position": "Head of Committee",
-    "contact": "info@cultureconnection.se",
-    "imageUrl": "https://via.placeholder.com/150/FF69B4/FFFFFF?text=Harley",
+    "contact": "committee@cultureconnection.se",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/442a3154-cf2c-4a71-94ed-1d25daa69376.jpg",
     "bio": "Organizing fun and engaging events for everyone."
   },
   {
     "id": "m7",
     "name": "Suvini",
     "position": "Events Coordinator",
-    "contact": "info@cultureconnection.se",
+    "contact": "event@cultureconnection.se",
     "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/c69c0aee-52fa-45dd-9be2-3580782aa4ed.jpg",
     "bio": "Discord: Suvini"
   },
   {
     "id": "m8",
-    "name": "Ethan Hunt",
+    "name": "Adrian",
     "position": "Committee Member",
-    "contact": "info@cultureconnection.se",
-    "imageUrl": "https://via.placeholder.com/150/FF33FF/FFFFFF?text=Ethan",
-    "bio": "An active and engaged member contributing to projects."
+    "contact": "Discord: Adrian",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/dbdef3b9-bd8b-4a26-91e9-0621d95f2e4f.jpg",
+    "bio": "Board Game Committee Leader"
   },
   {
     "id": "m9",
-    "name": "Fiona Shrek",
+    "name": "Daniel",
     "position": "Committee Member",
-    "contact": "info@cultureconnection.se",
-    "imageUrl": "https://via.placeholder.com/150/33FFFF/000000?text=Fiona",
-    "bio": "Bringing fresh perspectives and ideas to the team."
+    "contact": "Discord: Pie is a Lie",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/05221092-4104-4eee-8c4a-c3136a36b259.jpg",
+    "bio": "Board Game Committee"
   },
   {
     "id": "m10",
-    "name": "George Constanza",
+    "name": "George",
     "position": "Volunteer",
-    "contact": "info@cultureconnection.se",
-    "imageUrl": "https://via.placeholder.com/150/AAAAAA/FFFFFF?text=George",
-    "bio": "Expert in... various things. Always present."
+    "contact": "Discord: George",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/e7fe1512-3dce-46fd-bf07-2b9dd25e0d21.jpg",
+    "bio": "Board Game Committee"
   },
   {
     "id": "m1745595043485",
     "name": "Artur Burlakin",
     "position": "Committee Member",
-    "contact": "Discord: Artur",
-    "imageUrl": "https://img.goodfon.com/wallpaper/nbig/d/55/aleksandr-plekhanov-shchurki-dvoe.webp",
-    "bio": "Founder of this mess"
-  },
-  {
-    "id": "m1745616708131",
-    "name": "Brownie",
-    "position": "Head of Committee",
-    "contact": "Bitch",
-    "imageUrl": "https://lh3.google.com/u/0/d/1ACXPxaruI96UQi7Q31pRqoXV_eiI1NV5=w2940-h1510-iv1?auditContext=prefetch",
-    "bio": "Horse"
+    "contact": "artur.burlakin@gmail.com",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/e1ad6be1-3a5e-42ee-87e5-b0ba44f3940e.jpg",
+    "bio": "Founder of this mess!"
   },
   {
     "id": "m1745623445868",
     "name": "Winnie",
     "position": "Committee Member",
     "contact": "Discord: Winnie",
-    "imageUrl": "https://img.goodfon.com/wallpaper/nbig/d/24/zuby-morda-khishchnik-raptor-dinosaur-t-rex-zhivotnoe-tirann.webp",
-    "bio": "Crazy Bitch"
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/c6d0961f-6ffd-4040-8a16-c24831c4dc33.jpg",
+    "bio": "Co-Founder of this mess!"
   }
 ]
