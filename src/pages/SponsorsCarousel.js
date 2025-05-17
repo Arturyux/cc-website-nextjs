@@ -85,7 +85,7 @@ function SponsorsCarousel() {
     <section className="py-12 md:py-16 overflow-hidden">
       <div className="container mx-auto px-4">
         <h2 className="text-7xl font-bold text-center mb-5 text-mainColor font-Header">
-          Colabarators
+          Collabarators
         </h2>
 
         {isLoading && (

@@ -11,8 +11,9 @@ const staticPositions = [
   "Treasurer",
   "Social Media",
   "Head of Committee",
-  "Events Coordinator",
+  "Event Director",
   "Committee Member",
+  "Volunteer",
 ];
 
 const fetchMembers = async () => {

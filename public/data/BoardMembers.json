@@ -18,10 +18,10 @@
   {
     "id": "m3",
     "name": "William",
-    "position": "Secretary",
+    "position": "Founding board member",
     "contact": "secretary@cultureconnection.se",
     "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/c0238ff8-e3d8-4e46-85ce-8961c7eb2a06.jpg",
-    "bio": "Keeping records straight and communication flowing."
+    "bio": "Still secretary, but now with more experience."
   },
   {
     "id": "m4",
@@ -50,7 +50,7 @@
   {
     "id": "m7",
     "name": "Suvini",
-    "position": "Events Coordinator",
+    "position": "Event Director",
     "contact": "event@cultureconnection.se",
     "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/c69c0aee-52fa-45dd-9be2-3580782aa4ed.jpg",
     "bio": "Discord: Suvini"
@@ -74,7 +74,7 @@
   {
     "id": "m10",
     "name": "George",
-    "position": "Volunteer",
+    "position": "Founding board member",
     "contact": "Discord: George",
     "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/e7fe1512-3dce-46fd-bf07-2b9dd25e0d21.jpg",
     "bio": "Board Game Committee"
@@ -82,7 +82,7 @@
   {
     "id": "m1745595043485",
     "name": "Artur Burlakin",
-    "position": "Committee Member",
+    "position": "Founding board member",
     "contact": "artur.burlakin@gmail.com",
     "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/e1ad6be1-3a5e-42ee-87e5-b0ba44f3940e.jpg",
     "bio": "Founder of this mess!"
@@ -90,9 +90,57 @@
   {
     "id": "m1745623445868",
     "name": "Winnie",
-    "position": "Committee Member",
+    "position": "Founding board member",
     "contact": "Discord: Winnie",
     "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/c6d0961f-6ffd-4040-8a16-c24831c4dc33.jpg",
     "bio": "Co-Founder of this mess!"
+  },
+  {
+    "id": "m1747434978789",
+    "name": "Kris",
+    "position": "Founding board member",
+    "contact": "Discord: Kris",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/453008ff-492e-4d02-94f0-f40e4c0225db.jpg",
+    "bio": "Climbing Committee, Founding board member."
+  },
+  {
+    "id": "m1747435236855",
+    "name": "Chelsea",
+    "position": "Founding board member",
+    "contact": "Discord: Chelsea",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/736ca5b2-8e3a-4c7a-a000-1546fd1362ed.jpg",
+    "bio": "Book Club Committee, Founder board member."
+  },
+  {
+    "id": "m1747435283211",
+    "name": "Adam",
+    "position": "Committee Member",
+    "contact": "Discord: Adam",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/dd9bddfe-7fee-420b-b6e0-f703fccd439b.jpg",
+    "bio": "Crafts Committee"
+  },
+  {
+    "id": "m1747435348918",
+    "name": "Nico",
+    "position": "Committee Member",
+    "contact": "Discord: Nico",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/d6957a8f-175e-48f0-8406-5128b565c82f.jpg",
+    "bio": "Climbing Committee, IT Developer"
+  },
+  {
+    "id": "m1747435405319",
+    "name": "Hedwig",
+    "position": "Committee Member",
+    "contact": "Discord: Hedwig",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/327a73d6-d651-4171-a110-4995933da72d.jpg",
+    "bio": "Crafts Committee."
+  },
+  {
+    "id": "m1747435453462",
+    "name": "Kevin",
+    "position": "Committee Member",
+    "contact": "Discord: Kevin",
+    "imageUrl": "https://api2.cultureconnection.se/assets/board-pictures-2025/bc635491-aa0b-4d5e-a989-8ae578830f50.jpg",
+    "bio": "Swedish Fun Committee."
   }
 ]
