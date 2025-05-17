@@ -34,13 +34,19 @@ export default function Header() {
   const [isUserCardModalOpen, setIsUserCardModalOpen] = useState(false);
   const [isBecomeMemberModalOpen, setIsBecomeMemberModalOpen] = useState(false);
 
-  const { user, isLoaded } = useUser();
-  const isAdmin = isLoaded && user?.publicMetadata?.admin === true;
-  const isCommittee = isLoaded && user?.publicMetadata?.committee === true;
-  const isMember = isLoaded && user?.publicMetadata?.member === true;
-  const canShowUserCard = isLoaded && (isAdmin || isCommittee || isMember);
-  const canShowBecomeMember =
-    isLoaded && user && !isAdmin && !isCommittee && !isMember;
+  const { user, isLoaded, isSignedIn } = useUser();
+  const isAdmin = isLoaded && isSignedIn && user?.publicMetadata?.admin === true;
+  const isCommittee =
+    isLoaded && isSignedIn && user?.publicMetadata?.committee === true;
+  const isMember =
+    isLoaded && isSignedIn && user?.publicMetadata?.member === true;
+
+  const isRegularUser =
+    isLoaded && isSignedIn && !isMember && !isCommittee && !isAdmin;
+  const isOnlyMember =
+    isLoaded && isSignedIn && isMember && !isCommittee && !isAdmin;
+  const isOnlyCommittee =
+    isLoaded && isSignedIn && isCommittee && !isAdmin;
 
   const openUserCardModal = () => setIsUserCardModalOpen(true);
   const closeUserCardModal = () => setIsUserCardModalOpen(false);
@@ -72,15 +78,6 @@ export default function Header() {
     isBecomeMemberModalOpen,
   ]);
 
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-    setMenuDropdownOpen(false);
-    closeMobileMenu();
-  };
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -94,7 +91,9 @@ export default function Header() {
       }
       if (
         accountDropdownRef.current &&
-        !accountDropdownRef.current.contains(event.target)
+        !accountDropdownRef.current.contains(event.target) &&
+        !event.target.closest(".user-button-trigger") && // Assuming UserButton has a class or identifiable parent
+        !event.target.closest("button[aria-label='Open user menu']") // Clerk's default UserButton trigger
       ) {
         setAccountDropdownOpen(false);
       }
@@ -170,7 +169,15 @@ export default function Header() {
     setLangDropdownOpen(false);
   };
 
-  const closeAccountDropdown = () => setAccountDropdownOpen(false);
+  const closeAllDesktopDropdowns = () => {
+    setMenuDropdownOpen(false);
+    setDropdownOpen(false);
+    setAccountDropdownOpen(false);
+  };
+
+  const commonLinkStyles =
+    "block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded";
+  const highlightedLinkStyles = `${commonLinkStyles} font-semibold`;
 
   return (
     <>
@@ -194,44 +201,100 @@ export default function Header() {
                   exit="exit"
                   variants={dropdownVariants}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="absolute z-20 top-11 -right-16 mt-2 w-48 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col"
+                  className="absolute z-20 top-11 -right-16 mt-2 w-56 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col"
                 >
-                  <Link
-                    href="/"
-                    onClick={() => {
-                      setMenuDropdownOpen(false);
-                    }}
-                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                  >
-                    Home
-                  </Link>
-                  <Link
-                    href="/events"
-                    onClick={() => {
-                      setMenuDropdownOpen(false);
-                    }}
-                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                  >
-                    Events
-                  </Link>
-                  <Link
-                    href="/achievements"
-                    onClick={() => {
-                      setMenuDropdownOpen(false);
-                    }}
-                    className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                  >
-                    Badges
-                  </Link>
-                  <Link
-                    href="/flag-game"
-                    onClick={() => {
-                      setMenuDropdownOpen(false);
-                    }}
-                    className="block w-full text-center text-2xl px-4 py-2 text-blue-600 hover:bg-blue-50 rounded font-semibold"
-                  >
-                    Flag Game
-                  </Link>
+                  <SignedOut>
+                    <Link
+                      href="/"
+                      onClick={closeAllDesktopDropdowns}
+                      className={commonLinkStyles}
+                    >
+                      Home
+                    </Link>
+                    <Link
+                      href="/about-us"
+                      onClick={closeAllDesktopDropdowns}
+                      className={commonLinkStyles}
+                    >
+                      About us
+                    </Link>
+                    <Link
+                      href="/events"
+                      onClick={closeAllDesktopDropdowns}
+                      className={commonLinkStyles}
+                    >
+                      Events
+                    </Link>
+                    <p className="px-4 py-2 text-sm text-gray-500 text-center">
+                      More options when you login
+                    </p>
+                  </SignedOut>
+                  <SignedIn>
+                    {isLoaded && (
+                      <>
+                        <Link
+                          href="/"
+                          onClick={closeAllDesktopDropdowns}
+                          className={commonLinkStyles}
+                        >
+                          Home
+                        </Link>
+                        <Link
+                          href="/about-us"
+                          onClick={closeAllDesktopDropdowns}
+                          className={commonLinkStyles}
+                        >
+                          About us
+                        </Link>
+                        <Link
+                          href="/events"
+                          onClick={closeAllDesktopDropdowns}
+                          className={commonLinkStyles}
+                        >
+                          Events
+                        </Link>
+                        {isRegularUser && (
+                          <>
+                            <Link
+                              href="/membership"
+                              onClick={closeAllDesktopDropdowns}
+                              className={highlightedLinkStyles}
+                            >
+                              Become a member
+                            </Link>
+                            <p className="px-4 py-2 text-sm text-gray-500 text-center">
+                              Become a member for more options
+                            </p>
+                          </>
+                        )}
+                        {(isMember || isCommittee || isAdmin) && (
+                          <>
+                            <Link
+                              href="/discounts"
+                              onClick={closeAllDesktopDropdowns}
+                              className={commonLinkStyles}
+                            >
+                              Discounts
+                            </Link>
+                            <Link
+                              href="/achievements"
+                              onClick={closeAllDesktopDropdowns}
+                              className={commonLinkStyles}
+                            >
+                              Badges
+                            </Link>
+                            <Link
+                              href="/flag-game"
+                              onClick={closeAllDesktopDropdowns}
+                              className={`${highlightedLinkStyles} text-blue-600 hover:bg-blue-50`}
+                            >
+                              Flag Game
+                            </Link>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </SignedIn>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -296,16 +359,16 @@ export default function Header() {
                     <SignedOut>
                       <SignInButton mode="modal">
                         <button
-                          onClick={closeAccountDropdown}
-                          className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                          onClick={closeAllDesktopDropdowns}
+                          className={commonLinkStyles}
                         >
                           Sign In
                         </button>
                       </SignInButton>
                       <SignUpButton mode="modal">
                         <button
-                          onClick={closeAccountDropdown}
-                          className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
+                          onClick={closeAllDesktopDropdowns}
+                          className={commonLinkStyles}
                         >
                           Sign Up
                         </button>
@@ -314,54 +377,94 @@ export default function Header() {
                     <SignedIn>
                       {isLoaded && user && (
                         <>
-                          <div className="px-4 text-center text-4xl font-Header text-black border-b my-2">
-                            Welcome, {user.firstName || "User"}!{" "}
-                            <UserButton afterSignOutUrl="/" />
+                          <div className="px-4 py-2 text-center text-lg font-semibold text-black border-b mb-2">
+                            Welcome, {user.firstName || "User"}!
                           </div>
-                          {isAdmin && (
-                            <Link
-                              href="/admin"
-                              onClick={closeAccountDropdown}
-                              className="block w-full text-center text-2xl px-4 py-2 text-purple-700 hover:bg-purple-50 rounded font-semibold"
-                            >
-                              Admin Panel
-                            </Link>
+                          {isRegularUser && (
+                            <>
+                              <Link
+                                href="/membership"
+                                onClick={closeAllDesktopDropdowns}
+                                className={commonLinkStyles}
+                              >
+                                Membership
+                              </Link>
+                              <button
+                                onClick={() => {
+                                  openBecomeMemberModal();
+                                  closeAllDesktopDropdowns();
+                                }}
+                                className={`${highlightedLinkStyles} text-green-600 hover:bg-green-50`}
+                              >
+                                Become a Member
+                              </button>
+                            </>
                           )}
-                          {canShowUserCard && (
-                            <button
-                              onClick={() => {
-                                openUserCardModal();
-                                closeAccountDropdown();
-                              }}
-                              className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded"
-                            >
-                              View My Card
-                            </button>
+                          {isOnlyMember && (
+                            <>
+                              <Link
+                                href="/membership"
+                                onClick={closeAllDesktopDropdowns}
+                                className={commonLinkStyles}
+                              >
+                                Membership
+                              </Link>
+                              <Link
+                                href="/achievements"
+                                onClick={closeAllDesktopDropdowns}
+                                className={commonLinkStyles}
+                              >
+                                Badges
+                              </Link>
+                              <button
+                                onClick={() => {
+                                  openUserCardModal();
+                                  closeAllDesktopDropdowns();
+                                }}
+                                className={commonLinkStyles}
+                              >
+                                View My Card
+                              </button>
+                            </>
                           )}
-                          {canShowBecomeMember && (
-                          <Link
-                              href="/membership"
-                              onClick={closeAccountDropdown}
-                              className="block w-full text-center text-2xl px-4 py-2 text-black hover:bg-purple-50 rounded font-semibold"
-                            >
-                              Membership
-                          </Link>
-                          )}
-                          {canShowBecomeMember && (
-                            <button
-                              onClick={() => {
-                                openBecomeMemberModal();
-                                closeAccountDropdown();
-                              }}
-                              className="block w-full text-center text-2xl px-4 py-2 text-green-600 hover:bg-green-50 rounded font-semibold"
-                            >
-                              Become a Member
-                            </button>
+                          {(isOnlyCommittee || isAdmin) && (
+                            <>
+                              <Link
+                                href="/admin"
+                                onClick={closeAllDesktopDropdowns}
+                                className={`${highlightedLinkStyles} text-purple-700 hover:bg-purple-50`}
+                              >
+                                Admin Panel
+                              </Link>
+                              <Link
+                                href="/membership"
+                                onClick={closeAllDesktopDropdowns}
+                                className={commonLinkStyles}
+                              >
+                                Membership
+                              </Link>
+                              <Link
+                                href="/achievements"
+                                onClick={closeAllDesktopDropdowns}
+                                className={commonLinkStyles}
+                              >
+                                Badges
+                              </Link>
+                              <button
+                                onClick={() => {
+                                  openUserCardModal();
+                                  closeAllDesktopDropdowns();
+                                }}
+                                className={commonLinkStyles}
+                              >
+                                View My Card
+                              </button>
+                            </>
                           )}
                           <div className="border-t mt-1 pt-1">
                             <SignOutButton>
                               <button
-                                onClick={closeAccountDropdown}
+                                onClick={closeAllDesktopDropdowns}
                                 className="w-full text-center text-2xl px-4 py-2 text-red-600 hover:bg-red-50 rounded"
                               >
                                 Log Out
@@ -375,6 +478,7 @@ export default function Header() {
                 )}
               </AnimatePresence>
             </div>
+            <SignedIn>{isLoaded && <UserButton afterSignOutUrl="/" />}</SignedIn>
           </div>
 
           <div className="md:hidden flex items-center justify-between w-full">
@@ -437,120 +541,196 @@ export default function Header() {
               </button>
             </div>
 
-            <div className="flex-grow flex flex-col items-center justify-center pb-16 px-4 space-y-6 overflow-y-auto">
-              <Link
-                href="/"
-                onClick={closeMobileMenu}
-                className="text-3xl font-semibold text-white hover:text-gray-300 transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                href="/events"
-                onClick={closeMobileMenu}
-                className="text-3xl font-semibold text-white hover:text-gray-300 transition-colors"
-              >
-                Events
-              </Link>
-              <Link
-                href="/achievements"
-                onClick={closeMobileMenu}
-                className="text-3xl font-semibold text-white hover:text-gray-300 transition-colors"
-              >
-                Badges
-              </Link>
-              <Link
-                href="/flag-game"
-                onClick={closeMobileMenu}
-                className="text-3xl font-semibold text-blue-300 hover:text-blue-200 transition-colors"
-              >
-                Flag Game
-              </Link>
-              <div className="w-3/4 border-t border-white/20 my-4"></div>
+            <div className="flex-grow flex flex-col items-center justify-center pb-16 px-4 space-y-4 overflow-y-auto">
               <SignedOut>
-                <div className="flex flex-col items-center space-y-6">
-                  <SignInButton mode="modal">
-                    <button
-                      onClick={closeMobileMenu}
-                      className="text-5xl font-semibold text-white hover:text-gray-300 transition-colors"
-                    >
-                      Sign In
-                    </button>
-                  </SignInButton>
-                  <SignUpButton mode="modal">
-                    <button
-                      onClick={closeMobileMenu}
-                      className="text-5xl font-semibold text-white hover:text-gray-300 transition-colors"
-                    >
-                      Sign Up
-                    </button>
-                  </SignUpButton>
-                </div>
+                <Link
+                  href="/"
+                  onClick={closeMobileMenu}
+                  className="text-3xl font-semibold text-white hover:text-gray-300"
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/about-us"
+                  onClick={closeMobileMenu}
+                  className="text-3xl font-semibold text-white hover:text-gray-300"
+                >
+                  About us
+                </Link>
+                <Link
+                  href="/events"
+                  onClick={closeMobileMenu}
+                  className="text-3xl font-semibold text-white hover:text-gray-300"
+                >
+                  Events
+                </Link>
+                <p className="text-gray-300 text-sm">
+                  More options when you login
+                </p>
+                <div className="w-3/4 border-t border-white/20 my-3"></div>
+                <SignInButton mode="modal">
+                  <button
+                    onClick={closeMobileMenu}
+                    className="text-4xl font-semibold text-white hover:text-gray-300"
+                  >
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button
+                    onClick={closeMobileMenu}
+                    className="text-4xl font-semibold text-white hover:text-gray-300"
+                  >
+                    Sign Up
+                  </button>
+                </SignUpButton>
               </SignedOut>
+
               <SignedIn>
                 {isLoaded && user && (
-                  <div className="text-center space-y-4 w-full">
-                    {" "}
-                    <p className="text-white font-Header text-4xl md:text-5xl mb-2">
+                  <>
+                    <p className="text-white font-Header text-3xl mb-1">
                       Welcome, {user.firstName}!
                     </p>
-                    <div className="inline-block mb-4">
-                      <UserButton />
+                    <div className="inline-block mb-3">
+                      <UserButton afterSignOutUrl="/" />
                     </div>
-                    {isAdmin && (
+
+                    <Link
+                      href="/"
+                      onClick={closeMobileMenu}
+                      className="text-3xl font-semibold text-white hover:text-gray-300"
+                    >
+                      Home
+                    </Link>
+                    <Link
+                      href="/about-us"
+                      onClick={closeMobileMenu}
+                      className="text-3xl font-semibold text-white hover:text-gray-300"
+                    >
+                      About us
+                    </Link>
+                    <Link
+                      href="/events"
+                      onClick={closeMobileMenu}
+                      className="text-3xl font-semibold text-white hover:text-gray-300"
+                    >
+                      Events
+                    </Link>
+
+                    {isRegularUser && (
+                      <>
+                        <Link
+                          href="/membership"
+                          onClick={closeMobileMenu}
+                          className="text-3xl font-semibold text-purple-300 hover:text-purple-200"
+                        >
+                          Become a member
+                        </Link>
+                        <p className="text-gray-300 text-sm">
+                          Become a member for more options
+                        </p>
+                      </>
+                    )}
+                    {(isMember || isCommittee || isAdmin) && (
+                      <>
+                        <Link
+                          href="/discounts"
+                          onClick={closeMobileMenu}
+                          className="text-3xl font-semibold text-white hover:text-gray-300"
+                        >
+                          Discounts
+                        </Link>
+                        <Link
+                          href="/achievements"
+                          onClick={closeMobileMenu}
+                          className="text-3xl font-semibold text-white hover:text-gray-300"
+                        >
+                          Badges
+                        </Link>
+                        <Link
+                          href="/flag-game"
+                          onClick={closeMobileMenu}
+                          className="text-3xl font-semibold text-blue-300 hover:text-blue-200"
+                        >
+                          Flag Game
+                        </Link>
+                      </>
+                    )}
+
+                    <div className="w-3/4 border-t border-white/20 my-3"></div>
+
+                    {(isAdmin || (isCommittee && !isAdmin)) && (
                       <Link
                         href="/admin"
                         onClick={closeMobileMenu}
-                        className="block w-full text-3xl md:text-4xl px-4 py-2 text-purple-800 hover:text-purple-200 text-center rounded font-semibold"
+                        className="text-3xl font-semibold text-purple-300 hover:text-purple-200"
                       >
                         Admin Panel
                       </Link>
                     )}
-                    {canShowUserCard && (
-                      <button
-                        onClick={() => {
-                          openUserCardModal();
-                          closeMobileMenu();
-                        }}
-                        className="block w-full text-3xl md:text-4xl text-center px-4 py-2 text-white hover:text-gray-300 rounded"
-                      >
-                        View My Card
-                      </button>
-                    )}
-                    {canShowBecomeMember && (
-                    <Link
+
+                    {(isRegularUser ||
+                      isOnlyMember ||
+                      isOnlyCommittee ||
+                      isAdmin) && (
+                      <Link
                         href="/membership"
                         onClick={closeMobileMenu}
-                        className="block w-full text-3xl md:text-4xl px-4 py-2 text-black hover:text-purple-200 text-center rounded font-semibold"
+                        className="text-3xl font-semibold text-white hover:text-gray-300"
                       >
-                        Membership Benefits
+                        Membership
                       </Link>
                     )}
-                    {canShowBecomeMember && (
+
+                    {isRegularUser && (
                       <button
                         onClick={() => {
                           openBecomeMemberModal();
                           closeMobileMenu();
                         }}
-                        className="block w-full text-3xl md:text-4xl text-center px-4 py-2 text-green-300 hover:text-green-200 rounded font-semibold"
+                        className="text-3xl font-semibold text-green-300 hover:text-green-200"
                       >
                         Become a Member
                       </button>
                     )}
-                    <div className="border-t border-white/20 mt-4 pt-4">
+
+                    {(isOnlyMember || isOnlyCommittee || isAdmin) && (
+                      <>
+                        <Link /* Mobile already has Badges in main nav, this is dashboard specific */
+                          href="/achievements"
+                          onClick={closeMobileMenu}
+                          className="text-3xl font-semibold text-white hover:text-gray-300"
+                        >
+                          My Badges
+                        </Link>
+                        <button
+                          onClick={() => {
+                            openUserCardModal();
+                            closeMobileMenu();
+                          }}
+                          className="text-3xl font-semibold text-white hover:text-gray-300"
+                        >
+                          View My Card
+                        </button>
+                      </>
+                    )}
+
+                    <div className="border-t border-white/20 mt-3 pt-3 w-3/4">
                       <SignOutButton>
                         <button
                           onClick={closeMobileMenu}
-                          className="w-full text-center font-bold text-2xl px-4 py-2 text-red-300 hover:text-red-200 rounded"
+                          className="w-full text-center font-bold text-2xl text-red-300 hover:text-red-200"
                         >
                           Log Out
                         </button>
                       </SignOutButton>
                     </div>
-                  </div>
+                  </>
                 )}
               </SignedIn>
-              <div className="w-full max-w-xs pt-4">
+
+              <div className="w-full max-w-xs pt-6">
                 <Linktree />
               </div>
               <div className="pt-4">
