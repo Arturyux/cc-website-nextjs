@@ -270,7 +270,7 @@ export default function Header() {
                         {(isMember || isCommittee || isAdmin) && (
                           <>
                             <Link
-                              href="/discounts"
+                              href="/membership"
                               onClick={closeAllDesktopDropdowns}
                               className={commonLinkStyles}
                             >
@@ -635,7 +635,7 @@ export default function Header() {
                     {(isMember || isCommittee || isAdmin) && (
                       <>
                         <Link
-                          href="/discounts"
+                          href="/membership"
                           onClick={closeMobileMenu}
                           className="text-3xl font-semibold text-white hover:text-gray-300"
                         >
