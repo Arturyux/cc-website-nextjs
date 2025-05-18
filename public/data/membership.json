@@ -1,5 +1,16 @@
 [
   {
+    "id": "mem_de3b3098-127c-4a89-9831-9111cddfad6a",
+    "name": "Random",
+    "description": "Random",
+    "address": "Random",
+    "discount": "Random",
+    "imgurl": "https://Random.Random",
+    "websiteUrl": null,
+    "googleMapUrl": null,
+    "createdAt": "2025-05-17T14:45:01.912Z"
+  },
+  {
     "id": "mem_json_1",
     "name": "The Book Nook",
     "description": "Your friendly neighborhood bookstore with a wide selection of genres. Members get early access to sales.",
