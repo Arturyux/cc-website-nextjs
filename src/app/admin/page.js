@@ -11,6 +11,7 @@ import LinktreeManagement from "@/components/admin/LinktreeManagement";
 import SponsorManagement from "@/components/admin/SponsorManagement";
 import DiscordSchedulerManagement from "@/components/admin/discordbot/DiscordSchedulerManagement";
 import CombinedFileManager from "@/components/admin/DriveManagment/CombinedFileManager";
+import Header from "@/components/Header";
 
 const adminSections = [
   { key: "users", label: "User Management", component: UserManagement },
@@ -91,7 +92,8 @@ export default function AdminPage() {
 
   return (
     <main className="container mx-auto px-4 py-8 md:py-12">
-      <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 min-h-screen">
+      <Header />
+      <div className="bg-white p-6 mt-10 rounded-lg shadow-lg border border-gray-200 min-h-screen">
         <div className="flex flex-col sm:flex-row justify-center sm:items-center mb-6 border-b pb-4 gap-4">
           <h1 className="text-3xl text-center font-bold text-purple-700">
             Admin Panel
