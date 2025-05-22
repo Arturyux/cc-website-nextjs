@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import db from "@/lib/db";
+import jwt from "jsonwebtoken";
 
 const intToBool = (val) => (val === 1 ? true : false);
+const TWELVE_HOURS_IN_MS = 12 * 60 * 60 * 1000;
+const QR_JWT_SECRET = process.env.QR_JWT_SECRET;
 
 export async function POST(request) {
   const { userId } = getAuth(request);
@@ -16,35 +19,59 @@ export async function POST(request) {
       { status: 500 },
     );
   }
+  if (!QR_JWT_SECRET) {
+    console.error("QR_JWT_SECRET is not defined for scan verification.");
+    return NextResponse.json(
+      { message: "Server configuration error." },
+      { status: 500 },
+    );
+  }
 
   let body;
-  let scannedData;
+  let scannedToken;
   try {
     body = await request.json();
     if (!body.scannedData) {
-      throw new Error("Missing required field: scannedData");
+      throw new Error("Missing required field: scannedData (JWT token)");
     }
-    scannedData = JSON.parse(body.scannedData);
-    if (
-      scannedData.type !== "achievement_grant" ||
-      !scannedData.achievementId
-    ) {
-      throw new Error("Invalid QR code content or type.");
-    }
+    scannedToken = body.scannedData;
   } catch (error) {
-    console.error("QR Scan Request Body/Parse Error:", error);
     return NextResponse.json(
-      { message: "Invalid request or QR code data", error: error.message },
+      { message: "Invalid request body", error: error.message },
       { status: 400 },
     );
   }
 
-  const { achievementId } = scannedData;
+  let achievementIdFromToken;
+  try {
+    const decoded = jwt.verify(scannedToken, QR_JWT_SECRET);
+    if (decoded.type !== "achievement_grant" || !decoded.achievementId) {
+      throw new Error("Invalid token content or type.");
+    }
+    achievementIdFromToken = decoded.achievementId;
+  } catch (error) {
+    console.error("QR Token Verification Error:", error.message);
+    let userMessage = "Invalid or expired QR code.";
+    if (error.name === "TokenExpiredError") {
+      userMessage = "This QR code has expired.";
+    } else if (error.name === "JsonWebTokenError") {
+      userMessage = "This QR code is invalid or has been tampered with.";
+    }
+    return NextResponse.json(
+      { success: false, message: userMessage },
+      { status: 400 },
+    );
+  }
+
+  const achievementId = achievementIdFromToken;
   const currentDate = new Date().toISOString();
+  const currentTimeMs = new Date().getTime();
 
   const scanTransaction = db.transaction(() => {
     const achStmt = db.prepare(
-      "SELECT id, title, attendanceCounter, attendanceNeed, onScore, achiveDescription, description FROM Achievements WHERE id = ? AND isEnabled = 1",
+      `SELECT id, title, attendanceCounter, attendanceNeed, onScore, 
+              achiveDescription, description, level_config 
+       FROM Achievements WHERE id = ? AND isEnabled = 1`,
     );
     const achievement = achStmt.get(achievementId);
 
@@ -53,46 +80,66 @@ export async function POST(request) {
     }
 
     const statusStmt = db.prepare(
-      "SELECT achieved, attendanceCount FROM UserAchievementStatus WHERE achievement_id = ? AND user_id = ?",
+      `SELECT achieved, attendanceCount, last_progress_scan_timestamp 
+       FROM UserAchievementStatus 
+       WHERE achievement_id = ? AND user_id = ?`,
     );
     const userStatus = statusStmt.get(achievementId, userId);
 
-    let alreadyAchieved = userStatus ? intToBool(userStatus.achieved) : false;
+    let alreadyAchievedInDb = userStatus
+      ? intToBool(userStatus.achieved)
+      : false;
     let currentCount = userStatus ? userStatus.attendanceCount || 0 : 0;
+    let lastScanTimestampStr = userStatus?.last_progress_scan_timestamp;
+
     let needsUpdate = false;
-    let grantAchievement = false;
+    let grantAchievementThisScan = false;
     let newCount = currentCount;
     let message = `Scanned '${achievement.title}'.`;
+    let newScanTimestampToStore = lastScanTimestampStr;
 
     if (intToBool(achievement.attendanceCounter)) {
-      if (!alreadyAchieved) {
-        newCount = currentCount + 1;
-        needsUpdate = true;
-        message = `Progress updated for '${achievement.title}' (${newCount}/${achievement.attendanceNeed}).`;
-        console.log(
-          `User ${userId} scanned counter achievement ${achievementId}. Count: ${currentCount} -> ${newCount}`,
-        );
-        if (
-          achievement.attendanceNeed !== null &&
-          newCount >= achievement.attendanceNeed
-        ) {
-          grantAchievement = true;
-          alreadyAchieved = true;
-          message = `Achievement Unlocked: '${achievement.title}'!`;
-          console.log(
-            `User ${userId} achieved ${achievementId} via counter scan.`,
+      if (lastScanTimestampStr) {
+        const lastScanTimeMs = new Date(lastScanTimestampStr).getTime();
+        if (currentTimeMs - lastScanTimeMs < TWELVE_HOURS_IN_MS) {
+          const timeLeftMs =
+            TWELVE_HOURS_IN_MS - (currentTimeMs - lastScanTimeMs);
+          const hoursLeft = Math.floor(timeLeftMs / (60 * 60 * 1000));
+          const minutesLeft = Math.ceil(
+            (timeLeftMs % (60 * 60 * 1000)) / (60 * 1000),
           );
+          message = `You can scan for '${achievement.title}' again in approximately ${hoursLeft}h ${minutesLeft}m.`;
+          return {
+            success: false,
+            message: message,
+            cooldownActive: true,
+            achievementId: achievement.id,
+            achievementTitle: achievement.title,
+          };
         }
-      } else {
-        message = `You already achieved '${achievement.title}', Good job!`;
+      }
+      newCount = currentCount + 1;
+      needsUpdate = true;
+      newScanTimestampToStore = currentDate;
+      message = `Progress updated for '${achievement.title}' (${newCount}/${
+        achievement.attendanceNeed ?? "N/A"
+      }).`;
+
+      if (
+        !alreadyAchievedInDb &&
+        achievement.attendanceNeed !== null &&
+        newCount >= achievement.attendanceNeed
+      ) {
+        grantAchievementThisScan = true;
+        message = `Achievement Unlocked: '${achievement.title}'!`;
+      } else if (alreadyAchievedInDb) {
+        message = `Progress updated for '${achievement.title}' (already achieved). New count: ${newCount}.`;
       }
     } else {
-      if (!alreadyAchieved) {
-        grantAchievement = true;
-        alreadyAchieved = true;
+      if (!alreadyAchievedInDb) {
+        grantAchievementThisScan = true;
         needsUpdate = true;
         message = `Achievement Unlocked: '${achievement.title}'!`;
-        console.log(`User ${userId} achieved ${achievementId} via direct scan.`);
       } else {
         message = `You already achieved '${achievement.title}', Good job!`;
       }
@@ -100,19 +147,25 @@ export async function POST(request) {
 
     if (needsUpdate) {
       const upsertStmt = db.prepare(`
-                INSERT INTO UserAchievementStatus (achievement_id, user_id, achieved, achieved_date, attendanceCount)
-                VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT(achievement_id, user_id) DO UPDATE SET
-                    achieved = CASE WHEN excluded.achieved = 1 THEN 1 ELSE UserAchievementStatus.achieved END,
-                    achieved_date = CASE WHEN excluded.achieved = 1 THEN excluded.achieved_date ELSE UserAchievementStatus.achieved_date END,
-                    attendanceCount = excluded.attendanceCount;
-            `);
+        INSERT INTO UserAchievementStatus 
+          (achievement_id, user_id, achieved, achieved_date, attendanceCount, last_progress_scan_timestamp)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(achievement_id, user_id) DO UPDATE SET
+          achieved = CASE WHEN excluded.achieved = 1 THEN 1 ELSE UserAchievementStatus.achieved END,
+          achieved_date = CASE WHEN excluded.achieved = 1 THEN excluded.achieved_date ELSE UserAchievementStatus.achieved_date END,
+          attendanceCount = excluded.attendanceCount,
+          last_progress_scan_timestamp = excluded.last_progress_scan_timestamp;
+      `);
+
       upsertStmt.run(
         achievementId,
         userId,
-        grantAchievement ? 1 : 0,
-        grantAchievement ? currentDate : null,
+        grantAchievementThisScan ? 1 : alreadyAchievedInDb ? 1 : 0,
+        grantAchievementThisScan
+          ? currentDate
+          : userStatus?.achieved_date || null,
         newCount,
+        newScanTimestampToStore,
       );
     }
 
@@ -121,13 +174,13 @@ export async function POST(request) {
       message: message,
       achievementId: achievement.id,
       achievementTitle: achievement.title,
-      achievedNow: grantAchievement,
-      isAchieved: alreadyAchieved,
+      achievedNow: grantAchievementThisScan,
+      isAchieved: grantAchievementThisScan || alreadyAchievedInDb,
       newProgress: intToBool(achievement.attendanceCounter) ? newCount : null,
       progressNeeded: intToBool(achievement.attendanceCounter)
         ? achievement.attendanceNeed
         : null,
-      achieveDescription: grantAchievement
+      achieveDescription: grantAchievementThisScan
         ? achievement.achiveDescription || achievement.description
         : null,
     };
@@ -137,9 +190,12 @@ export async function POST(request) {
     const result = scanTransaction();
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.error(`QR Scan Error for user ${userId}:`, error);
+    console.error(
+      `QR Scan Error for user ${userId}, achievement ${achievementId}:`,
+      error,
+    );
     const status = error.status || 500;
-    const message = error.message || "Failed to process QR code scan.";
-    return NextResponse.json({ success: false, message }, { status });
+    const errMessage = error.message || "Failed to process QR code scan.";
+    return NextResponse.json({ success: false, message: errMessage }, { status });
   }
 }

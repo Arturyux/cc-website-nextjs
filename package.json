@@ -24,6 +24,7 @@
     "googleapis": "^148.0.0",
     "gsap": "^3.12.7",
     "html5-qrcode": "^2.3.8",
+    "jsonwebtoken": "^9.0.2",
     "next": "^15.2.5",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",

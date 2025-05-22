@@ -1,9 +1,6 @@
-// src/components/Achievements/QRCodeGrantModal.js
-
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeCanvas } from "qrcode.react";
-// No useQueryClient import needed here as it's passed via props or used in parent
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faXmark,
@@ -27,7 +24,6 @@ function QRCodeGrantModal({
   isUsersError = false,
   usersError = null,
 }) {
-  // const queryClient = useQueryClient(); // Not needed if mutation handles invalidation
   const [activeTab, setActiveTab] = useState("qr");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -40,23 +36,63 @@ function QRCodeGrantModal({
   const [optimisticSelectedUserStatus, setOptimisticSelectedUserStatus] =
     useState(null);
 
-  const achievementId = achievementData?.id;
+  const [qrCodeValue, setQrCodeValue] = useState(null);
+  const [isLoadingQrToken, setIsLoadingQrToken] = useState(false);
+  const [qrTokenError, setQrTokenError] = useState(null);
+
+  const achievementIdForQr = achievementData?.id;
   const achievementTitle = achievementData?.title;
   const isAttendance = achievementData?.attendanceCounter === true;
-  // attendanceNeed from achievementData is now the 'next level need' or 'max level need'
   const attendanceNeedForDisplay = achievementData?.attendanceNeed;
   const isScoreEnabled = achievementData?.onScore === true;
-  const isLeveledAchievement = achievementData?.level_config && achievementData.level_config.length > 0;
-  const isMaxLevelForSelectedUser = achievementData?.isMaxLevel;
+  const isLeveledAchievement =
+    achievementData?.level_config && achievementData.level_config.length > 0;
 
-
-  const qrCodeValue = useMemo(() => {
-    if (!achievementId) return null;
-    return JSON.stringify({
-      type: "achievement_grant",
-      achievementId: achievementId,
-    });
-  }, [achievementId]);
+  useEffect(() => {
+    if (isOpen && activeTab === "qr" && achievementIdForQr) {
+      if (!qrCodeValue || achievementData?.id !== achievementIdForQr) {
+        const fetchQrToken = async () => {
+          setIsLoadingQrToken(true);
+          setQrTokenError(null);
+          setQrCodeValue(null);
+          try {
+            const response = await fetch("/api/qr/generate-token", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ achievementId: achievementIdForQr }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+              throw new Error(data.message || "Failed to fetch QR token");
+            }
+            setQrCodeValue(data.qrToken);
+          } catch (error) {
+            console.error("Error fetching QR token:", error);
+            setQrTokenError(error.message);
+            setQrCodeValue(null);
+          } finally {
+            setIsLoadingQrToken(false);
+          }
+        };
+        fetchQrToken();
+      }
+    } else if (!isOpen) {
+      setQrCodeValue(null);
+      setQrTokenError(null);
+      setIsLoadingQrToken(false);
+      setActiveTab("qr");
+      setSearchTerm("");
+      setSelectedUserId(null);
+      setManualActionStatus({ message: "", error: false });
+      setUserViewFilter("all");
+      setScoreInput("");
+      setOptimisticSelectedUserStatus(null);
+    } else if (activeTab !== "qr") {
+      setQrCodeValue(null);
+      setQrTokenError(null);
+      setIsLoadingQrToken(false);
+    }
+  }, [isOpen, activeTab, achievementIdForQr, achievementData?.id]);
 
   const userStatusMap = useMemo(() => {
     const map = new Map();
@@ -108,7 +144,7 @@ function QRCodeGrantModal({
   const handleManualAction = async (actionType) => {
     if (
       !selectedUserId ||
-      !achievementId ||
+      !achievementIdForQr ||
       !patchUserMutation ||
       patchUserMutation.isPending
     )
@@ -117,7 +153,7 @@ function QRCodeGrantModal({
     setManualActionStatus({ message: "", error: false });
 
     let action;
-    let payload = { achievementId, targetUserId: selectedUserId };
+    let payload = { achievementId: achievementIdForQr, targetUserId: selectedUserId };
     let predictedStatus = { ...selectedUserDisplayStatus };
 
     if (actionType === "grant") {
@@ -125,7 +161,6 @@ function QRCodeGrantModal({
       payload.action = action;
       payload.achieved = true;
       predictedStatus.achieved = true;
-      // Backend will set appropriate count for max level if leveled
     } else if (actionType === "revoke") {
       action = "setAchieved";
       payload.action = action;
@@ -139,9 +174,6 @@ function QRCodeGrantModal({
       payload.countChange = 1;
       const newCount = (predictedStatus.count || 0) + 1;
       predictedStatus.count = newCount;
-      // Backend will determine if this new count achieves a level / the badge
-      // For optimistic update, we might need more complex logic if we want to predict level change
-      // For now, just update count and let backend confirm achieved status
     } else if (actionType === "decrement") {
       action = "updateCount";
       payload.action = action;
@@ -194,20 +226,6 @@ function QRCodeGrantModal({
   useEffect(() => {
     setOptimisticSelectedUserStatus(null);
   }, [achievementData, selectedUserId]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setActiveTab("qr");
-      setSearchTerm("");
-      setSelectedUserId(null);
-      setManualActionStatus({ message: "", error: false });
-      setUserViewFilter("all");
-      setScoreInput("");
-      setOptimisticSelectedUserStatus(null);
-    } else {
-      setActiveTab("qr");
-    }
-  }, [isOpen]);
 
   return (
     <AnimatePresence>
@@ -270,12 +288,22 @@ function QRCodeGrantModal({
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-4">
                     {isAttendance
-                      ? `Scan to add +1 progress ${isLeveledAchievement ? "(Leveled)" : attendanceNeedForDisplay ? `(Need ${attendanceNeedForDisplay})` : ""}`
+                      ? `Scan to add +1 progress ${
+                          isLeveledAchievement ? "(Leveled)" : ""
+                        } ${
+                          attendanceNeedForDisplay && !isLeveledAchievement
+                            ? `(Need ${attendanceNeedForDisplay})`
+                            : ""
+                        }`
                       : "Scan to grant this badge"}
                   </p>
-                  {qrCodeValue ? (
+                  {isLoadingQrToken && <p>Loading secure QR code...</p>}
+                  {qrTokenError && (
+                    <p className="text-red-500">Error: {qrTokenError}</p>
+                  )}
+                  {qrCodeValue && !isLoadingQrToken && !qrTokenError ? (
                     <QRCodeCanvas
-                      id={`qr-code-modal-${achievementId}`}
+                      id={`qr-code-modal-${achievementIdForQr}`}
                       value={qrCodeValue}
                       size={220}
                       level={"H"}
@@ -283,7 +311,12 @@ function QRCodeGrantModal({
                       className="mx-auto border bg-white p-2 rounded shadow"
                     />
                   ) : (
-                    <p className="text-red-500">Could not generate QR Code.</p>
+                    !isLoadingQrToken &&
+                    !qrTokenError && (
+                      <p className="text-red-500">
+                        Could not generate QR Code.
+                      </p>
+                    )
                   )}
                 </div>
               )}
@@ -523,7 +556,9 @@ function QRCodeGrantModal({
                                   onClick={() => handleManualAction("revoke")}
                                   disabled={
                                     patchUserMutation?.isPending ||
-                                    (!selectedUserDisplayStatus.achieved && (selectedUserDisplayStatus.count ?? 0) === 0)
+                                    (!selectedUserDisplayStatus.achieved &&
+                                      (selectedUserDisplayStatus.count ?? 0) ===
+                                        0)
                                   }
                                   className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
