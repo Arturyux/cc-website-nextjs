@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import CulturePictureSlider from "@/components/CulturePictureSlider";
 
 export default function MainPage() {
 
@@ -28,19 +29,10 @@ export default function MainPage() {
           <p>About us</p>
         </Link>
       </div>
-
+      
       {/* Right Column: Two Images */}
       <div className="md:col-span-2 justify-center hidden md:flex">
-        <img
-          src="https://api2.cultureconnection.se/assets/crafts-pictures/1329877326598639678_1329877314674364548.jpg"
-          className="absolute rounded-full w-154 h-154 object-cover"
-          alt="Crafts"
-        />
-        <img
-          src="https://welcome.cultureconnection.se/assets/CCLogo-D0TRwCJL.png"
-          className="absolute rounded-full left-180 w-80 object-cover"
-          alt="Culture Connection Logo"
-        />
+       <CulturePictureSlider />
       </div>
     </div>
   );
