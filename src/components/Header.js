@@ -209,7 +209,7 @@ export default function Header() {
   const sidePanelLinkStyles =
     "text-3xl font-semibold text-white hover:text-gray-300 py-2 text-center w-full";
   const sidePanelHighlightedLinkStyles =
-    "text-3xl font-semibold text-purple-300 hover:text-purple-200 py-2 text-center w-full";
+    "text-3xl font-semibold text-blue-700 hover:text-blue-400 py-2 text-center w-full";
   const authDropdownLinkStyles =
     "block w-full text-left px-4 py-2 text-base text-gray-700 hover:bg-gray-100 rounded";
 
@@ -465,7 +465,7 @@ export default function Header() {
                         <Link
                           href="/flag-game"
                           onClick={closeMobileMenu}
-                          className="text-3xl font-semibold text-blue-300 hover:text-blue-200"
+                          className="text-3xl font-semibold text-white hover:text-blue-200"
                         >
                           Flag Game
                         </Link>
@@ -478,22 +478,9 @@ export default function Header() {
                       <Link
                         href="/admin"
                         onClick={closeMobileMenu}
-                        className="text-3xl font-semibold text-purple-300 hover:text-purple-200"
+                        className="text-3xl font-semibold text-blue-700 hover:text-blue-400"
                       >
                         Admin Panel
-                      </Link>
-                    )}
-
-                    {(isRegularUser ||
-                      isOnlyMember ||
-                      isOnlyCommittee ||
-                      isAdmin) && (
-                      <Link
-                        href="/membership"
-                        onClick={closeMobileMenu}
-                        className="text-3xl font-semibold text-white hover:text-gray-300"
-                      >
-                        Membership
                       </Link>
                     )}
 
@@ -693,7 +680,7 @@ export default function Header() {
                           <Link
                             href="/flag-game"
                             onClick={closeDesktopSidePanel}
-                            className={`${sidePanelHighlightedLinkStyles} text-blue-300 hover:text-blue-200`}
+                            className={`${sidePanelHighlightedLinkStyles} text-white hover:text-blue-200`}
                           >
                             Flag Game
                           </Link>
@@ -706,22 +693,9 @@ export default function Header() {
                         <Link
                           href="/admin"
                           onClick={closeDesktopSidePanel}
-                          className={`${sidePanelHighlightedLinkStyles} text-purple-300 hover:text-purple-200`}
+                          className={`${sidePanelHighlightedLinkStyles} text-blue-700 hover:text-blue-400`}
                         >
                           Admin Panel
-                        </Link>
-                      )}
-
-                      {(isRegularUser ||
-                        isOnlyMember ||
-                        isOnlyCommittee ||
-                        isAdmin) && (
-                        <Link
-                          href="/membership"
-                          onClick={closeDesktopSidePanel}
-                          className={sidePanelLinkStyles}
-                        >
-                          Membership
                         </Link>
                       )}
 
