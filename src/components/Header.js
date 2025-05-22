@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react"; // Added useMemo
 import Link from "next/link";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import SocialIcons from "./Socialmedia";
 import Linktree from "./Linktree";
 import UserCardModal from "./UserCardModal";
 import BecomeMemberModal from "./BecomeMemberModal";
+import UserIdentityQrModal from "@/components/UserIdentityQrModal"; // Import the new modal
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // Import FontAwesomeIcon
+import { faQrcode } from "@fortawesome/free-solid-svg-icons"; // Import faQrcode
 import {
   SignedIn,
   SignedOut,
@@ -16,6 +19,7 @@ import {
   useUser,
   UserButton,
 } from "@clerk/nextjs";
+import toast from "react-hot-toast"; // Assuming you might use toast for errors
 
 const UserIcon = (props) => (
   <svg
@@ -62,6 +66,7 @@ export default function Header() {
 
   const [isUserCardModalOpen, setIsUserCardModalOpen] = useState(false);
   const [isBecomeMemberModalOpen, setIsBecomeMemberModalOpen] = useState(false);
+  const [isUserIdentityModalOpen, setIsUserIdentityModalOpen] = useState(false); // State for new modal
 
   const controls = useAnimation();
   const initialScrollRef = useRef(null);
@@ -88,12 +93,35 @@ export default function Header() {
   const openBecomeMemberModal = () => setIsBecomeMemberModalOpen(true);
   const closeBecomeMemberModal = () => setIsBecomeMemberModalOpen(false);
 
+  const openUserIdentityModal = () => {
+    if (!user) {
+      toast.error("Please sign in to view your QR code."); // Using toast for feedback
+      return;
+    }
+    setIsUserIdentityModalOpen(true);
+  };
+
+  const closeUserIdentityModal = () => {
+    setIsUserIdentityModalOpen(false);
+  };
+
+  const userDisplayName = useMemo(() => {
+    if (!user) return "";
+    return (
+      `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+      user.username ||
+      user.emailAddresses?.[0]?.emailAddress || // Fallback to email
+      "User"
+    );
+  }, [user]);
+
   useEffect(() => {
     const bodyShouldLock =
       isUserCardModalOpen ||
       isBecomeMemberModalOpen ||
       mobileMenuOpen ||
       isDesktopSideMenuOpen ||
+      isUserIdentityModalOpen || // Add new modal to lock condition
       isScrollDisabled;
 
     if (bodyShouldLock) {
@@ -101,14 +129,13 @@ export default function Header() {
     } else {
       document.body.style.overflow = "";
     }
-    return () => {
-      // document.body.style.overflow = "";
-    };
+    // No return function needed here as the effect re-evaluates
   }, [
     isUserCardModalOpen,
     isBecomeMemberModalOpen,
     mobileMenuOpen,
     isDesktopSideMenuOpen,
+    isUserIdentityModalOpen, // Add new modal to dependency array
     isScrollDisabled,
   ]);
 
@@ -143,7 +170,8 @@ export default function Header() {
         mobileMenuOpen ||
         isUserCardModalOpen ||
         isBecomeMemberModalOpen ||
-        isDesktopSideMenuOpen
+        isDesktopSideMenuOpen ||
+        isUserIdentityModalOpen // Prevent scroll effect when new modal is open
       )
         return;
 
@@ -177,6 +205,7 @@ export default function Header() {
     isUserCardModalOpen,
     isBecomeMemberModalOpen,
     isDesktopSideMenuOpen,
+    isUserIdentityModalOpen, // Add new modal to dependency array
   ]);
 
   const dropdownVariants = {
@@ -233,8 +262,16 @@ export default function Header() {
               <SignedIn>
                 {isLoaded && user && (
                   <div className="flex items-center gap-3">
+                    <button
+                      onClick={openUserIdentityModal}
+                      className="text-white p-1.5 rounded-full hover:bg-white/20 transition-colors"
+                      title="Show My QR Code"
+                      aria-label="Show My QR Code"
+                    >
+                      <FontAwesomeIcon icon={faQrcode} className="w-6 h-6" />
+                    </button>
                     <span className="text-white text-2xl font-medium font-Header">
-                      Welcome, {user.fullName || user.firstName || "User"}
+                      Welcome, {userDisplayName}
                     </span>
                     <UserButton afterSignOutUrl="/" />
                   </div>
@@ -301,7 +338,6 @@ export default function Header() {
               />
             </button>
             <AnimatePresence>
-              // TODO
               {langDropdownOpen && (
                 <motion.div
                   ref={langDropdownRef}
@@ -404,7 +440,7 @@ export default function Header() {
                 {isLoaded && user && (
                   <>
                     <p className="text-white font-Header text-3xl mb-1">
-                      Welcome, {user.firstName}!
+                      Welcome, {userDisplayName}!
                     </p>
                     <div className="inline-block mb-3">
                       <UserButton afterSignOutUrl="/" />
@@ -498,13 +534,16 @@ export default function Header() {
 
                     {(isOnlyMember || isOnlyCommittee || isAdmin) && (
                       <>
-                        <Link
-                          href="/achievements"
-                          onClick={closeMobileMenu}
-                          className="text-3xl font-semibold text-white hover:text-gray-300"
+                        <button
+                          onClick={() => {
+                            openUserIdentityModal();
+                            closeMobileMenu();
+                          }}
+                          className="text-3xl font-semibold text-white hover:text-gray-300 flex items-center gap-2"
                         >
-                          My Badges
-                        </Link>
+                          <FontAwesomeIcon icon={faQrcode} className="w-7 h-7" />
+                          My QR Code
+                        </button>
                         <button
                           onClick={() => {
                             openUserCardModal();
@@ -715,6 +754,16 @@ export default function Header() {
                         <>
                           <button
                             onClick={() => {
+                              openUserIdentityModal();
+                              closeDesktopSidePanel();
+                            }}
+                            className={`${sidePanelLinkStyles} flex items-center justify-center gap-2`}
+                          >
+                            <FontAwesomeIcon icon={faQrcode} className="w-7 h-7" />
+                            My QR Code
+                          </button>
+                          <button
+                            onClick={() => {
                               openUserCardModal();
                               closeDesktopSidePanel();
                             }}
@@ -764,6 +813,12 @@ export default function Header() {
         isOpen={isBecomeMemberModalOpen}
         onClose={closeBecomeMemberModal}
         user={user}
+      />
+      {/* Render the UserIdentityQrModal */}
+      <UserIdentityQrModal
+        isOpen={isUserIdentityModalOpen}
+        onClose={closeUserIdentityModal}
+        userName={userDisplayName}
       />
     </>
   );
