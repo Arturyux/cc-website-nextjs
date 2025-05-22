@@ -17,22 +17,56 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 
+const UserIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    {...props}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A18.75 18.75 0 0 1 12 22.5c-2.786 0-5.433-.608-7.499-1.688Z"
+    />
+  </svg>
+);
+
+const CloseIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+    {...props}
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
 export default function Header() {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const langDropdownRef = useRef(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const [isDesktopSideMenuOpen, setIsDesktopSideMenuOpen] = useState(false);
+  const desktopSideMenuRef = useRef(null);
+  const desktopMenuTriggerRef = useRef(null);
+
+  const [isAuthDropdownOpen, setIsAuthDropdownOpen] = useState(false);
+  const authDropdownRef = useRef(null);
+  const authIconTriggerRef = useRef(null);
+
+  const [isUserCardModalOpen, setIsUserCardModalOpen] = useState(false);
+  const [isBecomeMemberModalOpen, setIsBecomeMemberModalOpen] = useState(false);
+
   const controls = useAnimation();
   const initialScrollRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
   const [isScrollDisabled, setIsScrollDisabled] = useState(false);
-  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
-  const accountDropdownRef = useRef(null);
-  const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
-  const menuDropdownRef = useRef(null);
-  const [isUserCardModalOpen, setIsUserCardModalOpen] = useState(false);
-  const [isBecomeMemberModalOpen, setIsBecomeMemberModalOpen] = useState(false);
 
   const { user, isLoaded, isSignedIn } = useUser();
   const isAdmin = isLoaded && isSignedIn && user?.publicMetadata?.admin === true;
@@ -55,72 +89,64 @@ export default function Header() {
   const closeBecomeMemberModal = () => setIsBecomeMemberModalOpen(false);
 
   useEffect(() => {
-    if (isUserCardModalOpen || isBecomeMemberModalOpen) {
+    const bodyShouldLock =
+      isUserCardModalOpen ||
+      isBecomeMemberModalOpen ||
+      mobileMenuOpen ||
+      isDesktopSideMenuOpen ||
+      isScrollDisabled;
+
+    if (bodyShouldLock) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = "";
+      // document.body.style.overflow = "";
     };
-  }, [isUserCardModalOpen, isBecomeMemberModalOpen]);
-
-  useEffect(() => {
-    if (isScrollDisabled || mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else if (!isUserCardModalOpen && !isBecomeMemberModalOpen) {
-      document.body.style.overflow = "";
-    }
   }, [
-    isScrollDisabled,
-    mobileMenuOpen,
     isUserCardModalOpen,
     isBecomeMemberModalOpen,
+    mobileMenuOpen,
+    isDesktopSideMenuOpen,
+    isScrollDisabled,
   ]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
       if (
-        langDropdownRef.current &&
-        !langDropdownRef.current.contains(event.target)
-      ) {
-        setLangDropdownOpen(false);
-      }
-      if (
-        accountDropdownRef.current &&
-        !accountDropdownRef.current.contains(event.target) &&
-        !event.target.closest(".user-button-trigger") && // Assuming UserButton has a class or identifiable parent
-        !event.target.closest("button[aria-label='Open user menu']") // Clerk's default UserButton trigger
-      ) {
-        setAccountDropdownOpen(false);
-      }
-      if (
-        menuDropdownRef.current &&
-        !menuDropdownRef.current.contains(event.target)
-      ) {
-        setMenuDropdownOpen(false);
-      }
-      if (
-        mobileMenuOpen &&
         langDropdownRef.current &&
         !langDropdownRef.current.contains(event.target) &&
-        !event.target.closest("button[aria-label='Open language menu']")
+        !event.target.closest("button[aria-label='Open language menu']") &&
+        langDropdownOpen
       ) {
         setLangDropdownOpen(false);
+      }
+
+      if (
+        authDropdownRef.current &&
+        !authDropdownRef.current.contains(event.target) &&
+        !authIconTriggerRef.current?.contains(event.target) &&
+        isAuthDropdownOpen
+      ) {
+        setIsAuthDropdownOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [mobileMenuOpen]);
+  }, [langDropdownOpen, isAuthDropdownOpen, isDesktopSideMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (mobileMenuOpen || isUserCardModalOpen || isBecomeMemberModalOpen)
+      if (
+        mobileMenuOpen ||
+        isUserCardModalOpen ||
+        isBecomeMemberModalOpen ||
+        isDesktopSideMenuOpen
+      )
         return;
+
       if (initialScrollRef.current === null) {
         initialScrollRef.current = window.scrollY;
       }
@@ -150,6 +176,7 @@ export default function Header() {
     mobileMenuOpen,
     isUserCardModalOpen,
     isBecomeMemberModalOpen,
+    isDesktopSideMenuOpen,
   ]);
 
   const dropdownVariants = {
@@ -164,20 +191,27 @@ export default function Header() {
     exit: { opacity: 0, y: "-100%" },
   };
 
+  const desktopSideMenuVariants = {
+    hidden: { x: "-100%" },
+    visible: { x: "0%" },
+    exit: { x: "-100%" },
+  };
+
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
     setLangDropdownOpen(false);
   };
 
-  const closeAllDesktopDropdowns = () => {
-    setMenuDropdownOpen(false);
-    setDropdownOpen(false);
-    setAccountDropdownOpen(false);
+  const closeDesktopSidePanel = () => {
+    setIsDesktopSideMenuOpen(false);
   };
 
-  const commonLinkStyles =
-    "block w-full text-center text-2xl px-4 py-2 text-black hover:bg-gray-100 rounded";
-  const highlightedLinkStyles = `${commonLinkStyles} font-semibold`;
+  const sidePanelLinkStyles =
+    "text-3xl font-semibold text-white hover:text-gray-300 py-2 text-center w-full";
+  const sidePanelHighlightedLinkStyles =
+    "text-3xl font-semibold text-purple-300 hover:text-purple-200 py-2 text-center w-full";
+  const authDropdownLinkStyles =
+    "block w-full text-left px-4 py-2 text-base text-gray-700 hover:bg-gray-100 rounded";
 
   return (
     <>
@@ -186,299 +220,72 @@ export default function Header() {
         className={`fixed md:left-1/2 left-0 right-0 md:transform md:-translate-x-1/2 top-4 md:top-6 p-2 md:p-3 md:w-[75%] w-[90%] flex justify-center items-center bg-mainColor shadow-lg z-30 rounded-full mx-auto`}
       >
         <div className="flex items-center justify-between w-full px-4 md:px-6">
-          <div className="hidden md:block relative" ref={menuDropdownRef}>
+          <div className="hidden md:flex items-center justify-between w-full">
             <button
-              onClick={() => setMenuDropdownOpen(!menuDropdownOpen)}
+              ref={desktopMenuTriggerRef}
+              onClick={() => setIsDesktopSideMenuOpen(true)}
               className="font-Main text-xl lg:text-2xl text-white font-bold hover:text-gray-300 transition-colors"
             >
               Menu
             </button>
-            <AnimatePresence>
-              {menuDropdownOpen && (
-                <motion.div
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={dropdownVariants}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="absolute z-20 top-11 -right-16 mt-2 w-56 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col"
-                >
-                  <SignedOut>
-                    <Link
-                      href="/"
-                      onClick={closeAllDesktopDropdowns}
-                      className={commonLinkStyles}
-                    >
-                      Home
-                    </Link>
-                    <Link
-                      href="/about-us"
-                      onClick={closeAllDesktopDropdowns}
-                      className={commonLinkStyles}
-                    >
-                      About us
-                    </Link>
-                    <Link
-                      href="/events"
-                      onClick={closeAllDesktopDropdowns}
-                      className={commonLinkStyles}
-                    >
-                      Events
-                    </Link>
-                    <p className="px-4 py-2 text-sm text-gray-500 text-center">
-                      More options when you login
-                    </p>
-                  </SignedOut>
-                  <SignedIn>
-                    {isLoaded && (
-                      <>
-                        <Link
-                          href="/"
-                          onClick={closeAllDesktopDropdowns}
-                          className={commonLinkStyles}
-                        >
-                          Home
-                        </Link>
-                        <Link
-                          href="/about-us"
-                          onClick={closeAllDesktopDropdowns}
-                          className={commonLinkStyles}
-                        >
-                          About us
-                        </Link>
-                        <Link
-                          href="/events"
-                          onClick={closeAllDesktopDropdowns}
-                          className={commonLinkStyles}
-                        >
-                          Events
-                        </Link>
-                        {isRegularUser && (
-                          <>
-                            <Link
-                              href="/membership"
-                              onClick={closeAllDesktopDropdowns}
-                              className={highlightedLinkStyles}
-                            >
-                              Become a member
-                            </Link>
-                            <p className="px-4 py-2 text-sm text-gray-500 text-center">
-                              Become a member for more options
-                            </p>
-                          </>
-                        )}
-                        {(isMember || isCommittee || isAdmin) && (
-                          <>
-                            <Link
-                              href="/membership"
-                              onClick={closeAllDesktopDropdowns}
-                              className={commonLinkStyles}
-                            >
-                              Discounts
-                            </Link>
-                            <Link
-                              href="/achievements"
-                              onClick={closeAllDesktopDropdowns}
-                              className={commonLinkStyles}
-                            >
-                              Badges
-                            </Link>
-                            <Link
-                              href="/flag-game"
-                              onClick={closeAllDesktopDropdowns}
-                              className={`${highlightedLinkStyles} text-blue-600 hover:bg-blue-50`}
-                            >
-                              Flag Game
-                            </Link>
-                          </>
-                        )}
-                      </>
-                    )}
-                  </SignedIn>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
 
-          <div className="hidden md:block relative" ref={dropdownRef}>
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
-            >
-              Linktree
-            </button>
-            <AnimatePresence>
-              {dropdownOpen && (
-                <motion.div
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={dropdownVariants}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="absolute z-20 top-11 left-1/2 transform -translate-x-1/2 mt-2 w-72 md:w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col items-center"
-                >
-                  <Linktree />
-                  <div className="bg-gray-100 mt-6 rounded-4xl border border-gray-200 shadow-2xs mb-5">
-                    <SocialIcons />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <div className="relative" ref={accountDropdownRef}>
-              <SignedOut>
-                <button
-                  onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
-                  className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
-                >
-                  Account
-                </button>
-              </SignedOut>
+            <div className="relative">
               <SignedIn>
-                {isLoaded && (
-                  <button
-                    onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
-                    className="font-Main text-xl lg:text-2xl font-bold text-white hover:text-gray-300 transition-colors"
-                  >
-                    Dashboard
-                  </button>
+                {isLoaded && user && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-white text-2xl font-medium font-Header">
+                      Welcome, {user.fullName || user.firstName || "User"}
+                    </span>
+                    <UserButton afterSignOutUrl="/" />
+                  </div>
                 )}
               </SignedIn>
-              <AnimatePresence>
-                {accountDropdownOpen && (
-                  <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={dropdownVariants}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="absolute z-20 top-11 -right-16 mt-2 w-64 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col"
+              <SignedOut>
+                <div ref={authDropdownRef}>
+                  <button
+                    ref={authIconTriggerRef}
+                    onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)}
+                    className="text-white p-1.5 rounded-full hover:bg-white/20 transition-colors"
+                    aria-label="Open account menu"
                   >
-                    <SignedOut>
-                      <SignInButton mode="modal">
-                        <button
-                          onClick={closeAllDesktopDropdowns}
-                          className={commonLinkStyles}
-                        >
-                          Sign In
-                        </button>
-                      </SignInButton>
-                      <SignUpButton mode="modal">
-                        <button
-                          onClick={closeAllDesktopDropdowns}
-                          className={commonLinkStyles}
-                        >
-                          Sign Up
-                        </button>
-                      </SignUpButton>
-                    </SignedOut>
-                    <SignedIn>
-                      {isLoaded && user && (
-                        <>
-                          <div className="px-4 py-2 text-center text-lg font-semibold text-black border-b mb-2">
-                            Welcome, {user.firstName || "User"}!
-                          </div>
-                          {isRegularUser && (
-                            <>
-                              <Link
-                                href="/membership"
-                                onClick={closeAllDesktopDropdowns}
-                                className={commonLinkStyles}
-                              >
-                                Membership
-                              </Link>
-                              <button
-                                onClick={() => {
-                                  openBecomeMemberModal();
-                                  closeAllDesktopDropdowns();
-                                }}
-                                className={`${highlightedLinkStyles} text-green-600 hover:bg-green-50`}
-                              >
-                                Become a Member
-                              </button>
-                            </>
-                          )}
-                          {isOnlyMember && (
-                            <>
-                              <Link
-                                href="/membership"
-                                onClick={closeAllDesktopDropdowns}
-                                className={commonLinkStyles}
-                              >
-                                Membership
-                              </Link>
-                              <Link
-                                href="/achievements"
-                                onClick={closeAllDesktopDropdowns}
-                                className={commonLinkStyles}
-                              >
-                                Badges
-                              </Link>
-                              <button
-                                onClick={() => {
-                                  openUserCardModal();
-                                  closeAllDesktopDropdowns();
-                                }}
-                                className={commonLinkStyles}
-                              >
-                                View My Card
-                              </button>
-                            </>
-                          )}
-                          {(isOnlyCommittee || isAdmin) && (
-                            <>
-                              <Link
-                                href="/admin"
-                                onClick={closeAllDesktopDropdowns}
-                                className={`${highlightedLinkStyles} text-purple-700 hover:bg-purple-50`}
-                              >
-                                Admin Panel
-                              </Link>
-                              <Link
-                                href="/membership"
-                                onClick={closeAllDesktopDropdowns}
-                                className={commonLinkStyles}
-                              >
-                                Membership
-                              </Link>
-                              <Link
-                                href="/achievements"
-                                onClick={closeAllDesktopDropdowns}
-                                className={commonLinkStyles}
-                              >
-                                Badges
-                              </Link>
-                              <button
-                                onClick={() => {
-                                  openUserCardModal();
-                                  closeAllDesktopDropdowns();
-                                }}
-                                className={commonLinkStyles}
-                              >
-                                View My Card
-                              </button>
-                            </>
-                          )}
-                          <div className="border-t mt-1 pt-1">
-                            <SignOutButton>
-                              <button
-                                onClick={closeAllDesktopDropdowns}
-                                className="w-full text-center text-2xl px-4 py-2 text-red-600 hover:bg-red-50 rounded"
-                              >
-                                Log Out
-                              </button>
-                            </SignOutButton>
-                          </div>
-                        </>
-                      )}
-                    </SignedIn>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <UserIcon className="w-7 h-7" />
+                  </button>
+                  <AnimatePresence>
+                    {isAuthDropdownOpen && (
+                      <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={dropdownVariants}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
+                        className="absolute z-20 top-full right-0 mt-2 w-48 p-2 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col"
+                      >
+                        <SignInButton mode="modal">
+                          <button
+                            onClick={() => setIsAuthDropdownOpen(false)}
+                            className={authDropdownLinkStyles}
+                          >
+                            Sign In
+                          </button>
+                        </SignInButton>
+                        <SignUpButton mode="modal">
+                          <button
+                            onClick={() => setIsAuthDropdownOpen(false)}
+                            className={authDropdownLinkStyles}
+                          >
+                            Sign Up
+                          </button>
+                        </SignUpButton>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </SignedOut>
             </div>
-            <SignedIn>{isLoaded && <UserButton afterSignOutUrl="/" />}</SignedIn>
           </div>
 
           <div className="md:hidden flex items-center justify-between w-full">
@@ -493,6 +300,27 @@ export default function Header() {
                 className="w-full h-full object-cover"
               />
             </button>
+            <AnimatePresence>
+              // TODO
+              {langDropdownOpen && (
+                <motion.div
+                  ref={langDropdownRef}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={dropdownVariants}
+                  className="absolute top-16 left-0 mt-1 w-36 p-2 bg-white border rounded shadow-lg"
+                >
+                  <button className="block w-full text-left px-3 py-1 hover:bg-gray-100">
+                    English
+                  </button>
+                  <button className="block w-full text-left px-3 py-1 hover:bg-gray-100">
+                    Español
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="text-white focus:outline-none p-2"
@@ -516,7 +344,7 @@ export default function Header() {
             exit="exit"
             variants={mobileMenuVariants}
             transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
-            className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col"
+            className="fixed top-0 left-0 h-full w-full bg-mainColor z-40 overflow-y-auto flex flex-col md:hidden"
           >
             <div className="flex items-center justify-between p-4 border-b border-white border-opacity-20 flex-shrink-0">
               <button
@@ -524,23 +352,9 @@ export default function Header() {
                 className="text-white p-2"
                 aria-label="Close menu"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-7 w-7"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <CloseIcon className="h-7 w-7" />
               </button>
             </div>
-
             <div className="flex-grow flex flex-col items-center justify-center pb-16 px-4 space-y-4 overflow-y-auto">
               <SignedOut>
                 <Link
@@ -697,7 +511,7 @@ export default function Header() {
 
                     {(isOnlyMember || isOnlyCommittee || isAdmin) && (
                       <>
-                        <Link /* Mobile already has Badges in main nav, this is dashboard specific */
+                        <Link
                           href="/achievements"
                           onClick={closeMobileMenu}
                           className="text-3xl font-semibold text-white hover:text-gray-300"
@@ -740,6 +554,228 @@ export default function Header() {
               </div>
             </div>
           </motion.nav>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isDesktopSideMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={closeDesktopSidePanel}
+              className="fixed inset-0 bg-black/60 z-40 hidden md:block"
+            />
+            <motion.div
+              ref={desktopSideMenuRef}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={desktopSideMenuVariants}
+              transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+              className="fixed top-0 left-0 h-full w-80 lg:w-96 bg-mainColor z-50 overflow-y-auto flex-col shadow-2xl hidden md:flex"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-white/20 flex-shrink-0">
+                <span className="text-white text-2xl font-bold font-Main">
+                  Menu
+                </span>
+                <button
+                  onClick={closeDesktopSidePanel}
+                  className="text-white p-2 hover:bg-white/10 rounded-full"
+                  aria-label="Close menu"
+                >
+                  <CloseIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="flex-grow flex flex-col items-center justify-start py-8 px-4 space-y-3 overflow-y-auto">
+                <SignedOut>
+                  <Link
+                    href="/"
+                    onClick={closeDesktopSidePanel}
+                    className={sidePanelLinkStyles}
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    href="/about-us"
+                    onClick={closeDesktopSidePanel}
+                    className={sidePanelLinkStyles}
+                  >
+                    About us
+                  </Link>
+                  <Link
+                    href="/events"
+                    onClick={closeDesktopSidePanel}
+                    className={sidePanelLinkStyles}
+                  >
+                    Events
+                  </Link>
+                  <p className="text-gray-300 text-sm py-2">
+                    More options when you login
+                  </p>
+                  <div className="w-3/4 border-t border-white/20 my-3"></div>
+                  <SignInButton mode="modal">
+                    <button
+                      onClick={closeDesktopSidePanel}
+                      className={`${sidePanelLinkStyles} text-4xl`}
+                    >
+                      Sign In
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button
+                      onClick={closeDesktopSidePanel}
+                      className={`${sidePanelLinkStyles} text-4xl`}
+                    >
+                      Sign Up
+                    </button>
+                  </SignUpButton>
+                </SignedOut>
+
+                <SignedIn>
+                  {isLoaded && user && (
+                    <>
+                      <Link
+                        href="/"
+                        onClick={closeDesktopSidePanel}
+                        className={sidePanelLinkStyles}
+                      >
+                        Home
+                      </Link>
+                      <Link
+                        href="/about-us"
+                        onClick={closeDesktopSidePanel}
+                        className={sidePanelLinkStyles}
+                      >
+                        About us
+                      </Link>
+                      <Link
+                        href="/events"
+                        onClick={closeDesktopSidePanel}
+                        className={sidePanelLinkStyles}
+                      >
+                        Events
+                      </Link>
+
+                      {isRegularUser && (
+                        <>
+                          <Link
+                            href="/membership"
+                            onClick={closeDesktopSidePanel}
+                            className={sidePanelHighlightedLinkStyles}
+                          >
+                            Become a member
+                          </Link>
+                          <p className="text-gray-300 text-sm py-1">
+                            Become a member for more options
+                          </p>
+                        </>
+                      )}
+                      {(isMember || isCommittee || isAdmin) && (
+                        <>
+                          <Link
+                            href="/membership"
+                            onClick={closeDesktopSidePanel}
+                            className={sidePanelLinkStyles}
+                          >
+                            Discounts
+                          </Link>
+                          <Link
+                            href="/achievements"
+                            onClick={closeDesktopSidePanel}
+                            className={sidePanelLinkStyles}
+                          >
+                            Badges
+                          </Link>
+                          <Link
+                            href="/flag-game"
+                            onClick={closeDesktopSidePanel}
+                            className={`${sidePanelHighlightedLinkStyles} text-blue-300 hover:text-blue-200`}
+                          >
+                            Flag Game
+                          </Link>
+                        </>
+                      )}
+
+                      <div className="w-3/4 border-t border-white/20 my-3"></div>
+
+                      {(isAdmin || (isCommittee && !isAdmin)) && (
+                        <Link
+                          href="/admin"
+                          onClick={closeDesktopSidePanel}
+                          className={`${sidePanelHighlightedLinkStyles} text-purple-300 hover:text-purple-200`}
+                        >
+                          Admin Panel
+                        </Link>
+                      )}
+
+                      {(isRegularUser ||
+                        isOnlyMember ||
+                        isOnlyCommittee ||
+                        isAdmin) && (
+                        <Link
+                          href="/membership"
+                          onClick={closeDesktopSidePanel}
+                          className={sidePanelLinkStyles}
+                        >
+                          Membership
+                        </Link>
+                      )}
+
+                      {isRegularUser && (
+                        <button
+                          onClick={() => {
+                            openBecomeMemberModal();
+                            closeDesktopSidePanel();
+                          }}
+                          className={`${sidePanelHighlightedLinkStyles} text-green-300 hover:text-green-200`}
+                        >
+                          Become a Member
+                        </button>
+                      )}
+
+                      {(isOnlyMember || isOnlyCommittee || isAdmin) && (
+                        <>
+                          <button
+                            onClick={() => {
+                              openUserCardModal();
+                              closeDesktopSidePanel();
+                            }}
+                            className={sidePanelLinkStyles}
+                          >
+                            View My Card
+                          </button>
+                        </>
+                      )}
+
+                      <div className="border-t border-white/20 mt-3 pt-3 w-3/4">
+                        <SignOutButton>
+                          <button
+                            onClick={closeDesktopSidePanel}
+                            className="w-full text-center font-bold text-2xl text-red-300 hover:text-red-200"
+                          >
+                            Log Out
+                          </button>
+                        </SignOutButton>
+                      </div>
+                    </>
+                  )}
+                </SignedIn>
+
+                <div className="w-full max-w-xs pt-6">
+                  <Linktree />
+                </div>
+                <div className="pt-4">
+                  <div className="bg-gray-100 rounded-4xl border border-gray-200 shadow-2xs mb-5">
+                    <SocialIcons />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
