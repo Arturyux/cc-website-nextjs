@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { BackgroundAchievements } from "@/components/Background";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -130,10 +131,10 @@ const scanQrCodeApi = async (scannedData) => {
   if (!response.ok) {
     let errorMessage = result.message || `Scan processing failed with status ${response.status}`;
     if (result.cooldownActive) {
-        errorMessage = result.message; // Use the specific cooldown message
+        errorMessage = result.message;
     }
     const error = new Error(errorMessage);
-    error.cooldownActive = result.cooldownActive || false; // Attach cooldown status
+    error.cooldownActive = result.cooldownActive || false;
     throw error;
   }
   return result;
@@ -205,8 +206,9 @@ const PLACEHOLDER_FAVORITE_IMG =
   "https://api2.cultureconnection.se/assets/achievments-badges/9c153840-126c-4ba1-9906-647d1c3a2152.png";
 
 export default function AchievementsPage() {
-  const { user, isLoaded: isUserLoaded } = useUser();
+  const { user, isLoaded: isUserLoaded, isSignedIn } = useUser();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
@@ -227,6 +229,12 @@ export default function AchievementsPage() {
   const [filterMode, setFilterMode] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState(null);
 
+  useEffect(() => {
+    if (isUserLoaded && !isSignedIn) {
+      router.push("/");
+    }
+  }, [isUserLoaded, isSignedIn, router]);
+
   const canManage =
     isUserLoaded &&
     user &&
@@ -242,7 +250,7 @@ export default function AchievementsPage() {
   } = useQuery({
     queryKey: ["achievements"],
     queryFn: fetchAchievements,
-    enabled: isUserLoaded,
+    enabled: isUserLoaded && isSignedIn, // Only fetch if signed in
   });
 
   const {
@@ -253,7 +261,7 @@ export default function AchievementsPage() {
   } = useQuery({
     queryKey: ["allUsers"],
     queryFn: fetchAllUsers,
-    enabled: !!canManage,
+    enabled: !!(isUserLoaded && isSignedIn && canManage),
     staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -261,7 +269,7 @@ export default function AchievementsPage() {
   const { data: userFavoritesData, isLoading: isLoadingFavorites } = useQuery({
     queryKey: ["userFavorites"],
     queryFn: fetchUserFavorites,
-    enabled: !!user,
+    enabled: !!(isUserLoaded && isSignedIn),
   });
 
   const commonMutationOptions = (successMessage) => ({
@@ -330,7 +338,7 @@ export default function AchievementsPage() {
       console.error("Scan mutation failed:", error);
       let toastMessage = `Scan Error: ${error.message}`;
       if (error.cooldownActive) {
-        toastMessage = error.message; // Use specific cooldown message
+        toastMessage = error.message;
       }
       toast.error(toastMessage);
     },
@@ -487,28 +495,23 @@ export default function AchievementsPage() {
   const openDetailModal = (achievement) => {
     setSelectedAchievementForDetail(achievement);
     setIsDetailModalOpen(true);
-    document.body.style.overflow = "hidden";
   };
   const closeDetailModal = () => {
     setIsDetailModalOpen(false);
     setSelectedAchievementForDetail(null);
-    document.body.style.overflow = "";
   };
 
   const openAddModal = () => {
     setAchievementToEdit(null);
     setIsAddEditModalOpen(true);
-    document.body.style.overflow = "hidden";
   };
   const openEditModal = (achievement) => {
     setAchievementToEdit(achievement);
     setIsAddEditModalOpen(true);
-    document.body.style.overflow = "hidden";
   };
   const closeAddEditModal = () => {
     setIsAddEditModalOpen(false);
     setAchievementToEdit(null);
-    document.body.style.overflow = "";
   };
 
   const openQrCodeModal = (achievement) => {
@@ -516,12 +519,10 @@ export default function AchievementsPage() {
     setIsQrCodeModalOpen(true);
     setIsDetailModalOpen(false);
     setSelectedAchievementForDetail(null);
-    document.body.style.overflow = "hidden";
   };
   const closeQrCodeModal = () => {
     setIsQrCodeModalOpen(false);
     setAchievementForQrCode(null);
-    document.body.style.overflow = "";
   };
 
   const openScannerModal = () => {
@@ -530,31 +531,25 @@ export default function AchievementsPage() {
       return;
     }
     setIsScannerModalOpen(true);
-    document.body.style.overflow = "hidden";
   };
   const closeScannerModal = () => {
     setIsScannerModalOpen(false);
-    document.body.style.overflow = "";
   };
 
   const openFavoriteSelectionModal = (slot) => {
     setSelectedSlotForFavorite(slot);
     setIsFavoriteSelectionModalOpen(true);
-    document.body.style.overflow = "hidden";
   };
   const closeFavoriteSelectionModal = () => {
     setIsFavoriteSelectionModalOpen(false);
     setSelectedSlotForFavorite(null);
-    document.body.style.overflow = "";
   };
 
   const openCardSkinModal = () => {
     setIsCardSkinModalOpen(true);
-    document.body.style.overflow = "hidden";
   };
   const closeCardSkinModal = () => {
     setIsCardSkinModalOpen(false);
-    document.body.style.overflow = "";
   };
 
   const openUserIdentityModal = () => {
@@ -563,12 +558,10 @@ export default function AchievementsPage() {
       return;
     }
     setIsUserIdentityModalOpen(true);
-    document.body.style.overflow = "hidden";
   };
 
   const closeUserIdentityModal = () => {
     setIsUserIdentityModalOpen(false);
-    document.body.style.overflow = "";
   };
 
   const handleAddEditSubmit = (achievementData) => {
@@ -658,6 +651,15 @@ export default function AchievementsPage() {
     isCardSkinModalOpen,
     isUserIdentityModalOpen,
   ]);
+
+  if (!isUserLoaded) {
+    return <div className="text-center p-10 mt-40 text-xl">Loading page...</div>;
+  }
+  if (isUserLoaded && !isSignedIn) {
+     // router.push would have already redirected, but this is a safeguard
+    return <div className="text-center p-10 mt-40 text-xl">Redirecting to homepage...</div>;
+  }
+
 
   return (
     <>
