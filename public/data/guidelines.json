@@ -1,0 +1,27 @@
+[
+  {
+    "id": "gl-intro-001",
+    "title": "Welcome & Introduction",
+    "content": "<h1>Welcome to the Team!</h1><p>This guide is designed to help you get acquainted with our association's values, processes, and how we work together. We're excited to have you on board!</p><p>Please take some time to read through these sections. If you have any questions, don't hesitate to reach out to a board member.</p>"
+  },
+  {
+    "id": "gl-mission-002",
+    "title": "Our Mission & Vision",
+    "content": "<h2>Our Mission</h2><p>Our mission is to <strong>foster a vibrant community</strong> by providing resources, organizing events, and advocating for our members' interests.</p><h2>Our Vision</h2><p>We envision a future where every member feels empowered, connected, and valued.</p>"
+  },
+  {
+    "id": "gl-comm-003",
+    "title": "Communication Channels",
+    "content": "<h3>Official Channels</h3><ul><li><strong>Slack:</strong> For daily discussions and quick updates. Join the <code>#general</code> and relevant committee channels.</li><li><strong>Email List:</strong> For official announcements and newsletters.</li><li><strong>Monthly Meetings:</strong> For in-depth discussions and decision-making.</li></ul><p><em>Please ensure you are subscribed to the main email list.</em></p>"
+  },
+  {
+    "id": "gl-conduct-004",
+    "title": "Code of Conduct",
+    "content": "<p>We are committed to providing a friendly, safe and welcoming environment for all, regardless of gender, sexual orientation, disability, ethnicity, or religion. This code of conduct outlines our expectations for behavior as well as the consequences for unacceptable behavior.</p><p>We invite all those who participate in our association to help us create safe and positive experiences for everyone.</p>"
+  },
+  {
+    "id": "«r1»-new-1747985937960",
+    "title": "Random",
+    "content": "<p><strong>Random bold</strong></p><p><strong><em>Random bold italic mix</em></strong></p><p><strong><em><u>Random all together style</u></em></strong></p><h3>Make it bigger </h3><ol><li><p>dots test</p></li><li><p>number test</p></li></ol>"
+  }
+]

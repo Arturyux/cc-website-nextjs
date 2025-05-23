@@ -1,3 +1,4 @@
+// src/app/admin/page.js
 "use client";
 
 import { useUser } from "@clerk/nextjs";
@@ -11,6 +12,7 @@ import LinktreeManagement from "@/components/admin/LinktreeManagement";
 import SponsorManagement from "@/components/admin/SponsorManagement";
 import DiscordSchedulerManagement from "@/components/admin/discordbot/DiscordSchedulerManagement";
 import CombinedFileManager from "@/components/admin/DriveManagment/CombinedFileManager";
+import GuidelinesManagement from "@/components/admin/GuidelinesManagement";
 import Header from "@/components/Header";
 
 const adminSections = [
@@ -24,6 +26,11 @@ const adminSections = [
   { key: "linktree", label: "Linktree Links", component: LinktreeManagement },
   { key: "sponsors", label: "Sponsors", component: SponsorManagement },
   {
+    key: "guidelines",
+    label: "Association Guidelines", 
+    component: GuidelinesManagement, 
+  },
+  {
     key: "discord",
     label: "Discord Scheduler",
     component: DiscordSchedulerManagement,
@@ -31,7 +38,7 @@ const adminSections = [
   { key: "driveFiles", label: "Drive Files", component: CombinedFileManager },
 ];
 
-const committeeAllowedSectionKeys = ["linktree", "driveFiles"];
+const committeeAllowedSectionKeys = ["linktree", "driveFiles", "guidelines"];
 
 export default function AdminPage() {
   const { isLoaded, isSignedIn, user } = useUser();
