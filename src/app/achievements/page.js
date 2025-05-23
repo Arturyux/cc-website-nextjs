@@ -12,10 +12,18 @@ import QRCodeGrantModal from "@/components/Achievements/QRCodeGrantModal";
 import ScannerModal from "@/components/ScannerModal";
 import FavoriteBadgeSelectionModal from "@/components/Achievements/FavoriteBadgeSelectionModal";
 import CardSkinSelectionModal from "@/components/Achievements/CardSkinSelectionModal";
+import UserIdentityQrModal from "@/components/UserIdentityQrModal";
 import { AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faQrcode, faStar, faPalette } from "@fortawesome/free-solid-svg-icons";
+import {
+  faQrcode,
+  faStar,
+  faPalette,
+  faIdBadge,
+  faPlus,
+  faFilter,
+} from "@fortawesome/free-solid-svg-icons";
 
 const fetchAchievements = async () => {
   const response = await fetch("/api/achievements");
@@ -120,9 +128,13 @@ const scanQrCodeApi = async (scannedData) => {
   });
   const result = await response.json();
   if (!response.ok) {
-    throw new Error(
-      result.message || `Scan processing failed with status ${response.status}`,
-    );
+    let errorMessage = result.message || `Scan processing failed with status ${response.status}`;
+    if (result.cooldownActive) {
+        errorMessage = result.message; // Use the specific cooldown message
+    }
+    const error = new Error(errorMessage);
+    error.cooldownActive = result.cooldownActive || false; // Attach cooldown status
+    throw error;
   }
   return result;
 };
@@ -205,6 +217,8 @@ export default function AchievementsPage() {
     setIsFavoriteSelectionModalOpen,
   ] = useState(false);
   const [isCardSkinModalOpen, setIsCardSkinModalOpen] = useState(false);
+  const [isUserIdentityModalOpen, setIsUserIdentityModalOpen] = useState(false);
+
   const [selectedAchievementForDetail, setSelectedAchievementForDetail] =
     useState(null);
   const [achievementToEdit, setAchievementToEdit] = useState(null);
@@ -250,16 +264,20 @@ export default function AchievementsPage() {
     enabled: !!user,
   });
 
-  const commonMutationOptions = {
-    onError: (error, variables, context) => {
+  const commonMutationOptions = (successMessage) => ({
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["achievements"] });
+      if (successMessage) toast.success(successMessage);
+    },
+    onError: (error) => {
       console.error("Mutation failed:", error);
       toast.error(`Error: ${error.message}`);
     },
-  };
+  });
 
   const createAchievementMutation = useMutation({
     mutationFn: createAchievement,
-    ...commonMutationOptions,
+    ...commonMutationOptions("Achievement created!"),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
       closeAddEditModal();
@@ -269,7 +287,7 @@ export default function AchievementsPage() {
 
   const editAchievementMutation = useMutation({
     mutationFn: editAchievement,
-    ...commonMutationOptions,
+    ...commonMutationOptions("Achievement updated!"),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
       closeAddEditModal();
@@ -279,7 +297,7 @@ export default function AchievementsPage() {
 
   const deleteAchievementMutation = useMutation({
     mutationFn: deleteAchievement,
-    ...commonMutationOptions,
+    ...commonMutationOptions(),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
       toast.success(data.message || "Achievement deleted.");
@@ -288,98 +306,15 @@ export default function AchievementsPage() {
 
   const patchUserAchievementMutation = useMutation({
     mutationFn: patchUserAchievement,
-    onMutate: async (payload) => {
-      const { achievementId, targetUserId, action } = payload;
-      await queryClient.cancelQueries({ queryKey: ["achievements"] });
-      const previousAchievements = queryClient.getQueryData(["achievements"]);
-      queryClient.setQueryData(["achievements"], (oldData) => {
-        if (!oldData) return oldData;
-        const achIndex = oldData.findIndex((ach) => ach.id === achievementId);
-        if (achIndex === -1) return oldData;
-        const achievementToUpdate = oldData[achIndex];
-        const userHas = achievementToUpdate.userHas || [];
-        const userIndex = userHas.findIndex((u) => u.userID === targetUserId);
-        let newUserEntry = null;
-        let updatedUserHas = [...userHas];
-        const currentUserEntry =
-          userIndex !== -1
-            ? userHas[userIndex]
-            : {
-                userID: targetUserId,
-                achived: false,
-                attendanceCount: 0,
-                score: null,
-                date: null,
-              };
-
-        if (action === "setAchieved") {
-          const { achieved } = payload;
-          newUserEntry = {
-            ...currentUserEntry,
-            achived: achieved,
-            date: achieved ? new Date().toISOString() : null,
-            attendanceCount: achieved
-              ? currentUserEntry.attendanceCount
-              : 0,
-            score: achieved ? currentUserEntry.score : null,
-          };
-        } else if (action === "updateCount") {
-          const { countChange } = payload;
-          const newCount = Math.max(
-            0,
-            (currentUserEntry.attendanceCount || 0) + countChange,
-          );
-          let achieved = currentUserEntry.achived;
-          let date = currentUserEntry.date;
-          if (
-            !achieved &&
-            achievementToUpdate.attendanceNeed &&
-            newCount >= achievementToUpdate.attendanceNeed
-          ) {
-            achieved = true;
-            date = new Date().toISOString();
-          }
-          newUserEntry = {
-            ...currentUserEntry,
-            attendanceCount: newCount,
-            achived: achieved,
-            date: date,
-          };
-        } else if (action === "updateScore") {
-          const { score } = payload;
-          newUserEntry = {
-            ...currentUserEntry,
-            score: typeof score === "number" && !isNaN(score) ? score : 0,
-          };
-        } else {
-          return oldData;
-        }
-
-        if (userIndex !== -1) {
-          updatedUserHas[userIndex] = newUserEntry;
-        } else {
-          updatedUserHas.push(newUserEntry);
-        }
-
-        const updatedAchievement = {
-          ...achievementToUpdate,
-          userHas: updatedUserHas,
-        };
-
-        const newData = [...oldData];
-        newData[achIndex] = updatedAchievement;
-        return newData;
-      });
-      return { previousAchievements };
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["achievements"] });
+      toast.success(
+        data.message || `User achievement status updated for ${variables.action}.`,
+      );
     },
-    onError: (err, payload, context) => {
-      toast.error(`Update failed: ${err.message}. Reverting.`);
-      if (context?.previousAchievements) {
-        queryClient.setQueryData(["achievements"], context.previousAchievements);
-      }
-      throw err;
-    },
-    onSettled: (data, error, payload, context) => {
+    onError: (error) => {
+      console.error("Patch user achievement failed:", error);
+      toast.error(`Update failed: ${error.message}`);
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
     },
   });
@@ -393,13 +328,17 @@ export default function AchievementsPage() {
     },
     onError: (error) => {
       console.error("Scan mutation failed:", error);
-      toast.error(`Scan Error: ${error.message}`);
+      let toastMessage = `Scan Error: ${error.message}`;
+      if (error.cooldownActive) {
+        toastMessage = error.message; // Use specific cooldown message
+      }
+      toast.error(toastMessage);
     },
   });
 
   const setFavoriteMutation = useMutation({
     mutationFn: updateUserFavorite,
-    ...commonMutationOptions,
+    ...commonMutationOptions("Favorite badge updated!"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userFavorites"] });
       toast.success("Favorite badge updated!");
@@ -408,7 +347,7 @@ export default function AchievementsPage() {
 
   const removeFavoriteMutation = useMutation({
     mutationFn: removeUserFavorite,
-    ...commonMutationOptions,
+    ...commonMutationOptions("Favorite badge removed!"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["userFavorites"] });
       toast.success("Favorite badge removed!");
@@ -417,14 +356,14 @@ export default function AchievementsPage() {
 
   const setCardSkinMutation = useMutation({
     mutationFn: updateUserCardSkin,
-    ...commonMutationOptions,
+    ...commonMutationOptions("Card skin updated!"),
     onSuccess: () => {
-      toast.success("Card skin updated!");
       queryClient.invalidateQueries({ queryKey: ["user"] });
       if (user && user.reload) {
         user.reload();
       }
       closeCardSkinModal();
+      toast.success("Card skin updated!");
     },
   });
 
@@ -455,7 +394,7 @@ export default function AchievementsPage() {
     const sortedNames = Array.from(categorySet).sort((a, b) =>
       a.localeCompare(b),
     );
-    if (hasUncategorized) {
+    if (hasUncategorized && groups["Uncategorized"]?.length > 0) {
       sortedNames.push("Uncategorized");
     }
     return { groupedAchievements: groups, sortedCategoryNames: sortedNames };
@@ -494,6 +433,14 @@ export default function AchievementsPage() {
         filteredForDisplay = processedAchievements.filter(
           (ach) => !ach.currentUserAchieved,
         );
+      } else if (filterMode === "available") {
+        filteredForDisplay = processedAchievements.filter((ach) => {
+          const isLeveled = ach.level_config && ach.level_config.length > 0;
+          if (!ach.currentUserAchieved) return true;
+          if (ach.currentUserAchieved && isLeveled && !ach.isMaxLevel)
+            return true;
+          return false;
+        });
       } else if (filterMode === "category" && selectedCategory) {
         filteredForDisplay = processedAchievements.filter(
           (ach) => (ach.category || "Uncategorized") === selectedCategory,
@@ -526,6 +473,16 @@ export default function AchievementsPage() {
     if (!achievementsData) return [];
     return achievementsData.filter((ach) => ach.currentUserAchieved);
   }, [achievementsData]);
+
+  const userDisplayName = useMemo(() => {
+    if (!user) return "";
+    return (
+      `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+      user.username ||
+      user.emailAddresses?.[0]?.emailAddress ||
+      ""
+    );
+  }, [user]);
 
   const openDetailModal = (achievement) => {
     setSelectedAchievementForDetail(achievement);
@@ -600,6 +557,20 @@ export default function AchievementsPage() {
     document.body.style.overflow = "";
   };
 
+  const openUserIdentityModal = () => {
+    if (!user) {
+      toast.error("Please sign in to view your QR code.");
+      return;
+    }
+    setIsUserIdentityModalOpen(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeUserIdentityModal = () => {
+    setIsUserIdentityModalOpen(false);
+    document.body.style.overflow = "";
+  };
+
   const handleAddEditSubmit = (achievementData) => {
     if (achievementToEdit) {
       editAchievementMutation.mutate(achievementData);
@@ -663,6 +634,31 @@ export default function AchievementsPage() {
     return slots;
   }, [userFavoritesData]);
 
+  useEffect(() => {
+    const bodyShouldLock =
+      isDetailModalOpen ||
+      isAddEditModalOpen ||
+      isQrCodeModalOpen ||
+      isScannerModalOpen ||
+      isFavoriteSelectionModalOpen ||
+      isCardSkinModalOpen ||
+      isUserIdentityModalOpen;
+
+    if (bodyShouldLock) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  }, [
+    isDetailModalOpen,
+    isAddEditModalOpen,
+    isQrCodeModalOpen,
+    isScannerModalOpen,
+    isFavoriteSelectionModalOpen,
+    isCardSkinModalOpen,
+    isUserIdentityModalOpen,
+  ]);
+
   return (
     <>
       <Toaster position="top-center" reverseOrder={false} />
@@ -710,31 +706,41 @@ export default function AchievementsPage() {
             </section>
           )}
 
-            <div className="mx-auto">
-              {user && (
+          <div className="mx-auto flex flex-col items-center space-y-3 mb-8">
+            {user && (
+              <>
                 <button
                   onClick={openCardSkinModal}
-                  className="flex my-5 px-4 py-2 mx-auto w-64 bg-purple-300 font-bold justify-center text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
+                  className="flex px-4 py-2 w-64 bg-purple-300 font-bold justify-center text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5 items-center gap-2"
                   title="Select Card Skin"
                   aria-label="Select Card Skin"
                 >
                   Card Skin{" "}
-                  <FontAwesomeIcon icon={faPalette} className="h-6 w-6" />
+                  <FontAwesomeIcon icon={faPalette} className="h-5 w-5" />
                 </button>
-              )}
-              {user && (
-              <button
-                onClick={openScannerModal}
-                className="flex mb-15 px-4 py-2 mx-auto w-64 bg-green-300 font-bold justify-center text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
-                title="Scan Achievement QR Code"
-                aria-label="Scan Achievement QR Code"
-                disabled={!isUserLoaded}
-              >
-                QR Code Scanner{" "}
-                <FontAwesomeIcon icon={faQrcode} className="h-6 w-6" />
-              </button>
-              )}
-            </div>
+                <button
+                  onClick={openScannerModal}
+                  className="flex px-4 py-2 w-64 bg-green-300 font-bold justify-center text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5 items-center gap-2"
+                  title="Scan Achievement QR Code"
+                  aria-label="Scan Achievement QR Code"
+                  disabled={!isUserLoaded}
+                >
+                  QR Code Scanner{" "}
+                  <FontAwesomeIcon icon={faQrcode} className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={openUserIdentityModal}
+                  className="flex px-4 py-2 w-64 bg-sky-300 font-bold justify-center text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5 items-center gap-2"
+                  title="Show My Identity QR Code"
+                  aria-label="Show My Identity QR Code"
+                  disabled={!isUserLoaded}
+                >
+                  My Identity QR{" "}
+                  <FontAwesomeIcon icon={faIdBadge} className="h-5 w-5" />
+                </button>
+              </>
+            )}
+          </div>
 
           {!isAchievementsLoading &&
             !isAchievementsError &&
@@ -774,6 +780,18 @@ export default function AchievementsPage() {
                 >
                   Uncompleted
                 </button>
+                <button
+                  onClick={() => handleFilterClick("available")}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-teal-500
+                           ${
+                             filterMode === "available"
+                               ? "bg-teal-500 text-white border-teal-600 shadow-sm"
+                               : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                           }`}
+                >
+                  <FontAwesomeIcon icon={faFilter} className="mr-1.5" />
+                  Available
+                </button>
                 {allSortedCategoryNames.map((category) => (
                   <button
                     key={category}
@@ -794,10 +812,10 @@ export default function AchievementsPage() {
           {canManage && (
             <button
               onClick={openAddModal}
-              className="flex my-10 px-4 py-2 mx-auto w-64 bg-blue-400 font-bold justify-center text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5"
+              className="flex my-10 px-4 py-2 mx-auto w-64 bg-blue-400 font-bold justify-center text-center p-3 rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-0.5 hover:translate-y-0.5 items-center gap-2"
               disabled={createAchievementMutation.isPending}
             >
-              + Add Badge
+              <FontAwesomeIcon icon={faPlus} /> Add Badge
             </button>
           )}
 
@@ -822,9 +840,11 @@ export default function AchievementsPage() {
                   ? "You haven't achieved any badges yet!"
                   : filterMode === "uncompleted"
                     ? "No uncompleted badges found (Great job!)"
-                    : filterMode === "category" && selectedCategory
-                      ? `No badges found in the '${selectedCategory}' category.`
-                      : "No achievement badges found."}
+                    : filterMode === "available"
+                      ? "No badges currently available for you to earn or progress on."
+                      : filterMode === "category" && selectedCategory
+                        ? `No badges found in the '${selectedCategory}' category for the current filter.`
+                        : "No achievement badges found."}
               </p>
             )}
 
@@ -902,7 +922,9 @@ export default function AchievementsPage() {
           createAchievementMutation.error?.message ||
           editAchievementMutation.error?.message
         }
-        availableCategories={allSortedCategoryNames}
+        availableCategories={allSortedCategoryNames.filter(
+          (cat) => cat !== "Uncategorized",
+        )}
       />
 
       <QRCodeGrantModal
@@ -944,6 +966,11 @@ export default function AchievementsPage() {
         onSelectSkin={handleSelectCardSkin}
         currentSelectedSkinUrl={user?.publicMetadata?.selectedCardSkinUrl}
         isLoading={setCardSkinMutation.isPending}
+      />
+      <UserIdentityQrModal
+        isOpen={isUserIdentityModalOpen}
+        onClose={closeUserIdentityModal}
+        userName={userDisplayName}
       />
     </>
   );
