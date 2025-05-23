@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react"; // Added useMemo
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import SocialIcons from "./Socialmedia";
 import Linktree from "./Linktree";
 import UserCardModal from "./UserCardModal";
 import BecomeMemberModal from "./BecomeMemberModal";
-import UserIdentityQrModal from "@/components/UserIdentityQrModal"; // Import the new modal
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // Import FontAwesomeIcon
-import { faQrcode } from "@fortawesome/free-solid-svg-icons"; // Import faQrcode
+import UserIdentityQrModal from "@/components/UserIdentityQrModal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; 
+import { faQrcode } from "@fortawesome/free-solid-svg-icons";
 import {
   SignedIn,
   SignedOut,
@@ -19,7 +19,7 @@ import {
   useUser,
   UserButton,
 } from "@clerk/nextjs";
-import toast from "react-hot-toast"; // Assuming you might use toast for errors
+import toast from "react-hot-toast";
 
 const UserIcon = (props) => (
   <svg
@@ -66,7 +66,7 @@ export default function Header() {
 
   const [isUserCardModalOpen, setIsUserCardModalOpen] = useState(false);
   const [isBecomeMemberModalOpen, setIsBecomeMemberModalOpen] = useState(false);
-  const [isUserIdentityModalOpen, setIsUserIdentityModalOpen] = useState(false); // State for new modal
+  const [isUserIdentityModalOpen, setIsUserIdentityModalOpen] = useState(false);
 
   const controls = useAnimation();
   const initialScrollRef = useRef(null);
@@ -95,7 +95,7 @@ export default function Header() {
 
   const openUserIdentityModal = () => {
     if (!user) {
-      toast.error("Please sign in to view your QR code."); // Using toast for feedback
+      toast.error("Please sign in to view your QR code.");
       return;
     }
     setIsUserIdentityModalOpen(true);
@@ -110,7 +110,7 @@ export default function Header() {
     return (
       `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
       user.username ||
-      user.emailAddresses?.[0]?.emailAddress || // Fallback to email
+      user.emailAddresses?.[0]?.emailAddress || 
       "User"
     );
   }, [user]);
@@ -121,7 +121,7 @@ export default function Header() {
       isBecomeMemberModalOpen ||
       mobileMenuOpen ||
       isDesktopSideMenuOpen ||
-      isUserIdentityModalOpen || // Add new modal to lock condition
+      isUserIdentityModalOpen ||
       isScrollDisabled;
 
     if (bodyShouldLock) {
@@ -129,13 +129,12 @@ export default function Header() {
     } else {
       document.body.style.overflow = "";
     }
-    // No return function needed here as the effect re-evaluates
   }, [
     isUserCardModalOpen,
     isBecomeMemberModalOpen,
     mobileMenuOpen,
     isDesktopSideMenuOpen,
-    isUserIdentityModalOpen, // Add new modal to dependency array
+    isUserIdentityModalOpen,
     isScrollDisabled,
   ]);
 
@@ -171,7 +170,7 @@ export default function Header() {
         isUserCardModalOpen ||
         isBecomeMemberModalOpen ||
         isDesktopSideMenuOpen ||
-        isUserIdentityModalOpen // Prevent scroll effect when new modal is open
+        isUserIdentityModalOpen
       )
         return;
 
@@ -205,7 +204,7 @@ export default function Header() {
     isUserCardModalOpen,
     isBecomeMemberModalOpen,
     isDesktopSideMenuOpen,
-    isUserIdentityModalOpen, // Add new modal to dependency array
+    isUserIdentityModalOpen,
   ]);
 
   const dropdownVariants = {
