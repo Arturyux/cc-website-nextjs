@@ -1,4 +1,4 @@
-// components/UserManagement.js (or wherever you have it)
+// src/components/admin/UserManagement.js
 "use client";
 
 import { useState, useMemo } from "react";
