@@ -1,0 +1,11 @@
+{
+  "imageBaseUrl": "https://cultureconnection.se/public-images/",
+  "files": [
+    { "name": "banner-event-summer.jpg", "path": "banners/banner-event-summer.jpg" },
+    { "name": "logo-transparent-large.png", "path": "logos/logo-transparent-large.png" },
+    { "name": "gallery-image-01.jpg", "path": "gallery/event1/gallery-image-01.jpg" },
+    { "name": "gallery-image-02.webp", "path": "gallery/event1/gallery-image-02.webp" },
+    { "name": "icon-info.svg", "path": "icons/icon-info.svg" },
+    { "name": "another-image.png", "path": "another-image.png" }
+  ]
+}
