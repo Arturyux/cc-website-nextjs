@@ -1,27 +1,62 @@
 [
   {
     "id": "gl-intro-001",
-    "title": "Welcome & Introduction",
-    "content": "<h1>Welcome to the Team!</h1><p>This guide is designed to help you get acquainted with our association's values, processes, and how we work together. We're excited to have you on board!</p><p>Please take some time to read through these sections. If you have any questions, don't hesitate to reach out to a board member.</p>"
+    "title": "Welcome to Culture Connection",
+    "content": "<h1>Welcome to Culture Connection!</h1>\n<p>Our mission is to build community through weekly, non-alcohol events. This guide explains how to run the association under our bylaws.</p>\n<h2>Address</h2>\n<p>Pelarplatsen 8<br>352 52 Växjö, Sweden</p>\n<h2>Guide Overview</h2>\n<ul>\n  <li>Membership & fees</li>\n  <li>Board structure</li>\n  <li>Meetings & elections</li>\n  <li>Committees & communication</li>\n  <li>Finance, events, amendments</li>\n</ul>"
   },
   {
-    "id": "gl-mission-002",
-    "title": "Our Mission & Vision",
-    "content": "<h2>Our Mission</h2><p>Our mission is to <strong>foster a vibrant community</strong> by providing resources, organizing events, and advocating for our members' interests.</p><h2>Our Vision</h2><p>We envision a future where every member feels empowered, connected, and valued.</p>"
+    "id": "gl-membership-002",
+    "title": "Membership Management",
+    "content": "<h2>Membership Management</h2>\n<p><strong>Who can join:</strong> Students, alumni, faculty & community members</p>\n<h3>Membership Periods</h3>\n<ul>\n  <li><strong>Period 1:</strong> July–December</li>\n  <li><strong>Period 2:</strong> January–June</li>\n</ul>\n<h3>How to Become a Member</h3>\n<ol>\n  <li>Pay membership fee at start of period</li>\n  <li>Secretary/Treasurer confirms payment</li>\n  <li>Issue membership card (physical or digital)</li>\n  <li>Add to official membership list</li>\n</ol>\n<p><em>Fees are non-refundable and set by the board before each period.</em></p>"
   },
   {
-    "id": "gl-comm-003",
-    "title": "Communication Channels",
-    "content": "<h3>Official Channels</h3><ul><li><strong>Slack:</strong> For daily discussions and quick updates. Join the <code>#general</code> and relevant committee channels.</li><li><strong>Email List:</strong> For official announcements and newsletters.</li><li><strong>Monthly Meetings:</strong> For in-depth discussions and decision-making.</li></ul><p><em>Please ensure you are subscribed to the main email list.</em></p>"
+    "id": "gl-board-structure-003",
+    "title": "Board Structure & Responsibilities",
+    "content": "<h2>Board Structure & Responsibilities</h2>\n<p>The board comprises an <strong>odd number</strong> of officers:</p>\n<ul>\n  <li>President</li>\n  <li>Vice President</li>\n  <li>Treasurer</li>\n  <li>Secretary</li>\n  <li>Social Media Manager</li>\n  <li>Head of Committees</li>\n  <li>Event Director</li>\n</ul>\n<h3>Core Responsibilities</h3>\n<ul>\n  <li>Recruit new members</li>\n  <li>Secure sponsors & grants</li>\n  <li>Develop partnerships aligned with our values</li>\n</ul>\n<p><strong>Term:</strong> One year. Elections bi-annual. Re-election allowed.</p>"
   },
   {
-    "id": "gl-conduct-004",
-    "title": "Code of Conduct",
-    "content": "<p>We are committed to providing a friendly, safe and welcoming environment for all, regardless of gender, sexual orientation, disability, ethnicity, or religion. This code of conduct outlines our expectations for behavior as well as the consequences for unacceptable behavior.</p><p>We invite all those who participate in our association to help us create safe and positive experiences for everyone.</p>"
+    "id": "gl-officer-duties-004",
+    "title": "Officer Specific Duties",
+    "content": "<h2>Officer Duties</h2>\n<h3>President</h3>\n<ul>\n  <li>Lead the association & preside over meetings</li>\n  <li>Official spokesperson</li>\n  <li>Delegate tasks & sign documents</li>\n</ul>\n<h3>Vice President</h3>\n<ul>\n  <li>Support the President & lead in their absence</li>\n  <li>Implement goals & manage sponsor relations</li>\n</ul>\n<h3>Treasurer</h3>\n<ul>\n  <li>Manage finances & budgets</li>\n  <li>Prepare financial reports & grant proposals</li>\n  <li>Process transactions & reimbursements (board-approved)</li>\n</ul>\n<h3>Secretary</h3>\n<ul>\n  <li>Maintain membership records & meeting minutes</li>\n  <li>Set agendas & handle correspondence</li>\n</ul>\n<h3>Social Media Manager</h3>\n<ul>\n  <li>Manage website & social channels</li>\n  <li>Promote events online</li>\n</ul>\n<h3>Head of Committees</h3>\n<ul>\n  <li>Liaise between committees & board</li>\n  <li>Monitor committee performance</li>\n</ul>\n<h3>Event Director</h3>\n<ul>\n  <li>Plan event logistics & schedule</li>\n  <li>Manage proposals & external promotions</li>\n</ul>"
   },
   {
-    "id": "«r1»-new-1747985937960",
-    "title": "Random",
-    "content": "<p><strong>Random bold</strong></p><p><strong><em>Random bold italic mix</em></strong></p><p><strong><em><u>Random all together style</u></em></strong></p><h3>Make it bigger </h3><ol><li><p>dots test</p></li><li><p>number test</p></li></ol>"
+    "id": "gl-meetings-005",
+    "title": "Meeting Management",
+    "content": "<h2>Meeting Management</h2>\n<h3>Member Meetings (Bi-annual)</h3>\n<ul>\n  <li><strong>Period 1:</strong> October</li>\n  <li><strong>Period 2:</strong> March</li>\n  <li>2 weeks’ notice via social media & print</li>\n</ul>\n<h3>Purpose</h3>\n<ul>\n  <li>Elect officers</li>\n  <li>Review financial reports</li>\n  <li>Discuss progress & issues</li>\n</ul>\n<h3>Board Meetings</h3>\n<ul>\n  <li>Monthly during academic year</li>\n  <li>Emergency meetings with 1 business day’s notice</li>\n</ul>\n<h3>Voting Rights</h3>\n<p>Only active members in good standing may vote. Majority rules.</p>"
+  },
+  {
+    "id": "gl-committees-006",
+    "title": "Committee Operations",
+    "content": "<h2>Committee Operations</h2>\n<h3>Standing Committees</h3>\n<h4>Election Committee</h4>\n<ul>\n  <li>3 members (non-board)</li>\n  <li>Oversees bi-annual elections</li>\n</ul>\n<h3>Special Purpose Committees</h3>\n<ul>\n  <li>Design & Media</li>\n  <li>Sponsors & Collaborations</li>\n  <li>Activity Leaders</li>\n</ul>\n<h3>Roles & Reporting</h3>\n<ul>\n  <li>Propose initiatives</li>\n  <li>No board voting rights</li>\n  <li>Report to Head of Committees</li>\n</ul>"
+  },
+  {
+    "id": "gl-finances-007",
+    "title": "Financial Management",
+    "content": "<h2>Financial Management</h2>\n<h3>Fiscal Year</h3>\n<p>March to March</p>\n<h3>Budget Process</h3>\n<ol>\n  <li>Treasurer drafts budget</li>\n  <li>Board reviews & approves</li>\n  <li>Present at member meetings</li>\n</ol>\n<h3>Treasurer Duties</h3>\n<ul>\n  <li>Maintain transparent records</li>\n  <li>Handle transactions & reimbursements</li>\n  <li>Submit grant proposals</li>\n  <li>Present bi-annual reports</li>\n</ul>\n<h3>Membership Fees</h3>\n<ul>\n  <li>Set by board before each period</li>\n  <li>Non-refundable</li>\n  <li>Payment confirms membership</li>\n</ul>"
+  },
+  {
+    "id": "gl-events-008",
+    "title": "Event Management",
+    "content": "<h2>Event Management</h2>\n<h3>Planning Process</h3>\n<ol>\n  <li>Submit proposal to Event Director</li>\n  <li>Check schedule for conflicts</li>\n  <li>Review alignment with mission</li>\n  <li>Board approval if required</li>\n  <li>Promote & execute</li>\n</ol>\n<h3>Standards & Conduct</h3>\n<ul>\n  <li>Non-alcohol events only</li>\n  <li>Inclusive & respectful environment</li>\n  <li>Board may remove disruptive attendees</li>\n</ul>\n<h3>Scheduling</h3>\n<p>Weekly events with diverse cultural themes.</p>"
+  },
+  {
+    "id": "gl-communication-009",
+    "title": "Communication & Documentation",
+    "content": "<h2>Communication & Documentation</h2>\n<h3>Secretary</h3>\n<ul>\n  <li>Maintain membership list</li>\n  <li>Record meeting minutes</li>\n  <li>Set agendas & handle correspondence</li>\n</ul>\n<h3>Social Media Manager</h3>\n<ul>\n  <li>Maintain online presence</li>\n  <li>Promote events on social platforms</li>\n  <li>Update website</li>\n</ul>\n<h3>Notifications</h3>\n<ul>\n  <li>Member meetings: 2 weeks’ notice</li>\n  <li>Emergency meetings: 1 business day’s notice</li>\n  <li>Use social media & printed flyers</li>\n</ul>"
+  },
+  {
+    "id": "gl-elections-010",
+    "title": "Election Process",
+    "content": "<h2>Election Process</h2>\n<h3>Timeline</h3>\n<ul>\n  <li>Bi-annual elections during member meetings</li>\n  <li>One-year terms, re-election allowed</li>\n</ul>\n<h3>Election Committee</h3>\n<ol>\n  <li>3 non-board members organize elections</li>\n  <li>Announce 2 weeks in advance</li>\n  <li>Accept nominations & conduct vote</li>\n  <li>Majority vote decides winners</li>\n</ol>\n<h3>Interim Appointments</h3>\n<ul>\n  <li>Board may appoint interim officers</li>\n  <li>Serve until next scheduled election</li>\n</ul>\n<h3>Voting Eligibility</h3>\n<p>Active members in good standing only.</p>"
+  },
+  {
+    "id": "gl-amendments-011",
+    "title": "Amendments & Changes",
+    "content": "<h2>Amendments & Changes</h2>\n<h3>Proposal</h3>\n<ul>\n  <li>Submit ≥1 month before member meeting</li>\n  <li>Include rationale & impact analysis</li>\n</ul>\n<h3>Adoption</h3>\n<ol>\n  <li>Discuss at member meeting</li>\n  <li>Majority vote by attendees</li>\n  <li>Implement approved amendments</li>\n</ol>\n<h3>Dissolution</h3>\n<ul>\n  <li>Founding board vote required</li>\n  <li>Assets transfer to similar non-profit</li>\n  <li>Board selects recipient aligned with mission</li>\n</ul>"
+  },
+  {
+    "id": "gl-best-practices-012",
+    "title": "Best Practices & Tips",
+    "content": "<h2>Best Practices & Tips</h2>\n<h3>Member Engagement</h3>\n<ul>\n  <li>Communicate regularly across channels</li>\n  <li>Encourage active participation</li>\n  <li>Recognize member contributions</li>\n</ul>\n<h3>Event Success</h3>\n<ul>\n  <li>Offer diverse cultural activities</li>\n  <li>Ensure cultural sensitivity</li>\n  <li>Collect & act on feedback</li>\n</ul>\n<h3>Financial Health</h3>\n<ul>\n  <li>Maintain transparent records</li>\n  <li>Diversify funding: fees, grants, sponsors</li>\n  <li>Review budgets regularly</li>\n</ul>\n<h3>Community Building</h3>\n<ul>\n  <li>Bridge international & local communities</li>\n  <li>Create meaningful connections</li>\n  <li>Foster a safe, inclusive environment</li>\n</ul>"
   }
 ]
