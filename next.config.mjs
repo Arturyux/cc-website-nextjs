@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ["ssh2-sftp-client", "ssh2"],
   experimental: {
-    serverComponentsExternalPackages: ["ssh2-sftp-client", "ssh2"],
     serverActions: {
-      bodySizeLimit: '50mb',
+      bodySizeLimit: "50mb",
     },
   },
 };
