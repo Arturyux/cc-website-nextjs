@@ -13,6 +13,7 @@ import DiscordSchedulerManagement from "@/components/admin/discordbot/DiscordSch
 import CombinedFileManager from "@/components/admin/DriveManagment/CombinedFileManager";
 import GuidelinesManagement from "@/components/admin/GuidelinesManagement";
 import BylawsManagement from "@/components/admin/BylawsManagement";
+import AgendaManagement from "@/components/admin/AgendaManagement";
 import Header from "@/components/Header";
 
 const adminSections = [
@@ -36,6 +37,11 @@ const adminSections = [
     component: BylawsManagement,
   },
   {
+    key: "agenda",
+    label: "Agenda",
+    component: AgendaManagement,
+  },
+  {
     key: "discord",
     label: "Discord Scheduler",
     component: DiscordSchedulerManagement,
@@ -43,7 +49,13 @@ const adminSections = [
   { key: "driveFiles", label: "Drive Files", component: CombinedFileManager },
 ];
 
-const committeeAllowedSectionKeys = ["linktree", "driveFiles", "guidelines", "bylaws"];
+const committeeAllowedSectionKeys = [
+  "linktree",
+  "driveFiles",
+  "guidelines",
+  "bylaws",
+  "agenda",
+];
 
 export default function AdminPage() {
   const { isLoaded, isSignedIn, user } = useUser();
