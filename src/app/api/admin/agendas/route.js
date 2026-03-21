@@ -92,11 +92,43 @@ const formatAgendaTitle = (dateValue) => `Agenda ${formatAgendaDate(dateValue)}`
 
 const ensureTopicList = (topics) => {
   const normalizedTopics = Array.isArray(topics)
-    ? topics.map((topic) => (typeof topic === "string" ? topic : ""))
+    ? topics
+        .slice(0, 20)
+        .map((topic, index) => {
+          if (typeof topic === "string") {
+            return {
+              id: `agenda-topic-${index}`,
+              label: `Topic ${index + 1}`,
+              content: topic,
+            };
+          }
+
+          const safeTopic =
+            topic && typeof topic === "object" && !Array.isArray(topic)
+              ? topic
+              : {};
+
+          return {
+            id:
+              typeof safeTopic.id === "string" && safeTopic.id.trim()
+                ? safeTopic.id
+                : `agenda-topic-${index}`,
+            label:
+              typeof safeTopic.label === "string" && safeTopic.label.trim()
+                ? safeTopic.label
+                : `Topic ${index + 1}`,
+            content:
+              typeof safeTopic.content === "string" ? safeTopic.content : "",
+          };
+        })
     : [];
 
   while (normalizedTopics.length < 3) {
-    normalizedTopics.push("");
+    normalizedTopics.push({
+      id: `agenda-topic-${normalizedTopics.length}`,
+      label: `Topic ${normalizedTopics.length + 1}`,
+      content: "",
+    });
   }
 
   return normalizedTopics;
@@ -106,6 +138,22 @@ const normalizeAgenda = (agenda, index = 0) => {
   const safeAgenda =
     agenda && typeof agenda === "object" && !Array.isArray(agenda) ? agenda : {};
   const date = typeof safeAgenda.date === "string" ? safeAgenda.date : "";
+  const legacyPresent =
+    typeof safeAgenda.present === "string" ? safeAgenda.present : "";
+  const presentMembers = Array.isArray(safeAgenda.presentMembers)
+    ? safeAgenda.presentMembers.filter((member) => typeof member === "string")
+    : legacyPresent
+      ? legacyPresent
+          .split(/\n|,/)
+          .map((member) => member.trim())
+          .filter(Boolean)
+      : [];
+  const minuteChecker =
+    typeof safeAgenda.minuteChecker === "string"
+      ? safeAgenda.minuteChecker
+      : typeof safeAgenda.minuteValidator === "string"
+        ? safeAgenda.minuteValidator
+        : "";
 
   return {
     id:
@@ -114,19 +162,12 @@ const normalizeAgenda = (agenda, index = 0) => {
         : `agenda-${index}`,
     date,
     title: formatAgendaTitle(date),
-    present: typeof safeAgenda.present === "string" ? safeAgenda.present : "",
+    presentMembers,
     chairman:
       typeof safeAgenda.chairman === "string" ? safeAgenda.chairman : "",
     secretary:
       typeof safeAgenda.secretary === "string" ? safeAgenda.secretary : "",
-    minuteChecker:
-      typeof safeAgenda.minuteChecker === "string"
-        ? safeAgenda.minuteChecker
-        : "",
-    minuteValidator:
-      typeof safeAgenda.minuteValidator === "string"
-        ? safeAgenda.minuteValidator
-        : "",
+    minuteChecker,
     meetingInitiation:
       typeof safeAgenda.meetingInitiation === "string"
         ? safeAgenda.meetingInitiation
@@ -135,8 +176,10 @@ const normalizeAgenda = (agenda, index = 0) => {
       typeof safeAgenda.boardMembersMeetUp === "string"
         ? safeAgenda.boardMembersMeetUp
         : "",
-    meetingStart:
-      typeof safeAgenda.meetingStart === "string" ? safeAgenda.meetingStart : "",
+    meetingStartTime:
+      typeof safeAgenda.meetingStartTime === "string"
+        ? safeAgenda.meetingStartTime
+        : "",
     topics: ensureTopicList(safeAgenda.topics),
     meetingConcludes:
       typeof safeAgenda.meetingConcludes === "string"
@@ -183,6 +226,26 @@ const validateAgendas = (data) => {
 
     if (!Array.isArray(agenda.topics)) {
       throw new Error("Invalid item structure: topics must be an array.");
+    }
+
+    for (const topic of agenda.topics) {
+      if (
+        !topic ||
+        typeof topic !== "object" ||
+        typeof topic.id !== "string" ||
+        typeof topic.label !== "string" ||
+        typeof topic.content !== "string"
+      ) {
+        throw new Error(
+          "Invalid item structure: each topic must have id, label, and content.",
+        );
+      }
+    }
+
+    if (!Array.isArray(agenda.presentMembers)) {
+      throw new Error(
+        "Invalid item structure: presentMembers must be an array.",
+      );
     }
 
     if (agenda.date) {

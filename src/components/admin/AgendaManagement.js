@@ -1,6 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/nextjs";
 import DatePicker from "react-datepicker";
@@ -26,6 +34,29 @@ const fetchAgendas = async () => {
   return response.json();
 };
 
+const fetchAdminUsers = async () => {
+  const response = await fetch("/api/admin/users");
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.error || `Failed to fetch users: ${response.statusText}`,
+    );
+  }
+  return response.json();
+};
+
+const fetchAttendanceTemplates = async () => {
+  const response = await fetch("/api/admin/agenda-attendance-templates");
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.error ||
+        `Failed to fetch attendance templates: ${response.statusText}`,
+    );
+  }
+  return response.json();
+};
+
 const updateAgendas = async (updatedData) => {
   const response = await fetch("/api/admin/agendas", {
     method: "PUT",
@@ -43,8 +74,32 @@ const updateAgendas = async (updatedData) => {
   return response.json();
 };
 
+const updateAttendanceTemplates = async (updatedTemplates) => {
+  const response = await fetch("/api/admin/agenda-attendance-templates", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updatedTemplates),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.error ||
+        `Failed to update attendance templates: ${response.statusText}`,
+    );
+  }
+
+  return response.json();
+};
+
 const createAgendaId = () =>
   `agenda-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const createTopicId = () =>
+  `agenda-topic-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const createAttendanceTemplateId = () =>
+  `attendance-template-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const formatAgendaDate = (dateValue) => {
   if (!dateValue) {
@@ -72,24 +127,100 @@ const toInputDateValue = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+const normalizeTopic = (topic, index = 0) => {
+  if (typeof topic === "string") {
+    return {
+      id: createTopicId(),
+      label: `Topic ${index + 1}`,
+      content: topic,
+    };
+  }
+
+  const safeTopic =
+    topic && typeof topic === "object" && !Array.isArray(topic) ? topic : {};
+
+  return {
+    id:
+      typeof safeTopic.id === "string" && safeTopic.id.trim()
+        ? safeTopic.id
+        : createTopicId(),
+    label:
+      typeof safeTopic.label === "string" && safeTopic.label.trim()
+        ? safeTopic.label
+        : `Topic ${index + 1}`,
+    content:
+      typeof safeTopic.content === "string" ? safeTopic.content : "",
+  };
+};
+
+const createEmptyTopic = (index) => ({
+  id: createTopicId(),
+  label: `Topic ${index + 1}`,
+  content: "",
+});
+
 const ensureTopicList = (topics) => {
   const normalizedTopics = Array.isArray(topics)
     ? topics
-        .map((topic) => (typeof topic === "string" ? topic : ""))
-        .filter((_, index) => index < 20)
+        .slice(0, 20)
+        .map((topic, index) => normalizeTopic(topic, index))
     : [];
 
   while (normalizedTopics.length < MIN_TOPIC_COUNT) {
-    normalizedTopics.push("");
+    normalizedTopics.push(createEmptyTopic(normalizedTopics.length));
   }
 
   return normalizedTopics;
+};
+
+const normalizeAttendanceTemplate = (template, index = 0) => {
+  const safeTemplate =
+    template && typeof template === "object" && !Array.isArray(template)
+      ? template
+      : {};
+
+  return {
+    id:
+      typeof safeTemplate.id === "string" && safeTemplate.id.trim()
+        ? safeTemplate.id
+        : `${createAttendanceTemplateId()}-${index}`,
+    name: typeof safeTemplate.name === "string" ? safeTemplate.name : "",
+    members: Array.isArray(safeTemplate.members)
+      ? safeTemplate.members.filter((member) => typeof member === "string")
+      : [],
+  };
+};
+
+const normalizeAttendanceTemplates = (templates) => {
+  if (!Array.isArray(templates)) {
+    return [];
+  }
+
+  return templates
+    .map((template, index) => normalizeAttendanceTemplate(template, index))
+    .filter((template) => template.name.trim());
 };
 
 const normalizeAgenda = (agenda, index = 0) => {
   const safeAgenda =
     agenda && typeof agenda === "object" && !Array.isArray(agenda) ? agenda : {};
   const date = typeof safeAgenda.date === "string" ? safeAgenda.date : "";
+  const legacyPresent =
+    typeof safeAgenda.present === "string" ? safeAgenda.present : "";
+  const presentMembers = Array.isArray(safeAgenda.presentMembers)
+    ? safeAgenda.presentMembers.filter((member) => typeof member === "string")
+    : legacyPresent
+      ? legacyPresent
+          .split(/\n|,/)
+          .map((member) => member.trim())
+          .filter(Boolean)
+      : [];
+  const minuteChecker =
+    typeof safeAgenda.minuteChecker === "string"
+      ? safeAgenda.minuteChecker
+      : typeof safeAgenda.minuteValidator === "string"
+        ? safeAgenda.minuteValidator
+        : "";
 
   return {
     id:
@@ -98,19 +229,12 @@ const normalizeAgenda = (agenda, index = 0) => {
         : `agenda-${index}`,
     date,
     title: formatAgendaTitle(date),
-    present: typeof safeAgenda.present === "string" ? safeAgenda.present : "",
+    presentMembers,
     chairman:
       typeof safeAgenda.chairman === "string" ? safeAgenda.chairman : "",
     secretary:
       typeof safeAgenda.secretary === "string" ? safeAgenda.secretary : "",
-    minuteChecker:
-      typeof safeAgenda.minuteChecker === "string"
-        ? safeAgenda.minuteChecker
-        : "",
-    minuteValidator:
-      typeof safeAgenda.minuteValidator === "string"
-        ? safeAgenda.minuteValidator
-        : "",
+    minuteChecker,
     meetingInitiation:
       typeof safeAgenda.meetingInitiation === "string"
         ? safeAgenda.meetingInitiation
@@ -119,8 +243,10 @@ const normalizeAgenda = (agenda, index = 0) => {
       typeof safeAgenda.boardMembersMeetUp === "string"
         ? safeAgenda.boardMembersMeetUp
         : "",
-    meetingStart:
-      typeof safeAgenda.meetingStart === "string" ? safeAgenda.meetingStart : "",
+    meetingStartTime:
+      typeof safeAgenda.meetingStartTime === "string"
+        ? safeAgenda.meetingStartTime
+        : "",
     topics: ensureTopicList(safeAgenda.topics),
     meetingConcludes:
       typeof safeAgenda.meetingConcludes === "string"
@@ -176,10 +302,7 @@ const AgendaPage = ({ title, children, pageLabel }) => (
   <section className="rounded-[28px] border border-gray-200 bg-white px-6 py-8 shadow-sm sm:px-10">
     <div className="mb-8 flex items-start justify-between gap-4">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-purple-500">
-          Culture Connection
-        </p>
-        <h3 className="mt-2 text-2xl font-semibold text-gray-900 sm:text-3xl">
+        <h3 className="text-2xl font-semibold text-gray-900 sm:text-3xl">
           {title}
         </h3>
       </div>
@@ -191,15 +314,19 @@ const AgendaPage = ({ title, children, pageLabel }) => (
   </section>
 );
 
-const PreviewListItem = ({ label, value }) => (
+const PreviewListItem = ({ label, value, children }) => (
   <li className="rounded-2xl border border-gray-200 px-4 py-4">
     <div className="flex items-start gap-3">
       <span className="mt-1 text-lg font-bold text-purple-600">•</span>
       <div className="min-w-0 flex-1">
         <div className="text-base font-semibold text-gray-900">{label}</div>
-        <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700">
-          {value || " "}
-        </div>
+        {children ? (
+          <div className="mt-2">{children}</div>
+        ) : (
+          <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700">
+            {value || " "}
+          </div>
+        )}
       </div>
     </div>
   </li>
@@ -220,8 +347,16 @@ const AgendaPreview = ({ agenda }) => {
             <div className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
               Present
             </div>
-            <div className="mt-3 min-h-[180px] whitespace-pre-wrap rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-4 text-sm leading-6 text-gray-700">
-              {resolvedAgenda.present || " "}
+            <div className="mt-3 min-h-[180px] rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-4 text-sm leading-6 text-gray-700">
+              {resolvedAgenda.presentMembers.length > 0 ? (
+                <ul className="space-y-2">
+                  {resolvedAgenda.presentMembers.map((member) => (
+                    <li key={member}>{member}</li>
+                  ))}
+                </ul>
+              ) : (
+                <div>&nbsp;</div>
+              )}
             </div>
           </div>
 
@@ -258,7 +393,7 @@ const AgendaPreview = ({ agenda }) => {
           <SignatureLine label="Secretary" value={resolvedAgenda.secretary} />
           <SignatureLine
             label="Minute validator"
-            value={resolvedAgenda.minuteValidator}
+            value={resolvedAgenda.minuteChecker}
           />
         </div>
       </AgendaPage>
@@ -273,15 +408,16 @@ const AgendaPreview = ({ agenda }) => {
             label="Board members meet up"
             value={resolvedAgenda.boardMembersMeetUp}
           />
-          <PreviewListItem
-            label="Meeting start"
-            value={resolvedAgenda.meetingStart}
-          />
+          <PreviewListItem label="Meeting start">
+            <div className="text-sm font-semibold leading-6 text-gray-900">
+              {resolvedAgenda.meetingStartTime || " "}
+            </div>
+          </PreviewListItem>
           {resolvedAgenda.topics.map((topic, index) => (
             <PreviewListItem
-              key={`topic-${index}`}
-              label={`Topic ${index + 1}`}
-              value={topic}
+              key={topic.id || `topic-${index}`}
+              label={topic.label || `Topic ${index + 1}`}
+              value={topic.content}
             />
           ))}
           <PreviewListItem
@@ -303,7 +439,7 @@ const AgendaPreview = ({ agenda }) => {
           <SignatureLine label="Secretary" value={resolvedAgenda.secretary} />
           <SignatureLine
             label="Minute validator"
-            value={resolvedAgenda.minuteValidator}
+            value={resolvedAgenda.minuteChecker}
           />
         </div>
       </AgendaPage>
@@ -311,101 +447,266 @@ const AgendaPreview = ({ agenda }) => {
   );
 };
 
+const SortableTopicItem = ({
+  topic,
+  index,
+  onTopicLabelChange,
+  onTopicChange,
+  onRemoveTopic,
+  canRemove,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: topic.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`rounded-xl border border-gray-200 bg-white p-3 ${
+        isDragging ? "shadow-xl ring-2 ring-purple-200" : ""
+      }`}
+    >
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="cursor-grab rounded-md border border-gray-300 px-2 py-1 text-xs font-semibold text-gray-500 active:cursor-grabbing"
+            aria-label={`Drag ${topic.label || `Topic ${index + 1}`}`}
+            {...attributes}
+            {...listeners}
+          >
+            Drag
+          </button>
+          <span className="text-sm font-medium text-gray-700">
+            Topic {index + 1}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onRemoveTopic(index)}
+          disabled={!canRemove}
+          className="text-xs font-semibold text-red-600 disabled:cursor-not-allowed disabled:text-gray-400"
+        >
+          Remove
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-gray-700">
+            Topic name
+          </span>
+          <input
+            type="text"
+            value={topic.label}
+            onChange={(event) =>
+              onTopicLabelChange(index, event.target.value)
+            }
+            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-gray-700">
+            Topic notes
+          </span>
+          <textarea
+            value={topic.content}
+            onChange={(event) => onTopicChange(index, event.target.value)}
+            rows={3}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+          />
+        </label>
+      </div>
+    </div>
+  );
+};
+
 const AgendaEditor = ({
   agenda,
+  roleOptions,
+  attendanceTemplates,
+  presentDropdownOpen,
+  onTogglePresentDropdown,
+  onAddPresentMember,
+  onRemovePresentMember,
+  attendanceTemplateDraftName,
+  onAttendanceTemplateDraftNameChange,
+  onSaveAttendanceTemplate,
+  onApplyAttendanceTemplate,
   onFieldChange,
+  onTopicLabelChange,
   onTopicChange,
+  onTopicDragEnd,
   onAddTopic,
   onRemoveTopic,
+  sensors,
 }) => (
   <div className="space-y-6">
     <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-900">Meeting details</h3>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
-            Agenda date
-          </span>
-          <input
-            type="date"
-            value={agenda.date}
-            onChange={(event) => onFieldChange("date", event.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-          />
-        </label>
-
-        <div className="rounded-xl border border-purple-200 bg-purple-50 px-4 py-3">
-          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-700">
-            Agenda title
-          </div>
-          <div className="mt-2 text-sm font-semibold text-purple-900">
-            {agenda.title}
-          </div>
-        </div>
-
-        <label className="block md:col-span-2">
+        <div className="block md:col-span-2">
           <span className="mb-1 block text-sm font-medium text-gray-700">
             Present
           </span>
-          <textarea
-            value={agenda.present}
-            onChange={(event) => onFieldChange("present", event.target.value)}
-            rows={6}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-            placeholder="List attendees, one per line or separated by commas."
-          />
-        </label>
+          <div className="rounded-xl border border-gray-300 bg-gray-50 p-3">
+            <div className="flex flex-wrap items-start gap-2">
+              {agenda.presentMembers.map((member) => (
+                <button
+                  key={member}
+                  type="button"
+                  onClick={() => onRemovePresentMember(member)}
+                  className="rounded-full bg-white px-3 py-1 text-sm text-gray-700 shadow-sm ring-1 ring-gray-200"
+                >
+                  {member} <span className="text-red-500">×</span>
+                </button>
+              ))}
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={onTogglePresentDropdown}
+                  className="rounded-full bg-purple-600 px-3 py-1 text-sm font-semibold text-white hover:bg-purple-700"
+                >
+                  +
+                </button>
+
+                {presentDropdownOpen && (
+                  <div className="absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl">
+                    <div className="max-h-64 overflow-y-auto">
+                      {adminOptions.length === 0 ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          No admins available.
+                        </div>
+                      ) : (
+                        adminOptions.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => onAddPresentMember(option)}
+                            className="block w-full rounded-xl px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            {option}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-3">
+              <span className="mb-2 block text-xs font-medium uppercase tracking-[0.2em] text-gray-500">
+                Additional notes
+              </span>
+              <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                <input
+                  type="text"
+                  value={attendanceTemplateDraftName}
+                  onChange={(event) =>
+                    onAttendanceTemplateDraftNameChange(event.target.value)
+                  }
+                  className="flex-1 rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+                  placeholder="Write a name"
+                />
+                <button
+                  type="button"
+                  onClick={onSaveAttendanceTemplate}
+                  className="rounded-md bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+                >
+                  Save Pattern
+                </button>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {attendanceTemplates.length === 0 ? (
+                  <span className="text-sm text-gray-500">
+                    No saved attendance patterns yet.
+                  </span>
+                ) : (
+                  attendanceTemplates.map((template) => (
+                    <button
+                      key={template.id}
+                      type="button"
+                      onClick={() => onApplyAttendanceTemplate(template.id)}
+                      className="rounded-full bg-purple-50 px-3 py-1 text-sm font-medium text-purple-700 ring-1 ring-purple-200 hover:bg-purple-100"
+                    >
+                      {template.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
 
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-gray-700">
             Chairman
           </span>
-          <input
-            type="text"
+          <select
             value={agenda.chairman}
             onChange={(event) => onFieldChange("chairman", event.target.value)}
             className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-          />
+          >
+            <option value="">Select chairman</option>
+            {roleOptions.map((option) => (
+              <option key={`chairman-${option}`} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-gray-700">
             Secretary
           </span>
-          <input
-            type="text"
+          <select
             value={agenda.secretary}
             onChange={(event) => onFieldChange("secretary", event.target.value)}
             className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-          />
+          >
+            <option value="">Select secretary</option>
+            {roleOptions.map((option) => (
+              <option key={`secretary-${option}`} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-gray-700">
             Minute checker
           </span>
-          <input
-            type="text"
+          <select
             value={agenda.minuteChecker}
             onChange={(event) =>
               onFieldChange("minuteChecker", event.target.value)
             }
             className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-          />
-        </label>
-
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
-            Minute validator
-          </span>
-          <input
-            type="text"
-            value={agenda.minuteValidator}
-            onChange={(event) =>
-              onFieldChange("minuteValidator", event.target.value)
-            }
-            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-          />
+          >
+            <option value="">Select minute checker</option>
+            {roleOptions.map((option) => (
+              <option key={`minute-${option}`} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
     </section>
@@ -441,17 +742,22 @@ const AgendaEditor = ({
           />
         </label>
 
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
-            Meeting start
-          </span>
-          <textarea
-            value={agenda.meetingStart}
-            onChange={(event) => onFieldChange("meetingStart", event.target.value)}
-            rows={3}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-          />
-        </label>
+        <div className="grid gap-4 md:grid-cols-[180px]">
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-gray-700">
+              Start time
+            </span>
+            <input
+              type="time"
+              value={agenda.meetingStartTime}
+              onChange={(event) =>
+                onFieldChange("meetingStartTime", event.target.value)
+              }
+              className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+              step="60"
+            />
+          </label>
+        </div>
 
         <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
           <div className="flex items-center justify-between gap-3">
@@ -467,34 +773,30 @@ const AgendaEditor = ({
             </button>
           </div>
 
-          <div className="mt-4 space-y-3">
-            {agenda.topics.map((topic, index) => (
-              <div
-                key={`agenda-topic-${index}`}
-                className="rounded-xl border border-gray-200 bg-white p-3"
-              >
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <span className="text-sm font-medium text-gray-700">
-                    Topic {index + 1}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onRemoveTopic(index)}
-                    disabled={agenda.topics.length <= MIN_TOPIC_COUNT}
-                    className="text-xs font-semibold text-red-600 disabled:cursor-not-allowed disabled:text-gray-400"
-                  >
-                    Remove
-                  </button>
-                </div>
-                <textarea
-                  value={topic}
-                  onChange={(event) => onTopicChange(index, event.target.value)}
-                  rows={3}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-                />
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={onTopicDragEnd}
+          >
+            <SortableContext
+              items={agenda.topics.map((topic) => topic.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="mt-4 space-y-3">
+                {agenda.topics.map((topic, index) => (
+                  <SortableTopicItem
+                    key={topic.id}
+                    topic={topic}
+                    index={index}
+                    onTopicLabelChange={onTopicLabelChange}
+                    onTopicChange={onTopicChange}
+                    onRemoveTopic={onRemoveTopic}
+                    canRemove={agenda.topics.length > MIN_TOPIC_COUNT}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         </div>
 
         <label className="block">
@@ -555,6 +857,19 @@ export default function AgendaManagement() {
   const [generalError, setGeneralError] = useState(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [newAgendaDate, setNewAgendaDate] = useState(new Date());
+  const [isPresentDropdownOpen, setIsPresentDropdownOpen] = useState(false);
+  const [attendanceTemplateDraftName, setAttendanceTemplateDraftName] =
+    useState("");
+  const createAgendaButtonRef = useRef(null);
+  const datePopoverRef = useRef(null);
+  const presentDropdownRef = useRef(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+  );
 
   const {
     data: rawAgendas = [],
@@ -567,6 +882,33 @@ export default function AgendaManagement() {
   });
 
   const agendas = normalizeAgendas(rawAgendas);
+  const { data: users = [] } = useQuery({
+    queryKey: ["admin", "users", "agenda"],
+    queryFn: fetchAdminUsers,
+    enabled: isAdmin || isCommitteeOnly,
+  });
+  const { data: rawAttendanceTemplates = [] } = useQuery({
+    queryKey: ["agenda", "attendanceTemplates"],
+    queryFn: fetchAttendanceTemplates,
+    enabled: isAdmin,
+  });
+  const attendanceTemplates = normalizeAttendanceTemplates(
+    rawAttendanceTemplates,
+  );
+
+  const adminOptions = useMemo(() => {
+    if (!Array.isArray(users)) {
+      return [];
+    }
+
+    return users
+      .filter((user) => Boolean(user?.isAdmin))
+      .map((user) =>
+        [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim(),
+      )
+      .filter(Boolean)
+      .sort((left, right) => left.localeCompare(right));
+  }, [users]);
   const resolvedSelectedAgendaId =
     selectedAgendaId && agendas.some((agenda) => agenda.id === selectedAgendaId)
       ? selectedAgendaId
@@ -597,6 +939,45 @@ export default function AgendaManagement() {
       );
     },
   });
+  const attendanceTemplateMutation = useMutation({
+    mutationFn: updateAttendanceTemplates,
+    onSuccess: (updatedTemplates) => {
+      queryClient.setQueryData(
+        ["agenda", "attendanceTemplates"],
+        normalizeAttendanceTemplates(updatedTemplates),
+      );
+      setAttendanceTemplateDraftName("");
+      setGeneralError(null);
+    },
+    onError: (mutationError) => {
+      setGeneralError(
+        mutationError.message ||
+          "An error occurred while saving attendance templates.",
+      );
+    },
+  });
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isDatePickerOpen &&
+        !datePopoverRef.current?.contains(event.target) &&
+        !createAgendaButtonRef.current?.contains(event.target)
+      ) {
+        setIsDatePickerOpen(false);
+      }
+
+      if (
+        isPresentDropdownOpen &&
+        !presentDropdownRef.current?.contains(event.target)
+      ) {
+        setIsPresentDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isDatePickerOpen, isPresentDropdownOpen]);
 
   const handleSelectAgenda = (agendaId) => {
     if (isEditing && draftAgenda?.id !== agendaId) {
@@ -623,12 +1004,16 @@ export default function AgendaManagement() {
 
     setDraftAgenda(cloneAgenda(selectedAgenda));
     setGeneralError(null);
+    setIsPresentDropdownOpen(false);
+    setAttendanceTemplateDraftName("");
     setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
     setDraftAgenda(null);
     setGeneralError(null);
+    setIsPresentDropdownOpen(false);
+    setAttendanceTemplateDraftName("");
     setIsEditing(false);
   };
 
@@ -643,11 +1028,22 @@ export default function AgendaManagement() {
         [field]: value,
       };
 
-      if (field === "date") {
-        nextAgenda.title = formatAgendaTitle(value);
+      return nextAgenda;
+    });
+  };
+
+  const handleTopicLabelChange = (topicIndex, value) => {
+    setDraftAgenda((currentAgenda) => {
+      if (!currentAgenda) {
+        return currentAgenda;
       }
 
-      return nextAgenda;
+      return {
+        ...currentAgenda,
+        topics: currentAgenda.topics.map((topic, index) =>
+          index === topicIndex ? { ...topic, label: value } : topic,
+        ),
+      };
     });
   };
 
@@ -657,12 +1053,11 @@ export default function AgendaManagement() {
         return currentAgenda;
       }
 
-      const nextTopics = [...currentAgenda.topics];
-      nextTopics[topicIndex] = value;
-
       return {
         ...currentAgenda,
-        topics: nextTopics,
+        topics: currentAgenda.topics.map((topic, index) =>
+          index === topicIndex ? { ...topic, content: value } : topic,
+        ),
       };
     });
   };
@@ -672,7 +1067,119 @@ export default function AgendaManagement() {
       currentAgenda
         ? {
             ...currentAgenda,
-            topics: [...currentAgenda.topics, ""],
+            topics: [
+              ...currentAgenda.topics,
+              createEmptyTopic(currentAgenda.topics.length),
+            ],
+          }
+        : currentAgenda,
+    );
+  };
+
+  const handleTopicDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (!active?.id || !over?.id || active.id === over.id) {
+      return;
+    }
+
+    setDraftAgenda((currentAgenda) => {
+      if (!currentAgenda) {
+        return currentAgenda;
+      }
+
+      const oldIndex = currentAgenda.topics.findIndex(
+        (topic) => topic.id === active.id,
+      );
+      const newIndex = currentAgenda.topics.findIndex(
+        (topic) => topic.id === over.id,
+      );
+
+      if (oldIndex === -1 || newIndex === -1) {
+        return currentAgenda;
+      }
+
+      return {
+        ...currentAgenda,
+        topics: arrayMove(currentAgenda.topics, oldIndex, newIndex),
+      };
+    });
+  };
+
+  const handleAddPresentMember = (memberName) => {
+    setDraftAgenda((currentAgenda) => {
+      if (!currentAgenda || currentAgenda.presentMembers.includes(memberName)) {
+        return currentAgenda;
+      }
+
+      return {
+        ...currentAgenda,
+        presentMembers: [...currentAgenda.presentMembers, memberName],
+      };
+    });
+
+    setIsPresentDropdownOpen(false);
+  };
+
+  const handleRemovePresentMember = (memberName) => {
+    setDraftAgenda((currentAgenda) =>
+      currentAgenda
+        ? {
+            ...currentAgenda,
+            presentMembers: currentAgenda.presentMembers.filter(
+              (member) => member !== memberName,
+            ),
+          }
+        : currentAgenda,
+    );
+  };
+
+  const handleSaveAttendanceTemplate = () => {
+    if (!draftAgenda || draftAgenda.presentMembers.length === 0) {
+      setGeneralError("Select present people before saving a pattern.");
+      return;
+    }
+
+    const normalizedName = attendanceTemplateDraftName.trim();
+    if (!normalizedName) {
+      setGeneralError("Write a name before saving a pattern.");
+      return;
+    }
+
+    if (
+      attendanceTemplates.some(
+        (template) =>
+          template.name.toLowerCase() === normalizedName.toLowerCase(),
+      )
+    ) {
+      setGeneralError(`A saved pattern named "${normalizedName}" already exists.`);
+      return;
+    }
+
+    attendanceTemplateMutation.mutate([
+      ...attendanceTemplates,
+      {
+        id: createAttendanceTemplateId(),
+        name: normalizedName,
+        members: draftAgenda.presentMembers,
+      },
+    ]);
+  };
+
+  const handleApplyAttendanceTemplate = (templateId) => {
+    const selectedTemplate = attendanceTemplates.find(
+      (template) => template.id === templateId,
+    );
+
+    if (!selectedTemplate) {
+      return;
+    }
+
+    setDraftAgenda((currentAgenda) =>
+      currentAgenda
+        ? {
+            ...currentAgenda,
+            presentMembers: selectedTemplate.members,
           }
         : currentAgenda,
     );
@@ -812,7 +1319,7 @@ export default function AgendaManagement() {
       )}
 
       <div className="flex flex-col gap-6 md:flex-row">
-        <aside className="md:w-1/4 lg:w-1/5">
+        <aside className="relative md:w-1/4 lg:w-1/5">
           <div className="max-h-[80vh] overflow-y-auto rounded-md border bg-white p-4 shadow">
             <div className="sticky top-0 z-10 mb-4 border-b bg-white pb-3">
               <div className="flex items-center justify-between gap-3">
@@ -820,6 +1327,7 @@ export default function AgendaManagement() {
                 {isAdmin && (
                   <button
                     type="button"
+                    ref={createAgendaButtonRef}
                     onClick={() => setIsDatePickerOpen((current) => !current)}
                     className="rounded-md bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700"
                   >
@@ -827,23 +1335,6 @@ export default function AgendaManagement() {
                   </button>
                 )}
               </div>
-
-              {isAdmin && isDatePickerOpen && (
-                <div className="mt-4 rounded-xl border border-purple-100 bg-purple-50 p-3">
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-purple-700">
-                    Pick a date
-                  </div>
-                  <DatePicker
-                    inline
-                    selected={newAgendaDate}
-                    onChange={(date) => {
-                      if (date) {
-                        handleCreateAgenda(date);
-                      }
-                    }}
-                  />
-                </div>
-              )}
             </div>
 
             {agendas.length === 0 ? (
@@ -871,17 +1362,61 @@ export default function AgendaManagement() {
               </ul>
             )}
           </div>
+
+          {isAdmin && isDatePickerOpen && (
+            <div
+              ref={datePopoverRef}
+              className="absolute left-0 right-0 top-full z-30 mt-3 md:left-full md:right-auto md:top-0 md:ml-3 md:mt-0"
+            >
+              <div className="w-fit rounded-2xl border border-purple-100 bg-white p-3 shadow-2xl">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-purple-700">
+                  Pick a date
+                </div>
+                <DatePicker
+                  inline
+                  selected={newAgendaDate}
+                  onChange={(date) => {
+                    if (date) {
+                      handleCreateAgenda(date);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </aside>
 
         <main className="min-h-[60vh] md:w-3/4 lg:w-4/5">
           {isEditing && draftAgenda && isAdmin ? (
-            <AgendaEditor
-              agenda={draftAgenda}
-              onFieldChange={handleDraftFieldChange}
-              onTopicChange={handleTopicChange}
-              onAddTopic={handleAddTopic}
-              onRemoveTopic={handleRemoveTopic}
-            />
+            <div ref={presentDropdownRef}>
+              <AgendaEditor
+                agenda={draftAgenda}
+                adminOptions={adminOptions.filter(
+                  (option) => !draftAgenda.presentMembers.includes(option),
+                )}
+                roleOptions={draftAgenda.presentMembers}
+                attendanceTemplates={attendanceTemplates}
+                presentDropdownOpen={isPresentDropdownOpen}
+                onTogglePresentDropdown={() =>
+                  setIsPresentDropdownOpen((current) => !current)
+                }
+                onAddPresentMember={handleAddPresentMember}
+                onRemovePresentMember={handleRemovePresentMember}
+                attendanceTemplateDraftName={attendanceTemplateDraftName}
+                onAttendanceTemplateDraftNameChange={
+                  setAttendanceTemplateDraftName
+                }
+                onSaveAttendanceTemplate={handleSaveAttendanceTemplate}
+                onApplyAttendanceTemplate={handleApplyAttendanceTemplate}
+                onFieldChange={handleDraftFieldChange}
+                onTopicLabelChange={handleTopicLabelChange}
+                onTopicChange={handleTopicChange}
+                onTopicDragEnd={handleTopicDragEnd}
+                onAddTopic={handleAddTopic}
+                onRemoveTopic={handleRemoveTopic}
+                sensors={sensors}
+              />
+            </div>
           ) : (
             <AgendaPreview agenda={selectedAgenda} />
           )}
