@@ -21,6 +21,12 @@ const agendaDocumentFormatter = new Intl.DateTimeFormat("en-GB", {
   year: "numeric",
 });
 
+const agendaShortDateFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
 const fetchAgendas = async () => {
   const response = await fetch("/api/admin/agendas");
   if (!response.ok) {
@@ -110,6 +116,19 @@ const formatAgendaDate = (dateValue) => {
   }
 
   return agendaDocumentFormatter.format(parsedDate);
+};
+
+const formatAgendaShortDate = (dateValue) => {
+  if (!dateValue) {
+    return "dd/mm/yyyy";
+  }
+
+  const parsedDate = new Date(`${dateValue}T12:00:00`);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "dd/mm/yyyy";
+  }
+
+  return agendaShortDateFormatter.format(parsedDate);
 };
 
 const formatAgendaTitle = (dateValue) => `Agenda ${formatAgendaDate(dateValue)}`;
@@ -413,30 +432,30 @@ const createPreviewPlaceholderAgenda = () =>
 
 const cloneAgenda = (agenda) => normalizeAgenda(JSON.parse(JSON.stringify(agenda)));
 
-const SignatureLine = ({ label, value }) => (
-  <div className="flex-1 min-w-[180px]">
-    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-      {label}
-    </div>
-    <div className="mt-6 border-b border-gray-400 pb-1 text-sm text-gray-800 min-h-[28px]">
-      {value || "\u00A0"}
-    </div>
-  </div>
-);
-
-const AgendaPage = ({ title, children, pageLabel }) => (
-  <section className="rounded-[28px] border border-gray-200 bg-white px-6 py-8 shadow-sm sm:px-10">
-    <div className="mb-8 flex items-start justify-between gap-4">
-      <div>
-        <h3 className="text-2xl font-semibold text-gray-900 sm:text-3xl">
-          {title}
-        </h3>
+const AgendaPage = ({ dateValue, children, pageLabel, footer, pinFooter = false }) => (
+  <section
+    className={`agenda-print-page rounded-[28px] border border-gray-200 bg-white px-6 py-8 shadow-sm sm:px-10 ${
+      pinFooter ? "agenda-print-footer-page flex flex-col" : ""
+    }`}
+  >
+    <div className="mb-8 grid grid-cols-[96px_1fr_72px] items-start gap-4">
+      <div className="flex justify-start">
+        <img src="/cc.svg" alt="Culture Connection logo" className="h-12 w-12" />
       </div>
-      <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-purple-700">
+      <div className="text-center">
+        <h3 className="font-Header text-4xl font-bold leading-none text-gray-900 sm:text-5xl">
+          Culture Connection Agenda
+        </h3>
+        <div className="mt-2 text-sm font-semibold tracking-[0.2em] text-gray-500">
+          {formatAgendaShortDate(dateValue)}
+        </div>
+      </div>
+      <span className="justify-self-end rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-purple-700">
         {pageLabel}
       </span>
     </div>
-    {children}
+    <div className={pinFooter ? "flex-1" : ""}>{children}</div>
+    {footer ? <div className={pinFooter ? "mt-auto" : ""}>{footer}</div> : null}
   </section>
 );
 
@@ -544,11 +563,37 @@ const PreviewListItem = ({ label, value, children }) => (
   </li>
 );
 
-const AgendaPreview = ({ agenda }) => {
+const AgendaPrintFooter = ({ agenda }) => (
+  <div className="mt-10 grid gap-6 border-t border-gray-200 pt-6 md:grid-cols-3">
+    <div>
+      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+        Chairman
+      </div>
+      <div className="mt-3 text-base font-semibold text-gray-900">
+        {agenda.chairman || " "}
+      </div>
+    </div>
+    <div>
+      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+        Secretary
+      </div>
+      <div className="mt-3 text-base font-semibold text-gray-900">
+        {agenda.secretary || " "}
+      </div>
+    </div>
+    <div>
+      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+        Minute checker
+      </div>
+      <div className="mt-3 text-base font-semibold text-gray-900">
+        {agenda.minuteChecker || " "}
+      </div>
+    </div>
+  </div>
+);
+
+const AgendaPreview = ({ agenda, showPrintFooter = false }) => {
   const resolvedAgenda = agenda || createPreviewPlaceholderAgenda();
-  const title = `Culture Connection Agenda - ${formatAgendaDate(
-    resolvedAgenda.date,
-  )}`;
   const meetingDuration = formatMeetingDuration(
     resolvedAgenda.meetingStartTime,
     resolvedAgenda.meetingEndTime,
@@ -556,7 +601,12 @@ const AgendaPreview = ({ agenda }) => {
 
   return (
     <div className="space-y-6">
-      <AgendaPage title={title} pageLabel="Page 1">
+      <AgendaPage
+        dateValue={resolvedAgenda.date}
+        pageLabel="Page 1"
+        pinFooter={showPrintFooter}
+        footer={showPrintFooter ? <AgendaPrintFooter agenda={resolvedAgenda} /> : null}
+      >
         <div className="grid gap-6 md:grid-cols-[1.3fr_1fr]">
           <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
             <div className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
@@ -610,24 +660,14 @@ const AgendaPreview = ({ agenda }) => {
             </div>
           </div>
         </div>
-
-        <div className="mt-10 flex flex-wrap gap-6">
-          <SignatureLine
-            label="Chairman"
-            value={resolvedAgenda.chairman}
-          />
-          <SignatureLine
-            label="Secretary"
-            value={resolvedAgenda.secretary}
-          />
-          <SignatureLine
-            label="Minute checker"
-            value={resolvedAgenda.minuteChecker}
-          />
-        </div>
       </AgendaPage>
 
-      <AgendaPage title={title} pageLabel="Page 2">
+      <AgendaPage
+        dateValue={resolvedAgenda.date}
+        pageLabel="Page 2"
+        pinFooter={showPrintFooter}
+        footer={showPrintFooter ? <AgendaPrintFooter agenda={resolvedAgenda} /> : null}
+      >
         <ul className="space-y-4">
           <PreviewListItem
             label={getAgendaLabel(resolvedAgenda, "meetingInitiation")}
@@ -710,21 +750,6 @@ const AgendaPreview = ({ agenda }) => {
             value={resolvedAgenda.topicsForNextMeeting}
           />
         </ul>
-
-        <div className="mt-10 flex flex-wrap gap-6">
-          <SignatureLine
-            label="Chairman"
-            value={resolvedAgenda.chairman}
-          />
-          <SignatureLine
-            label="Secretary"
-            value={resolvedAgenda.secretary}
-          />
-          <SignatureLine
-            label="Minute checker"
-            value={resolvedAgenda.minuteChecker}
-          />
-        </div>
       </AgendaPage>
     </div>
   );
@@ -1361,6 +1386,7 @@ export default function AgendaManagement() {
   const createAgendaButtonRef = useRef(null);
   const datePopoverRef = useRef(null);
   const presentDropdownRef = useRef(null);
+  const previewPrintRef = useRef(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -1952,6 +1978,161 @@ export default function AgendaManagement() {
     mutation.mutate(updatedAgendas);
   };
 
+  const handlePrintAgenda = () => {
+    if (!selectedAgenda || !previewPrintRef.current) {
+      setGeneralError("Select an agenda before printing.");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank", "width=1100,height=900");
+
+    if (!printWindow) {
+      setGeneralError("Allow pop-ups to print or download the agenda PDF.");
+      return;
+    }
+
+    const headMarkup = Array.from(
+      document.querySelectorAll('link[rel="stylesheet"], style'),
+    )
+      .map((node) => node.outerHTML)
+      .join("\n");
+
+    const escapedTitle = `${selectedAgenda.title}`
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>${escapedTitle}</title>
+          ${headMarkup}
+          <style>
+            body {
+              margin: 0;
+              background: #f3f4f6;
+              padding: 24px;
+            }
+
+            .print-toolbar {
+              position: sticky;
+              top: 0;
+              z-index: 20;
+              display: flex;
+              justify-content: flex-end;
+              gap: 12px;
+              margin: 0 auto 16px;
+              max-width: 960px;
+              padding: 12px 0;
+              background: #f3f4f6;
+            }
+
+            .print-toolbar button {
+              border: 0;
+              border-radius: 10px;
+              padding: 10px 16px;
+              font: inherit;
+              font-weight: 600;
+              cursor: pointer;
+            }
+
+            .print-primary {
+              background: #111827;
+              color: white;
+            }
+
+            .print-secondary {
+              background: #e5e7eb;
+              color: #111827;
+            }
+
+            .print-shell {
+              max-width: 960px;
+              margin: 0 auto;
+            }
+
+            .agenda-print-page {
+              break-after: page;
+              page-break-after: always;
+            }
+
+            .agenda-print-page:last-child {
+              break-after: auto;
+              page-break-after: auto;
+            }
+
+            .agenda-print-footer-page {
+              min-height: calc(297mm - 24mm);
+              box-sizing: border-box;
+            }
+
+            @page {
+              size: A4;
+              margin: 12mm;
+            }
+
+            @media print {
+              body {
+                background: white;
+                padding: 0;
+              }
+
+              .print-toolbar {
+                display: none;
+              }
+
+              .print-shell {
+                max-width: none;
+              }
+
+              .agenda-print-page {
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background: white !important;
+              }
+
+              .agenda-print-footer-page {
+                min-height: calc(297mm - 24mm);
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-toolbar">
+            <button class="print-secondary" type="button" id="close-preview">
+              Close
+            </button>
+            <button class="print-primary" type="button" id="print-agenda">
+              Print / Save as PDF
+            </button>
+          </div>
+          <div class="print-shell">${previewPrintRef.current.innerHTML}</div>
+          <script>
+            window.addEventListener("DOMContentLoaded", () => {
+              const printButton = document.getElementById("print-agenda");
+              const closeButton = document.getElementById("close-preview");
+
+              if (printButton) {
+                printButton.addEventListener("click", () => window.print());
+              }
+
+              if (closeButton) {
+                closeButton.addEventListener("click", () => window.close());
+              }
+            });
+          <\/script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+  };
+
   if (isLoading) {
     return <p className="py-4 text-center text-gray-500">Loading agendas...</p>;
   }
@@ -1977,14 +2158,26 @@ export default function AgendaManagement() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {isAdmin && selectedAgenda && !isEditing && (
-            <button
-              type="button"
-              onClick={handleEditAgenda}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              Edit Agenda
-            </button>
+          {selectedAgenda && !isEditing && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrintAgenda}
+                className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+              >
+                Print / Download PDF
+              </button>
+
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={handleEditAgenda}
+                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  Edit Agenda
+                </button>
+              )}
+            </>
           )}
 
           {isAdmin && isEditing && (
@@ -2126,7 +2319,16 @@ export default function AgendaManagement() {
               />
             </div>
           ) : (
-            <AgendaPreview agenda={selectedAgenda} />
+            <>
+              <AgendaPreview agenda={selectedAgenda} />
+              <div
+                ref={previewPrintRef}
+                aria-hidden="true"
+                className="pointer-events-none absolute -left-[99999px] top-0"
+              >
+                <AgendaPreview agenda={selectedAgenda} showPrintFooter />
+              </div>
+            </>
           )}
         </main>
       </div>
