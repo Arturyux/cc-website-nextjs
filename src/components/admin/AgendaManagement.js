@@ -160,6 +160,19 @@ const getAgendaLabel = (agenda, key) => normalizeAgendaLabels(agenda?.customLabe
 
 const PRINT_PAGE_ITEM_CAPACITY = 24;
 
+const normalizePrintableText = (value) => {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("\n");
+};
+
 const formatMeetingDuration = (startTime, endTime) => {
   if (!startTime || !endTime) {
     return "00:00";
@@ -225,13 +238,15 @@ const finalizeTimeInputValue = (value) => {
 };
 
 const estimateTextUnits = (value, charsPerLine = 85) => {
-  if (typeof value !== "string" || !value.trim()) {
+  const normalizedValue = normalizePrintableText(value);
+
+  if (!normalizedValue) {
     return 1;
   }
 
   return Math.max(
     1,
-    value
+    normalizedValue
       .split("\n")
       .reduce(
         (total, line) =>
@@ -242,46 +257,82 @@ const estimateTextUnits = (value, charsPerLine = 85) => {
 };
 
 const getAgendaPrintItems = (agenda) => [
-  {
-    type: "field",
-    key: "meetingInitiation",
-    label: getAgendaLabel(agenda, "meetingInitiation"),
-    value: agenda.meetingInitiation,
-  },
-  {
-    type: "field",
-    key: "boardMembersMeetUp",
-    label: getAgendaLabel(agenda, "boardMembersMeetUp"),
-    value: agenda.boardMembersMeetUp,
-  },
+  ...(normalizePrintableText(agenda.meetingInitiation)
+    ? [
+        {
+          type: "field",
+          key: "meetingInitiation",
+          label: getAgendaLabel(agenda, "meetingInitiation"),
+          value: normalizePrintableText(agenda.meetingInitiation),
+        },
+      ]
+    : []),
+  ...(normalizePrintableText(agenda.boardMembersMeetUp)
+    ? [
+        {
+          type: "field",
+          key: "boardMembersMeetUp",
+          label: getAgendaLabel(agenda, "boardMembersMeetUp"),
+          value: normalizePrintableText(agenda.boardMembersMeetUp),
+        },
+      ]
+    : []),
   {
     type: "timeSummary",
     key: "meetingTimeSummary",
   },
-  ...agenda.topics.map((topic, index) => ({
-    type: "topic",
-    key: topic.id || `topic-${index}`,
-    topic,
-    fallbackIndex: index,
-  })),
-  {
-    type: "field",
-    key: "meetingConcludes",
-    label: getAgendaLabel(agenda, "meetingConcludes"),
-    value: agenda.meetingConcludes,
-  },
-  {
-    type: "field",
-    key: "nextMeetingDate",
-    label: getAgendaLabel(agenda, "nextMeetingDate"),
-    value: agenda.nextMeetingDate,
-  },
-  {
-    type: "field",
-    key: "topicsForNextMeeting",
-    label: getAgendaLabel(agenda, "topicsForNextMeeting"),
-    value: agenda.topicsForNextMeeting,
-  },
+  ...agenda.topics
+    .map((topic, index) => ({
+      type: "topic",
+      key: topic.id || `topic-${index}`,
+      topic: {
+        ...topic,
+        content: normalizePrintableText(topic.content),
+        voting: topic.voting
+          ? {
+              ...topic.voting,
+              reason: normalizePrintableText(topic.voting.reason),
+            }
+          : topic.voting,
+      },
+      fallbackIndex: index,
+    }))
+    .filter(
+      ({ topic }) =>
+        topic.content ||
+        topic.voting?.enabled ||
+        (typeof topic.label === "string" && topic.label.trim()),
+    ),
+  ...(normalizePrintableText(agenda.meetingConcludes)
+    ? [
+        {
+          type: "field",
+          key: "meetingConcludes",
+          label: getAgendaLabel(agenda, "meetingConcludes"),
+          value: normalizePrintableText(agenda.meetingConcludes),
+        },
+      ]
+    : []),
+  ...(normalizePrintableText(agenda.nextMeetingDate)
+    ? [
+        {
+          type: "field",
+          key: "nextMeetingDate",
+          label: getAgendaLabel(agenda, "nextMeetingDate"),
+          value: normalizePrintableText(agenda.nextMeetingDate),
+        },
+      ]
+    : []),
+  ...(normalizePrintableText(agenda.topicsForNextMeeting)
+    ? [
+        {
+          type: "field",
+          key: "topicsForNextMeeting",
+          label: getAgendaLabel(agenda, "topicsForNextMeeting"),
+          value: normalizePrintableText(agenda.topicsForNextMeeting),
+        },
+      ]
+    : []),
 ];
 
 const getAgendaPrintItemUnits = (item) => {
@@ -322,7 +373,7 @@ const getAgendaPrintItemUnits = (item) => {
 
 const paginateAgendaPrintItems = (items) => {
   if (!items.length) {
-    return [[]];
+    return [];
   }
 
   const pages = [];
@@ -585,8 +636,12 @@ const AgendaPage = ({ dateValue, children, pageLabel, footer, pinFooter = false 
         {pageLabel}
       </span>
     </div>
-    <div className={pinFooter ? "flex-1" : ""}>{children}</div>
-    {footer ? <div className={pinFooter ? "mt-auto" : ""}>{footer}</div> : null}
+    <div className={pinFooter ? "agenda-print-content" : ""}>{children}</div>
+    {footer ? (
+      <div className={pinFooter ? "agenda-print-footer mt-auto" : ""}>
+        {footer}
+      </div>
+    ) : null}
   </section>
 );
 
@@ -676,48 +731,78 @@ const EditableSectionTitle = ({ title, onSave }) => {
   );
 };
 
-const PreviewListItem = ({ label, value, children }) => (
-  <li className="rounded-2xl border border-gray-200 px-4 py-4">
-    <div className="flex items-start gap-3">
-      <span className="mt-1 text-lg font-bold text-purple-600">•</span>
-      <div className="min-w-0 flex-1">
-        <div className="text-base font-semibold text-gray-900">{label}</div>
-        {children ? (
-          <div className="mt-2">{children}</div>
-        ) : (
-          <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700">
-            {value || " "}
-          </div>
-        )}
+const PreviewListItem = ({ label, value, children }) => {
+  const normalizedValue = normalizePrintableText(value);
+
+  return (
+    <li className="rounded-2xl border border-gray-200 px-4 py-4">
+      <div className="flex items-start gap-3">
+        <span className="mt-1 text-lg font-bold text-purple-600">•</span>
+        <div className="min-w-0 flex-1">
+          <div className="text-base font-semibold text-gray-900 break-all">{label}</div>
+          {children ? (
+            <div className="mt-2">{children}</div>
+          ) : (
+            <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700 break-all">
+              {normalizedValue}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  </li>
-);
+    </li>
+  );
+};
 
 const AgendaPrintFooter = ({ agenda }) => (
-  <div className="mt-10 grid gap-6 border-t border-gray-200 pt-6 md:grid-cols-3">
-    <div>
-      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-        Chairman
+  <div
+    className="mt-2 grid gap-4 border-t border-gray-200 pt-2 md:grid-cols-3"
+    data-print-avoid-break="true"
+  >
+    {[
+      ["Chairman", agenda.chairman],
+      ["Secretary", agenda.secretary],
+      ["Minute checker", agenda.minuteChecker],
+    ].map(([label, value]) => (
+      <div key={label} className="flex min-h-[72px] flex-col text-center">
+        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+          {label}
+        </div>
+        <div className="mt-2 flex min-h-[34px] items-end justify-center px-2 text-sm font-semibold leading-snug text-gray-900">
+          {value ? (
+            <span className="block max-w-full break-words whitespace-normal">
+              {value}
+            </span>
+          ) : null}
+        </div>
+        <div className="mt-1 border-b border-gray-400"></div>
       </div>
-      <div className="mt-3 text-base font-semibold text-gray-900">
-        {agenda.chairman || " "}
+    ))}
+  </div>
+);
+
+const AgendaTimeSummary = ({ agenda, meetingDuration }) => (
+  <div
+    className="rounded-2xl border border-gray-200 px-4 py-4"
+    style={{ breakInside: "avoid" }}
+  >
+    <div className="grid gap-4 md:grid-cols-3">
+      <div>
+        <div className="text-sm font-semibold text-gray-900">Meeting start</div>
+        <div className="mt-2 text-sm leading-6 text-gray-700">
+          {agenda.meetingStartTime}
+        </div>
       </div>
-    </div>
-    <div>
-      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-        Secretary
+      <div>
+        <div className="text-sm font-semibold text-gray-900">End of meeting</div>
+        <div className="mt-2 text-sm leading-6 text-gray-700">
+          {agenda.meetingEndTime}
+        </div>
       </div>
-      <div className="mt-3 text-base font-semibold text-gray-900">
-        {agenda.secretary || " "}
-      </div>
-    </div>
-    <div>
-      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-        Minute checker
-      </div>
-      <div className="mt-3 text-base font-semibold text-gray-900">
-        {agenda.minuteChecker || " "}
+      <div>
+        <div className="text-sm font-semibold text-gray-900">Meeting duration</div>
+        <div className="mt-2 text-sm leading-6 text-gray-700">
+          {meetingDuration}
+        </div>
       </div>
     </div>
   </div>
@@ -725,16 +810,25 @@ const AgendaPrintFooter = ({ agenda }) => (
 
 const AgendaPreview = ({ agenda, showPrintFooter = false }) => {
   const resolvedAgenda = agenda || createPreviewPlaceholderAgenda();
+  const presentMembers = resolvedAgenda.presentMembers.filter(
+    (member) => typeof member === "string" && member.trim(),
+  );
+  const normalizedAdditionalNotes = normalizePrintableText(
+    resolvedAgenda.additionalNotes,
+  );
   const meetingDuration = formatMeetingDuration(
     resolvedAgenda.meetingStartTime,
     resolvedAgenda.meetingEndTime,
   );
+  const agendaPrintItems = getAgendaPrintItems(resolvedAgenda);
   const structurePages = paginateAgendaPrintItems(
-    getAgendaPrintItems(resolvedAgenda),
+    showPrintFooter
+      ? agendaPrintItems.filter((item) => item.type !== "timeSummary")
+      : agendaPrintItems,
   );
 
   return (
-    <div className="space-y-6">
+    <div className="agenda-print-root space-y-6 print:space-y-0 print:block">
       <AgendaPage
         dateValue={resolvedAgenda.date}
         pageLabel="Page 1"
@@ -746,25 +840,31 @@ const AgendaPreview = ({ agenda, showPrintFooter = false }) => {
             <div className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
               Present
             </div>
-            <div className="mt-3 min-h-[180px] rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-4 text-sm leading-6 text-gray-700">
-              {resolvedAgenda.presentMembers.length > 0 ? (
+            <div
+              className={`mt-3 rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-4 text-sm leading-6 text-gray-700 ${
+                showPrintFooter ? "min-h-[96px]" : "min-h-[180px]"
+              }`}
+            >
+              {presentMembers.length > 0 ? (
                 <ul className="space-y-2">
-                  {resolvedAgenda.presentMembers.map((member) => (
+                  {presentMembers.map((member) => (
                     <li key={member}>{member}</li>
                   ))}
                 </ul>
-              ) : (
-                <div>&nbsp;</div>
+              ) : showPrintFooter ? null : (
+                <div className="text-sm text-gray-400">No members listed</div>
               )}
             </div>
-            <div className="mt-4 rounded-2xl border border-gray-200 bg-white px-4 py-4">
-              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                Additional notes
+            {normalizedAdditionalNotes ? (
+              <div className="mt-4 rounded-2xl border border-gray-200 bg-white px-4 py-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                  Additional notes
+                </div>
+                <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700 break-all">
+                  {normalizedAdditionalNotes}
+                </div>
               </div>
-              <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700">
-                {resolvedAgenda.additionalNotes || " "}
-              </div>
-            </div>
+            ) : null}
           </div>
 
           <div className="space-y-4">
@@ -772,28 +872,30 @@ const AgendaPreview = ({ agenda, showPrintFooter = false }) => {
               <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                 Chairman
               </div>
-              <div className="mt-3 text-sm text-gray-800">
-                {resolvedAgenda.chairman || " "}
-              </div>
+              <div className="mt-3 text-sm text-gray-800">{resolvedAgenda.chairman}</div>
             </div>
             <div className="rounded-2xl border border-gray-200 px-4 py-4">
               <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                 Secretary
               </div>
-              <div className="mt-3 text-sm text-gray-800">
-                {resolvedAgenda.secretary || " "}
-              </div>
+              <div className="mt-3 text-sm text-gray-800">{resolvedAgenda.secretary}</div>
             </div>
             <div className="rounded-2xl border border-gray-200 px-4 py-4">
               <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                 Minute checker
               </div>
-              <div className="mt-3 text-sm text-gray-800">
-                {resolvedAgenda.minuteChecker || " "}
-              </div>
+              <div className="mt-3 text-sm text-gray-800">{resolvedAgenda.minuteChecker}</div>
             </div>
           </div>
         </div>
+        {showPrintFooter ? (
+          <div className="mt-6">
+            <AgendaTimeSummary
+              agenda={resolvedAgenda}
+              meetingDuration={meetingDuration}
+            />
+          </div>
+        ) : null}
       </AgendaPage>
 
       {structurePages.map((items, pageIndex) => (
@@ -820,80 +922,62 @@ const AgendaPreview = ({ agenda, showPrintFooter = false }) => {
 
               if (item.type === "timeSummary") {
                 return (
-                  <li
-                    key={item.key}
-                    className="rounded-2xl border border-gray-200 px-4 py-4"
-                    style={{ breakInside: "avoid" }}
-                  >
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <div>
-                        <div className="text-sm font-semibold text-gray-900">
-                          Meeting start
-                        </div>
-                        <div className="mt-2 text-sm leading-6 text-gray-700">
-                          {resolvedAgenda.meetingStartTime || " "}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-gray-900">
-                          End of meeting
-                        </div>
-                        <div className="mt-2 text-sm leading-6 text-gray-700">
-                          {resolvedAgenda.meetingEndTime || " "}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-gray-900">
-                          Meeting duration
-                        </div>
-                        <div className="mt-2 text-sm leading-6 text-gray-700">
-                          {meetingDuration || " "}
-                        </div>
-                      </div>
-                    </div>
+                  <li key={item.key}>
+                    <AgendaTimeSummary
+                      agenda={resolvedAgenda}
+                      meetingDuration={meetingDuration}
+                    />
                   </li>
                 );
               }
 
               const topic = item.topic;
+              const normalizedTopicContent = normalizePrintableText(topic.content);
+              const normalizedVoteReason = normalizePrintableText(
+                topic.voting?.reason,
+              );
               return (
                 <PreviewListItem
                   key={item.key}
                   label={topic.label || `Topic ${item.fallbackIndex + 1}`}
                 >
                   <div className="space-y-3" style={{ breakInside: "avoid" }}>
-                    <div className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
-                      {topic.content || " "}
-                    </div>
+                    {normalizedTopicContent ? (
+                      <div className="whitespace-pre-wrap text-sm leading-6 text-gray-700 break-all">
+                        {normalizedTopicContent}
+                      </div>
+                    ) : null}
                     {topic.voting?.enabled ? (
                       <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
                         <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                           Voting
                         </div>
-                        <div className="mt-2 text-sm text-gray-700">
-                          <span className="font-semibold text-gray-900">
-                            Reason of vote:
-                          </span>{" "}
-                          {topic.voting.reason || " "}
-                        </div>
+                        {normalizedVoteReason ? (
+                          <div className="mt-2 text-sm text-gray-700 break-all">
+                            <span className="font-semibold text-gray-900">
+                              Reason of vote:
+                            </span>{" "}
+                            {normalizedVoteReason}
+                          </div>
+                        ) : null}
                         <div className="mt-3 space-y-2 text-sm text-gray-700">
                           <div>
                             <span className="font-semibold text-gray-900">
                               Approve:
                             </span>{" "}
-                            {(topic.voting.approve || []).join(", ") || " "}
+                            {(topic.voting.approve || []).join(", ")}
                           </div>
                           <div>
                             <span className="font-semibold text-gray-900">
                               Disapprove:
                             </span>{" "}
-                            {(topic.voting.disapprove || []).join(", ") || " "}
+                            {(topic.voting.disapprove || []).join(", ")}
                           </div>
                           <div>
                             <span className="font-semibold text-gray-900">
                               Obstain:
                             </span>{" "}
-                            {(topic.voting.abstain || []).join(", ") || " "}
+                            {(topic.voting.abstain || []).join(", ")}
                           </div>
                         </div>
                       </div>
@@ -1631,7 +1715,7 @@ export default function AgendaManagement() {
     pageStyle: `
       @page {
         size: A4 portrait;
-        margin: 12mm;
+        margin: 10mm !important;
       }
 
       @media print {
@@ -1643,33 +1727,57 @@ export default function AgendaManagement() {
           print-color-adjust: exact;
         }
 
+        .agenda-print-root {
+          margin: 0 !important;
+          padding: 0 !important;
+          display: block !important;
+        }
+
         .agenda-print-page {
-          break-after: page;
-          page-break-after: always;
+          /* STRICT height locking. 250mm guarantees it fits on A4 regardless of browser margins */
+          height: 250mm !important; 
+          max-height: 250mm !important;
+          overflow: hidden !important;
+          width: 100% !important;
+          
+          display: flex !important;
+          flex-direction: column !important;
+          
+          margin: 0 !important;
+          padding: 10mm 15mm 15mm 15mm !important; 
+          box-sizing: border-box !important;
+          
           border: none !important;
           border-radius: 0 !important;
           box-shadow: none !important;
           background: white !important;
         }
 
-        .agenda-print-page:last-child {
-          break-after: auto;
-          page-break-after: auto;
+        /* Force page breaks BEFORE every new page except the first */
+        .agenda-print-page + .agenda-print-page {
+          page-break-before: always !important;
+          break-before: page !important;
+          margin-top: 0 !important;
         }
 
-        .agenda-print-footer-page {
-          min-height: calc(297mm - 24mm);
-          box-sizing: border-box;
+        .agenda-print-content {
+          display: block;
+        }
+
+        .agenda-print-footer {
+          /* Flex auto-margin pushes this to the exact bottom of the 250mm container */
+          margin-top: auto !important;
+          margin-bottom: 0 !important;
+          
+          /* Protect the footer from ever being split */
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
         }
 
         .agenda-print-page ul,
         .agenda-print-page li {
           margin: 0;
           padding: 0;
-        }
-
-        .agenda-print-page li,
-        .agenda-print-page [data-print-avoid-break="true"] {
           break-inside: avoid;
           page-break-inside: avoid;
         }
