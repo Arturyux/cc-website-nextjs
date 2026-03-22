@@ -119,17 +119,45 @@ const ensureTopicList = (topics) => {
                 : `Topic ${index + 1}`,
             content:
               typeof safeTopic.content === "string" ? safeTopic.content : "",
+            voting: {
+              enabled:
+                safeTopic.voting && typeof safeTopic.voting === "object"
+                  ? safeTopic.voting.enabled === true
+                  : false,
+              reason:
+                safeTopic.voting &&
+                typeof safeTopic.voting === "object" &&
+                typeof safeTopic.voting.reason === "string"
+                  ? safeTopic.voting.reason
+                  : "",
+              approve:
+                safeTopic.voting &&
+                typeof safeTopic.voting === "object" &&
+                Array.isArray(safeTopic.voting.approve)
+                  ? safeTopic.voting.approve.filter(
+                      (member) => typeof member === "string",
+                    )
+                  : [],
+              disapprove:
+                safeTopic.voting &&
+                typeof safeTopic.voting === "object" &&
+                Array.isArray(safeTopic.voting.disapprove)
+                  ? safeTopic.voting.disapprove.filter(
+                      (member) => typeof member === "string",
+                    )
+                  : [],
+              abstain:
+                safeTopic.voting &&
+                typeof safeTopic.voting === "object" &&
+                Array.isArray(safeTopic.voting.abstain)
+                  ? safeTopic.voting.abstain.filter(
+                      (member) => typeof member === "string",
+                    )
+                  : [],
+            },
           };
         })
     : [];
-
-  while (normalizedTopics.length < 3) {
-    normalizedTopics.push({
-      id: `agenda-topic-${normalizedTopics.length}`,
-      label: `Topic ${normalizedTopics.length + 1}`,
-      content: "",
-    });
-  }
 
   return normalizedTopics;
 };
@@ -238,6 +266,20 @@ const validateAgendas = (data) => {
       ) {
         throw new Error(
           "Invalid item structure: each topic must have id, label, and content.",
+        );
+      }
+
+      if (
+        !topic.voting ||
+        typeof topic.voting !== "object" ||
+        typeof topic.voting.enabled !== "boolean" ||
+        typeof topic.voting.reason !== "string" ||
+        !Array.isArray(topic.voting.approve) ||
+        !Array.isArray(topic.voting.disapprove) ||
+        !Array.isArray(topic.voting.abstain)
+      ) {
+        throw new Error(
+          "Invalid item structure: each topic voting block must be complete.",
         );
       }
     }

@@ -15,8 +15,6 @@ import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-const MIN_TOPIC_COUNT = 3;
-
 const agendaDocumentFormatter = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "long",
@@ -150,6 +148,36 @@ const normalizeTopic = (topic, index = 0) => {
         : `Topic ${index + 1}`,
     content:
       typeof safeTopic.content === "string" ? safeTopic.content : "",
+    voting: {
+      enabled:
+        safeTopic.voting && typeof safeTopic.voting === "object"
+          ? safeTopic.voting.enabled === true
+          : false,
+      reason:
+        safeTopic.voting &&
+        typeof safeTopic.voting === "object" &&
+        typeof safeTopic.voting.reason === "string"
+          ? safeTopic.voting.reason
+          : "",
+      approve:
+        safeTopic.voting &&
+        typeof safeTopic.voting === "object" &&
+        Array.isArray(safeTopic.voting.approve)
+          ? safeTopic.voting.approve.filter((member) => typeof member === "string")
+          : [],
+      disapprove:
+        safeTopic.voting &&
+        typeof safeTopic.voting === "object" &&
+        Array.isArray(safeTopic.voting.disapprove)
+          ? safeTopic.voting.disapprove.filter((member) => typeof member === "string")
+          : [],
+      abstain:
+        safeTopic.voting &&
+        typeof safeTopic.voting === "object" &&
+        Array.isArray(safeTopic.voting.abstain)
+          ? safeTopic.voting.abstain.filter((member) => typeof member === "string")
+          : [],
+    },
   };
 };
 
@@ -157,20 +185,21 @@ const createEmptyTopic = (index) => ({
   id: createTopicId(),
   label: `Topic ${index + 1}`,
   content: "",
+  voting: {
+    enabled: false,
+    reason: "",
+    approve: [],
+    disapprove: [],
+    abstain: [],
+  },
 });
 
 const ensureTopicList = (topics) => {
-  const normalizedTopics = Array.isArray(topics)
+  return Array.isArray(topics)
     ? topics
         .slice(0, 20)
         .map((topic, index) => normalizeTopic(topic, index))
     : [];
-
-  while (normalizedTopics.length < MIN_TOPIC_COUNT) {
-    normalizedTopics.push(createEmptyTopic(normalizedTopics.length));
-  }
-
-  return normalizedTopics;
 };
 
 const normalizeAttendanceTemplate = (template, index = 0) => {
@@ -314,6 +343,47 @@ const AgendaPage = ({ title, children, pageLabel }) => (
   </section>
 );
 
+const VotePatternButton = ({ templates, onApply }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+        disabled={templates.length === 0}
+        className="rounded-full bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700 ring-1 ring-purple-200 hover:bg-purple-100 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Saved patterns
+      </button>
+
+      {isOpen ? (
+        <div className="absolute right-0 top-full z-20 mt-2 min-w-48 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl">
+          {templates.length === 0 ? (
+            <div className="px-2 py-1 text-xs text-gray-500">
+              No saved patterns yet.
+            </div>
+          ) : (
+            templates.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => {
+                  onApply(template.id);
+                  setIsOpen(false);
+                }}
+                className="block w-full rounded-xl px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+              >
+                {template.name}
+              </button>
+            ))
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 const PreviewListItem = ({ label, value, children }) => (
   <li className="rounded-2xl border border-gray-200 px-4 py-4">
     <div className="flex items-start gap-3">
@@ -417,8 +487,38 @@ const AgendaPreview = ({ agenda }) => {
             <PreviewListItem
               key={topic.id || `topic-${index}`}
               label={topic.label || `Topic ${index + 1}`}
-              value={topic.content}
-            />
+            >
+              <div className="space-y-3">
+                <div className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
+                  {topic.content || " "}
+                </div>
+                {topic.voting?.enabled ? (
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                      Voting
+                    </div>
+                    <div className="mt-2 text-sm text-gray-700">
+                      <span className="font-semibold text-gray-900">Reason:</span>{" "}
+                      {topic.voting.reason || " "}
+                    </div>
+                    <div className="mt-3 space-y-2 text-sm text-gray-700">
+                      <div>
+                        <span className="font-semibold text-gray-900">Approve:</span>{" "}
+                        {(topic.voting.approve || []).join(", ") || " "}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-900">Disapprove:</span>{" "}
+                        {(topic.voting.disapprove || []).join(", ") || " "}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-900">Obstain:</span>{" "}
+                        {(topic.voting.abstain || []).join(", ") || " "}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </PreviewListItem>
           ))}
           <PreviewListItem
             label="Meeting concludes"
@@ -450,10 +550,16 @@ const AgendaPreview = ({ agenda }) => {
 const SortableTopicItem = ({
   topic,
   index,
+  presentMembers,
+  attendanceTemplates,
   onTopicLabelChange,
   onTopicChange,
+  onToggleTopicVoting,
+  onTopicVotingReasonChange,
+  onAddVoteMember,
+  onRemoveVoteMember,
+  onApplyVotePattern,
   onRemoveTopic,
-  canRemove,
 }) => {
   const {
     attributes,
@@ -489,14 +595,13 @@ const SortableTopicItem = ({
             Drag
           </button>
           <span className="text-sm font-medium text-gray-700">
-            Topic {index + 1}
+            {topic.label || `Topic ${index + 1}`}
           </span>
         </div>
         <button
           type="button"
           onClick={() => onRemoveTopic(index)}
-          disabled={!canRemove}
-          className="text-xs font-semibold text-red-600 disabled:cursor-not-allowed disabled:text-gray-400"
+          className="text-xs font-semibold text-red-600"
         >
           Remove
         </button>
@@ -528,6 +633,101 @@ const SortableTopicItem = ({
             className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
           />
         </label>
+
+        <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-medium text-gray-700">Voting</div>
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={topic.voting?.enabled === true}
+                onChange={(event) =>
+                  onToggleTopicVoting(index, event.target.checked)
+                }
+              />
+              Enable
+            </label>
+          </div>
+
+          {topic.voting?.enabled ? (
+            <div className="mt-4 space-y-4">
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-gray-700">
+                  Reason of vote
+                </span>
+                <textarea
+                  value={topic.voting.reason}
+                  onChange={(event) =>
+                    onTopicVotingReasonChange(index, event.target.value)
+                  }
+                  rows={3}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+                />
+              </label>
+
+              {[
+                ["approve", "Approve"],
+                ["disapprove", "Disapprove"],
+                ["abstain", "Obstain"],
+              ].map(([voteKey, voteLabel]) => {
+                const selectedMembers = topic.voting?.[voteKey] || [];
+                const availableMembers = presentMembers.filter(
+                  (member) => !selectedMembers.includes(member),
+                );
+
+                return (
+                  <div
+                    key={`${topic.id}-${voteKey}`}
+                    className="rounded-xl border border-gray-200 bg-white p-3"
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <div className="text-sm font-semibold text-gray-800">
+                        {voteLabel}
+                      </div>
+                      <VotePatternButton
+                        templates={attendanceTemplates}
+                        onApply={(templateId) =>
+                          onApplyVotePattern(index, voteKey, templateId)
+                        }
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMembers.map((member) => (
+                        <button
+                          key={`${voteKey}-${member}`}
+                          type="button"
+                          onClick={() => onRemoveVoteMember(index, voteKey, member)}
+                          className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 ring-1 ring-gray-200"
+                        >
+                          {member} <span className="text-red-500">×</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="mt-3">
+                      <select
+                        value=""
+                        onChange={(event) => {
+                          if (event.target.value) {
+                            onAddVoteMember(index, voteKey, event.target.value);
+                          }
+                        }}
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+                      >
+                        <option value="">Add present person to {voteLabel}</option>
+                        {availableMembers.map((member) => (
+                          <option key={`${voteKey}-option-${member}`} value={member}>
+                            {member}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );
@@ -535,6 +735,7 @@ const SortableTopicItem = ({
 
 const AgendaEditor = ({
   agenda,
+  presentOptions,
   roleOptions,
   attendanceTemplates,
   presentDropdownOpen,
@@ -549,6 +750,11 @@ const AgendaEditor = ({
   onTopicLabelChange,
   onTopicChange,
   onTopicDragEnd,
+  onToggleTopicVoting,
+  onTopicVotingReasonChange,
+  onAddVoteMember,
+  onRemoveVoteMember,
+  onApplyVotePattern,
   onAddTopic,
   onRemoveTopic,
   sensors,
@@ -586,12 +792,12 @@ const AgendaEditor = ({
                 {presentDropdownOpen && (
                   <div className="absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl">
                     <div className="max-h-64 overflow-y-auto">
-                      {adminOptions.length === 0 ? (
+                      {presentOptions.length === 0 ? (
                         <div className="px-3 py-2 text-sm text-gray-500">
                           No admins available.
                         </div>
                       ) : (
-                        adminOptions.map((option) => (
+                        presentOptions.map((option) => (
                           <button
                             key={option}
                             type="button"
@@ -783,15 +989,26 @@ const AgendaEditor = ({
               strategy={verticalListSortingStrategy}
             >
               <div className="mt-4 space-y-3">
+                {agenda.topics.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-6 text-sm text-gray-500">
+                    No topics yet. Use "+ Add Topic" when you want to add one.
+                  </div>
+                ) : null}
                 {agenda.topics.map((topic, index) => (
                   <SortableTopicItem
                     key={topic.id}
                     topic={topic}
                     index={index}
+                    presentMembers={agenda.presentMembers}
+                    attendanceTemplates={attendanceTemplates}
                     onTopicLabelChange={onTopicLabelChange}
                     onTopicChange={onTopicChange}
+                    onToggleTopicVoting={onToggleTopicVoting}
+                    onTopicVotingReasonChange={onTopicVotingReasonChange}
+                    onAddVoteMember={onAddVoteMember}
+                    onRemoveVoteMember={onRemoveVoteMember}
+                    onApplyVotePattern={onApplyVotePattern}
                     onRemoveTopic={onRemoveTopic}
-                    canRemove={agenda.topics.length > MIN_TOPIC_COUNT}
                   />
                 ))}
               </div>
@@ -1106,6 +1323,127 @@ export default function AgendaManagement() {
     });
   };
 
+  const handleToggleTopicVoting = (topicIndex, enabled) => {
+    setDraftAgenda((currentAgenda) => {
+      if (!currentAgenda) {
+        return currentAgenda;
+      }
+
+      return {
+        ...currentAgenda,
+        topics: currentAgenda.topics.map((topic, index) =>
+          index === topicIndex
+            ? {
+                ...topic,
+                voting: enabled
+                  ? {
+                      enabled: true,
+                      reason: topic.voting?.reason || "",
+                      approve: topic.voting?.approve || [],
+                      disapprove: topic.voting?.disapprove || [],
+                      abstain: topic.voting?.abstain || [],
+                    }
+                  : {
+                      enabled: false,
+                      reason: "",
+                      approve: [],
+                      disapprove: [],
+                      abstain: [],
+                    },
+              }
+            : topic,
+        ),
+      };
+    });
+  };
+
+  const handleTopicVotingReasonChange = (topicIndex, value) => {
+    setDraftAgenda((currentAgenda) => {
+      if (!currentAgenda) {
+        return currentAgenda;
+      }
+
+      return {
+        ...currentAgenda,
+        topics: currentAgenda.topics.map((topic, index) =>
+          index === topicIndex
+            ? {
+                ...topic,
+                voting: {
+                  ...topic.voting,
+                  enabled: true,
+                  reason: value,
+                },
+              }
+            : topic,
+        ),
+      };
+    });
+  };
+
+  const handleAddVoteMember = (topicIndex, voteKey, memberName) => {
+    setDraftAgenda((currentAgenda) => {
+      if (!currentAgenda) {
+        return currentAgenda;
+      }
+
+      return {
+        ...currentAgenda,
+        topics: currentAgenda.topics.map((topic, index) => {
+          if (index !== topicIndex) {
+            return topic;
+          }
+
+          const nextVoting = {
+            enabled: true,
+            reason: topic.voting?.reason || "",
+            approve: (topic.voting?.approve || []).filter(
+              (member) => member !== memberName,
+            ),
+            disapprove: (topic.voting?.disapprove || []).filter(
+              (member) => member !== memberName,
+            ),
+            abstain: (topic.voting?.abstain || []).filter(
+              (member) => member !== memberName,
+            ),
+          };
+
+          nextVoting[voteKey] = [...nextVoting[voteKey], memberName];
+
+          return {
+            ...topic,
+            voting: nextVoting,
+          };
+        }),
+      };
+    });
+  };
+
+  const handleRemoveVoteMember = (topicIndex, voteKey, memberName) => {
+    setDraftAgenda((currentAgenda) => {
+      if (!currentAgenda) {
+        return currentAgenda;
+      }
+
+      return {
+        ...currentAgenda,
+        topics: currentAgenda.topics.map((topic, index) =>
+          index === topicIndex
+            ? {
+                ...topic,
+                voting: {
+                  ...topic.voting,
+                  [voteKey]: (topic.voting?.[voteKey] || []).filter(
+                    (member) => member !== memberName,
+                  ),
+                },
+              }
+            : topic,
+        ),
+      };
+    });
+  };
+
   const handleAddPresentMember = (memberName) => {
     setDraftAgenda((currentAgenda) => {
       if (!currentAgenda || currentAgenda.presentMembers.includes(memberName)) {
@@ -1185,17 +1523,71 @@ export default function AgendaManagement() {
     );
   };
 
-  const handleRemoveTopic = (topicIndex) => {
+  const handleApplyVotePattern = (topicIndex, voteKey, templateId) => {
+    const selectedTemplate = attendanceTemplates.find(
+      (template) => template.id === templateId,
+    );
+
+    if (!selectedTemplate) {
+      return;
+    }
+
     setDraftAgenda((currentAgenda) => {
-      if (!currentAgenda || currentAgenda.topics.length <= MIN_TOPIC_COUNT) {
+      if (!currentAgenda) {
         return currentAgenda;
       }
 
       return {
         ...currentAgenda,
-        topics: currentAgenda.topics.filter((_, index) => index !== topicIndex),
+        topics: currentAgenda.topics.map((topic, index) => {
+          if (index !== topicIndex) {
+            return topic;
+          }
+
+          const presentMemberSet = new Set(currentAgenda.presentMembers);
+          const templateMembers = selectedTemplate.members.filter((member) =>
+            presentMemberSet.has(member),
+          );
+
+          return {
+            ...topic,
+            voting: {
+              ...topic.voting,
+              enabled: true,
+              approve:
+                voteKey === "approve"
+                  ? templateMembers
+                  : (topic.voting?.approve || []).filter(
+                      (member) => !templateMembers.includes(member),
+                    ),
+              disapprove:
+                voteKey === "disapprove"
+                  ? templateMembers
+                  : (topic.voting?.disapprove || []).filter(
+                      (member) => !templateMembers.includes(member),
+                    ),
+              abstain:
+                voteKey === "abstain"
+                  ? templateMembers
+                  : (topic.voting?.abstain || []).filter(
+                      (member) => !templateMembers.includes(member),
+                    ),
+            },
+          };
+        }),
       };
     });
+  };
+
+  const handleRemoveTopic = (topicIndex) => {
+    setDraftAgenda((currentAgenda) =>
+      currentAgenda
+        ? {
+            ...currentAgenda,
+            topics: currentAgenda.topics.filter((_, index) => index !== topicIndex),
+          }
+        : currentAgenda,
+    );
   };
 
   const handleSaveAgenda = () => {
@@ -1391,7 +1783,7 @@ export default function AgendaManagement() {
             <div ref={presentDropdownRef}>
               <AgendaEditor
                 agenda={draftAgenda}
-                adminOptions={adminOptions.filter(
+                presentOptions={adminOptions.filter(
                   (option) => !draftAgenda.presentMembers.includes(option),
                 )}
                 roleOptions={draftAgenda.presentMembers}
@@ -1412,6 +1804,11 @@ export default function AgendaManagement() {
                 onTopicLabelChange={handleTopicLabelChange}
                 onTopicChange={handleTopicChange}
                 onTopicDragEnd={handleTopicDragEnd}
+                onToggleTopicVoting={handleToggleTopicVoting}
+                onTopicVotingReasonChange={handleTopicVotingReasonChange}
+                onAddVoteMember={handleAddVoteMember}
+                onRemoveVoteMember={handleRemoveVoteMember}
+                onApplyVotePattern={handleApplyVotePattern}
                 onAddTopic={handleAddTopic}
                 onRemoveTopic={handleRemoveTopic}
                 sensors={sensors}
