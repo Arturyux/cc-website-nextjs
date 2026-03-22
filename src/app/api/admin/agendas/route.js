@@ -90,6 +90,28 @@ const formatAgendaDate = (dateValue) => {
 
 const formatAgendaTitle = (dateValue) => `Agenda ${formatAgendaDate(dateValue)}`;
 
+const DEFAULT_AGENDA_LABELS = {
+  meetingInitiation: "Meeting initiation",
+  boardMembersMeetUp: "Board members meet up",
+  meetingConcludes: "Meeting concludes",
+  nextMeetingDate: "Next date for meeting",
+  topicsForNextMeeting: "Topics for next meeting",
+};
+
+const normalizeAgendaLabels = (labels) => {
+  const safeLabels =
+    labels && typeof labels === "object" && !Array.isArray(labels) ? labels : {};
+
+  return Object.fromEntries(
+    Object.entries(DEFAULT_AGENDA_LABELS).map(([key, fallbackValue]) => [
+      key,
+      typeof safeLabels[key] === "string" && safeLabels[key].trim()
+        ? safeLabels[key]
+        : fallbackValue,
+    ]),
+  );
+};
+
 const ensureTopicList = (topics) => {
   const normalizedTopics = Array.isArray(topics)
     ? topics
@@ -190,7 +212,12 @@ const normalizeAgenda = (agenda, index = 0) => {
         : `agenda-${index}`,
     date,
     title: formatAgendaTitle(date),
+    customLabels: normalizeAgendaLabels(safeAgenda.customLabels),
     presentMembers,
+    additionalNotes:
+      typeof safeAgenda.additionalNotes === "string"
+        ? safeAgenda.additionalNotes
+        : "",
     chairman:
       typeof safeAgenda.chairman === "string" ? safeAgenda.chairman : "",
     secretary:
@@ -207,6 +234,10 @@ const normalizeAgenda = (agenda, index = 0) => {
     meetingStartTime:
       typeof safeAgenda.meetingStartTime === "string"
         ? safeAgenda.meetingStartTime
+        : "",
+    meetingEndTime:
+      typeof safeAgenda.meetingEndTime === "string"
+        ? safeAgenda.meetingEndTime
         : "",
     topics: ensureTopicList(safeAgenda.topics),
     meetingConcludes:
@@ -287,6 +318,16 @@ const validateAgendas = (data) => {
     if (!Array.isArray(agenda.presentMembers)) {
       throw new Error(
         "Invalid item structure: presentMembers must be an array.",
+      );
+    }
+
+    if (
+      !agenda.customLabels ||
+      typeof agenda.customLabels !== "object" ||
+      Array.isArray(agenda.customLabels)
+    ) {
+      throw new Error(
+        "Invalid item structure: customLabels must be an object.",
       );
     }
 

@@ -114,6 +114,94 @@ const formatAgendaDate = (dateValue) => {
 
 const formatAgendaTitle = (dateValue) => `Agenda ${formatAgendaDate(dateValue)}`;
 
+const DEFAULT_AGENDA_LABELS = {
+  meetingInitiation: "Meeting initiation",
+  boardMembersMeetUp: "Board members meet up",
+  meetingConcludes: "Meeting concludes",
+  nextMeetingDate: "Next date for meeting",
+  topicsForNextMeeting: "Topics for next meeting",
+};
+
+const normalizeAgendaLabels = (labels) => {
+  const safeLabels =
+    labels && typeof labels === "object" && !Array.isArray(labels) ? labels : {};
+
+  return Object.fromEntries(
+    Object.entries(DEFAULT_AGENDA_LABELS).map(([key, fallbackValue]) => [
+      key,
+      typeof safeLabels[key] === "string" && safeLabels[key].trim()
+        ? safeLabels[key]
+        : fallbackValue,
+    ]),
+  );
+};
+
+const getAgendaLabel = (agenda, key) => normalizeAgendaLabels(agenda?.customLabels)[key];
+
+const formatMeetingDuration = (startTime, endTime) => {
+  if (!startTime || !endTime) {
+    return "00:00";
+  }
+
+  const [startHours, startMinutes] = startTime.split(":").map(Number);
+  const [endHours, endMinutes] = endTime.split(":").map(Number);
+
+  if (
+    [startHours, startMinutes, endHours, endMinutes].some((value) =>
+      Number.isNaN(value),
+    )
+  ) {
+    return "00:00";
+  }
+
+  const startTotalMinutes = startHours * 60 + startMinutes;
+  let endTotalMinutes = endHours * 60 + endMinutes;
+
+  if (endTotalMinutes < startTotalMinutes) {
+    endTotalMinutes += 24 * 60;
+  }
+
+  const durationInMinutes = endTotalMinutes - startTotalMinutes;
+  const hours = Math.floor(durationInMinutes / 60);
+  const minutes = durationInMinutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+};
+
+const normalizeTimeInputValue = (value) => {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+
+  if (digits.length <= 2) {
+    return digits;
+  }
+
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+};
+
+const coerceTimeValue = (value) => {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const normalizedValue = normalizeTimeInputValue(value.trim());
+  return /^\d{2}:\d{2}$/.test(normalizedValue) ? normalizedValue : "";
+};
+
+const isValid24HourTime = (value) => {
+  const coercedValue = coerceTimeValue(value);
+
+  if (!coercedValue) {
+    return false;
+  }
+
+  const [hours, minutes] = coercedValue.split(":").map(Number);
+  return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+};
+
+const finalizeTimeInputValue = (value) => {
+  const normalizedValue = coerceTimeValue(value);
+  return isValid24HourTime(normalizedValue) ? normalizedValue : "";
+};
+
 const toInputDateValue = (date) => {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
     return "";
@@ -258,7 +346,12 @@ const normalizeAgenda = (agenda, index = 0) => {
         : `agenda-${index}`,
     date,
     title: formatAgendaTitle(date),
+    customLabels: normalizeAgendaLabels(safeAgenda.customLabels),
     presentMembers,
+    additionalNotes:
+      typeof safeAgenda.additionalNotes === "string"
+        ? safeAgenda.additionalNotes
+        : "",
     chairman:
       typeof safeAgenda.chairman === "string" ? safeAgenda.chairman : "",
     secretary:
@@ -275,6 +368,10 @@ const normalizeAgenda = (agenda, index = 0) => {
     meetingStartTime:
       typeof safeAgenda.meetingStartTime === "string"
         ? safeAgenda.meetingStartTime
+        : "",
+    meetingEndTime:
+      typeof safeAgenda.meetingEndTime === "string"
+        ? safeAgenda.meetingEndTime
         : "",
     topics: ensureTopicList(safeAgenda.topics),
     meetingConcludes:
@@ -384,6 +481,51 @@ const VotePatternButton = ({ templates, onApply }) => {
   );
 };
 
+const EditableSectionTitle = ({ title, onSave }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftValue, setDraftValue] = useState(title);
+
+  useEffect(() => {
+    setDraftValue(title);
+  }, [title]);
+
+  if (isEditing) {
+    return (
+      <div className="mb-1 flex items-center gap-2">
+        <input
+          type="text"
+          value={draftValue}
+          onChange={(event) => setDraftValue(event.target.value)}
+          className="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            onSave(draftValue);
+            setIsEditing(false);
+          }}
+          className="rounded-md bg-gray-900 px-2.5 py-2 text-xs font-semibold text-white hover:bg-gray-800"
+        >
+          Save
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-1 flex items-center justify-between gap-3">
+      <span className="block text-sm font-medium text-gray-700">{title}</span>
+      <button
+        type="button"
+        onClick={() => setIsEditing(true)}
+        className="rounded-md border border-gray-300 px-2 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-100"
+      >
+        Rename
+      </button>
+    </div>
+  );
+};
+
 const PreviewListItem = ({ label, value, children }) => (
   <li className="rounded-2xl border border-gray-200 px-4 py-4">
     <div className="flex items-start gap-3">
@@ -404,10 +546,13 @@ const PreviewListItem = ({ label, value, children }) => (
 
 const AgendaPreview = ({ agenda }) => {
   const resolvedAgenda = agenda || createPreviewPlaceholderAgenda();
-
   const title = `Culture Connection Agenda - ${formatAgendaDate(
     resolvedAgenda.date,
   )}`;
+  const meetingDuration = formatMeetingDuration(
+    resolvedAgenda.meetingStartTime,
+    resolvedAgenda.meetingEndTime,
+  );
 
   return (
     <div className="space-y-6">
@@ -427,6 +572,14 @@ const AgendaPreview = ({ agenda }) => {
               ) : (
                 <div>&nbsp;</div>
               )}
+            </div>
+            <div className="mt-4 rounded-2xl border border-gray-200 bg-white px-4 py-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                Additional notes
+              </div>
+              <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700">
+                {resolvedAgenda.additionalNotes || " "}
+              </div>
             </div>
           </div>
 
@@ -459,10 +612,16 @@ const AgendaPreview = ({ agenda }) => {
         </div>
 
         <div className="mt-10 flex flex-wrap gap-6">
-          <SignatureLine label="Chairman" value={resolvedAgenda.chairman} />
-          <SignatureLine label="Secretary" value={resolvedAgenda.secretary} />
           <SignatureLine
-            label="Minute validator"
+            label="Chairman"
+            value={resolvedAgenda.chairman}
+          />
+          <SignatureLine
+            label="Secretary"
+            value={resolvedAgenda.secretary}
+          />
+          <SignatureLine
+            label="Minute checker"
             value={resolvedAgenda.minuteChecker}
           />
         </div>
@@ -471,16 +630,26 @@ const AgendaPreview = ({ agenda }) => {
       <AgendaPage title={title} pageLabel="Page 2">
         <ul className="space-y-4">
           <PreviewListItem
-            label="Meeting initiation"
+            label={getAgendaLabel(resolvedAgenda, "meetingInitiation")}
             value={resolvedAgenda.meetingInitiation}
           />
           <PreviewListItem
-            label="Board members meet up"
+            label={getAgendaLabel(resolvedAgenda, "boardMembersMeetUp")}
             value={resolvedAgenda.boardMembersMeetUp}
           />
           <PreviewListItem label="Meeting start">
             <div className="text-sm font-semibold leading-6 text-gray-900">
               {resolvedAgenda.meetingStartTime || " "}
+            </div>
+          </PreviewListItem>
+          <PreviewListItem label="End of meeting">
+            <div className="text-sm font-semibold leading-6 text-gray-900">
+              {resolvedAgenda.meetingEndTime || " "}
+            </div>
+          </PreviewListItem>
+          <PreviewListItem label="Meeting duration">
+            <div className="text-sm font-semibold leading-6 text-gray-900">
+              {meetingDuration || " "}
             </div>
           </PreviewListItem>
           {resolvedAgenda.topics.map((topic, index) => (
@@ -498,20 +667,28 @@ const AgendaPreview = ({ agenda }) => {
                       Voting
                     </div>
                     <div className="mt-2 text-sm text-gray-700">
-                      <span className="font-semibold text-gray-900">Reason:</span>{" "}
+                      <span className="font-semibold text-gray-900">
+                        Reason of vote:
+                      </span>{" "}
                       {topic.voting.reason || " "}
                     </div>
                     <div className="mt-3 space-y-2 text-sm text-gray-700">
                       <div>
-                        <span className="font-semibold text-gray-900">Approve:</span>{" "}
+                        <span className="font-semibold text-gray-900">
+                          Approve:
+                        </span>{" "}
                         {(topic.voting.approve || []).join(", ") || " "}
                       </div>
                       <div>
-                        <span className="font-semibold text-gray-900">Disapprove:</span>{" "}
+                        <span className="font-semibold text-gray-900">
+                          Disapprove:
+                        </span>{" "}
                         {(topic.voting.disapprove || []).join(", ") || " "}
                       </div>
                       <div>
-                        <span className="font-semibold text-gray-900">Obstain:</span>{" "}
+                        <span className="font-semibold text-gray-900">
+                          Obstain:
+                        </span>{" "}
                         {(topic.voting.abstain || []).join(", ") || " "}
                       </div>
                     </div>
@@ -521,24 +698,30 @@ const AgendaPreview = ({ agenda }) => {
             </PreviewListItem>
           ))}
           <PreviewListItem
-            label="Meeting concludes"
+            label={getAgendaLabel(resolvedAgenda, "meetingConcludes")}
             value={resolvedAgenda.meetingConcludes}
           />
           <PreviewListItem
-            label="Next date for meeting"
+            label={getAgendaLabel(resolvedAgenda, "nextMeetingDate")}
             value={resolvedAgenda.nextMeetingDate}
           />
           <PreviewListItem
-            label="Topics for next meeting"
+            label={getAgendaLabel(resolvedAgenda, "topicsForNextMeeting")}
             value={resolvedAgenda.topicsForNextMeeting}
           />
         </ul>
 
         <div className="mt-10 flex flex-wrap gap-6">
-          <SignatureLine label="Chairman" value={resolvedAgenda.chairman} />
-          <SignatureLine label="Secretary" value={resolvedAgenda.secretary} />
           <SignatureLine
-            label="Minute validator"
+            label="Chairman"
+            value={resolvedAgenda.chairman}
+          />
+          <SignatureLine
+            label="Secretary"
+            value={resolvedAgenda.secretary}
+          />
+          <SignatureLine
+            label="Minute checker"
             value={resolvedAgenda.minuteChecker}
           />
         </div>
@@ -735,7 +918,7 @@ const SortableTopicItem = ({
 
 const AgendaEditor = ({
   agenda,
-  presentOptions,
+  presentOptionGroups,
   roleOptions,
   attendanceTemplates,
   presentDropdownOpen,
@@ -764,7 +947,7 @@ const AgendaEditor = ({
       <h3 className="text-lg font-semibold text-gray-900">Meeting details</h3>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <div className="block md:col-span-2">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
+            <span className="mb-1 block text-sm font-medium text-gray-700">
             Present
           </span>
           <div className="rounded-xl border border-gray-300 bg-gray-50 p-3">
@@ -792,20 +975,27 @@ const AgendaEditor = ({
                 {presentDropdownOpen && (
                   <div className="absolute left-0 top-full z-20 mt-2 w-72 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl">
                     <div className="max-h-64 overflow-y-auto">
-                      {presentOptions.length === 0 ? (
+                      {presentOptionGroups.length === 0 ? (
                         <div className="px-3 py-2 text-sm text-gray-500">
-                          No admins available.
+                          No participants available.
                         </div>
                       ) : (
-                        presentOptions.map((option) => (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => onAddPresentMember(option)}
-                            className="block w-full rounded-xl px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            {option}
-                          </button>
+                        presentOptionGroups.map((group) => (
+                          <div key={group.label} className="py-1">
+                            <div className="px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+                              {group.label}
+                            </div>
+                            {group.options.map((option) => (
+                              <button
+                                key={`${group.label}-${option}`}
+                                type="button"
+                                onClick={() => onAddPresentMember(option)}
+                                className="block w-full rounded-xl px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
                         ))
                       )}
                     </div>
@@ -815,8 +1005,22 @@ const AgendaEditor = ({
             </div>
 
             <div className="mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-3">
+              <label className="block">
+                <span className="mb-2 block text-xs font-medium uppercase tracking-[0.2em] text-gray-500">
+                  Additional notes
+                </span>
+                <textarea
+                  value={agenda.additionalNotes}
+                  onChange={(event) =>
+                    onFieldChange("additionalNotes", event.target.value)
+                  }
+                  rows={3}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+                />
+              </label>
+
               <span className="mb-2 block text-xs font-medium uppercase tracking-[0.2em] text-gray-500">
-                Additional notes
+                Saved patterns
               </span>
               <div className="flex flex-col gap-3 md:flex-row md:items-center">
                 <input
@@ -921,9 +1125,15 @@ const AgendaEditor = ({
       <h3 className="text-lg font-semibold text-gray-900">Agenda structure</h3>
       <div className="mt-5 space-y-4">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
-            Meeting initiation
-          </span>
+          <EditableSectionTitle
+            title={agenda.customLabels.meetingInitiation}
+            onSave={(value) =>
+              onFieldChange("customLabels", {
+                ...agenda.customLabels,
+                meetingInitiation: value,
+              })
+            }
+          />
           <textarea
             value={agenda.meetingInitiation}
             onChange={(event) =>
@@ -935,9 +1145,15 @@ const AgendaEditor = ({
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
-            Board members meet up
-          </span>
+          <EditableSectionTitle
+            title={agenda.customLabels.boardMembersMeetUp}
+            onSave={(value) =>
+              onFieldChange("customLabels", {
+                ...agenda.customLabels,
+                boardMembersMeetUp: value,
+              })
+            }
+          />
           <textarea
             value={agenda.boardMembersMeetUp}
             onChange={(event) =>
@@ -948,21 +1164,68 @@ const AgendaEditor = ({
           />
         </label>
 
-        <div className="grid gap-4 md:grid-cols-[180px]">
+        <div className="grid gap-4 md:grid-cols-3">
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-gray-700">
               Start time
             </span>
             <input
-              type="time"
+              type="text"
               value={agenda.meetingStartTime}
               onChange={(event) =>
-                onFieldChange("meetingStartTime", event.target.value)
+                onFieldChange(
+                  "meetingStartTime",
+                  normalizeTimeInputValue(event.target.value),
+                )
+              }
+              onBlur={(event) =>
+                onFieldChange(
+                  "meetingStartTime",
+                  finalizeTimeInputValue(event.target.value),
+                )
               }
               className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-              step="60"
+              inputMode="numeric"
+              placeholder="18:00"
+              maxLength={5}
             />
           </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-gray-700">
+              End of meeting
+            </span>
+            <input
+              type="text"
+              value={agenda.meetingEndTime}
+              onChange={(event) =>
+                onFieldChange(
+                  "meetingEndTime",
+                  normalizeTimeInputValue(event.target.value),
+                )
+              }
+              onBlur={(event) =>
+                onFieldChange(
+                  "meetingEndTime",
+                  finalizeTimeInputValue(event.target.value),
+                )
+              }
+              className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+              inputMode="numeric"
+              placeholder="20:30"
+              maxLength={5}
+            />
+          </label>
+          <div className="block">
+            <span className="mb-1 block text-sm font-medium text-gray-700">
+              Meeting duration
+            </span>
+            <div className="rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-700 shadow-sm">
+              {formatMeetingDuration(
+                agenda.meetingStartTime,
+                agenda.meetingEndTime,
+              ) || " "}
+            </div>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
@@ -1017,9 +1280,15 @@ const AgendaEditor = ({
         </div>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
-            Meeting concludes
-          </span>
+          <EditableSectionTitle
+            title={agenda.customLabels.meetingConcludes}
+            onSave={(value) =>
+              onFieldChange("customLabels", {
+                ...agenda.customLabels,
+                meetingConcludes: value,
+              })
+            }
+          />
           <textarea
             value={agenda.meetingConcludes}
             onChange={(event) =>
@@ -1031,9 +1300,15 @@ const AgendaEditor = ({
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
-            Next date for meeting
-          </span>
+          <EditableSectionTitle
+            title={agenda.customLabels.nextMeetingDate}
+            onSave={(value) =>
+              onFieldChange("customLabels", {
+                ...agenda.customLabels,
+                nextMeetingDate: value,
+              })
+            }
+          />
           <textarea
             value={agenda.nextMeetingDate}
             onChange={(event) =>
@@ -1045,9 +1320,15 @@ const AgendaEditor = ({
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-gray-700">
-            Topics for next meeting
-          </span>
+          <EditableSectionTitle
+            title={agenda.customLabels.topicsForNextMeeting}
+            onSave={(value) =>
+              onFieldChange("customLabels", {
+                ...agenda.customLabels,
+                topicsForNextMeeting: value,
+              })
+            }
+          />
           <textarea
             value={agenda.topicsForNextMeeting}
             onChange={(event) =>
@@ -1113,18 +1394,43 @@ export default function AgendaManagement() {
     rawAttendanceTemplates,
   );
 
-  const adminOptions = useMemo(() => {
+  const participantOptionGroups = useMemo(() => {
     if (!Array.isArray(users)) {
       return [];
     }
 
-    return users
-      .filter((user) => Boolean(user?.isAdmin))
-      .map((user) =>
-        [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim(),
-      )
-      .filter(Boolean)
-      .sort((left, right) => left.localeCompare(right));
+    const adminNames = new Set();
+    const committeeNames = new Set();
+
+    users.forEach((user) => {
+      const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim();
+      if (!fullName) {
+        return;
+      }
+
+      if (user?.isAdmin) {
+        adminNames.add(fullName);
+      }
+
+      if (user?.isCommittee) {
+        committeeNames.add(fullName);
+      }
+    });
+
+    return [
+      {
+        label: "Admin",
+        options: Array.from(adminNames).sort((left, right) =>
+          left.localeCompare(right),
+        ),
+      },
+      {
+        label: "Committee",
+        options: Array.from(committeeNames).sort((left, right) =>
+          left.localeCompare(right),
+        ),
+      },
+    ].filter((group) => group.options.length > 0);
   }, [users]);
   const resolvedSelectedAgendaId =
     selectedAgendaId && agendas.some((agenda) => agenda.id === selectedAgendaId)
@@ -1783,9 +2089,14 @@ export default function AgendaManagement() {
             <div ref={presentDropdownRef}>
               <AgendaEditor
                 agenda={draftAgenda}
-                presentOptions={adminOptions.filter(
-                  (option) => !draftAgenda.presentMembers.includes(option),
-                )}
+                presentOptionGroups={participantOptionGroups
+                  .map((group) => ({
+                    ...group,
+                    options: group.options.filter(
+                      (option) => !draftAgenda.presentMembers.includes(option),
+                    ),
+                  }))
+                  .filter((group) => group.options.length > 0)}
                 roleOptions={draftAgenda.presentMembers}
                 attendanceTemplates={attendanceTemplates}
                 presentDropdownOpen={isPresentDropdownOpen}
