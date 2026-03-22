@@ -12,6 +12,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/nextjs";
 import DatePicker from "react-datepicker";
+import { useReactToPrint } from "react-to-print";
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -157,6 +158,8 @@ const normalizeAgendaLabels = (labels) => {
 
 const getAgendaLabel = (agenda, key) => normalizeAgendaLabels(agenda?.customLabels)[key];
 
+const PRINT_PAGE_ITEM_CAPACITY = 24;
+
 const formatMeetingDuration = (startTime, endTime) => {
   if (!startTime || !endTime) {
     return "00:00";
@@ -219,6 +222,134 @@ const isValid24HourTime = (value) => {
 const finalizeTimeInputValue = (value) => {
   const normalizedValue = coerceTimeValue(value);
   return isValid24HourTime(normalizedValue) ? normalizedValue : "";
+};
+
+const estimateTextUnits = (value, charsPerLine = 85) => {
+  if (typeof value !== "string" || !value.trim()) {
+    return 1;
+  }
+
+  return Math.max(
+    1,
+    value
+      .split("\n")
+      .reduce(
+        (total, line) =>
+          total + Math.max(1, Math.ceil(line.trim().length / charsPerLine)),
+        0,
+      ),
+  );
+};
+
+const getAgendaPrintItems = (agenda) => [
+  {
+    type: "field",
+    key: "meetingInitiation",
+    label: getAgendaLabel(agenda, "meetingInitiation"),
+    value: agenda.meetingInitiation,
+  },
+  {
+    type: "field",
+    key: "boardMembersMeetUp",
+    label: getAgendaLabel(agenda, "boardMembersMeetUp"),
+    value: agenda.boardMembersMeetUp,
+  },
+  {
+    type: "timeSummary",
+    key: "meetingTimeSummary",
+  },
+  ...agenda.topics.map((topic, index) => ({
+    type: "topic",
+    key: topic.id || `topic-${index}`,
+    topic,
+    fallbackIndex: index,
+  })),
+  {
+    type: "field",
+    key: "meetingConcludes",
+    label: getAgendaLabel(agenda, "meetingConcludes"),
+    value: agenda.meetingConcludes,
+  },
+  {
+    type: "field",
+    key: "nextMeetingDate",
+    label: getAgendaLabel(agenda, "nextMeetingDate"),
+    value: agenda.nextMeetingDate,
+  },
+  {
+    type: "field",
+    key: "topicsForNextMeeting",
+    label: getAgendaLabel(agenda, "topicsForNextMeeting"),
+    value: agenda.topicsForNextMeeting,
+  },
+];
+
+const getAgendaPrintItemUnits = (item) => {
+  if (item.type === "timeSummary") {
+    return 4;
+  }
+
+  if (item.type === "field") {
+    return 3 + estimateTextUnits(item.value, 95);
+  }
+
+  if (item.type === "topic") {
+    const { topic } = item;
+    let totalUnits = 4 + estimateTextUnits(topic.content, 90);
+
+    if (topic.voting?.enabled) {
+      totalUnits += 4;
+      totalUnits += estimateTextUnits(topic.voting.reason, 85);
+      totalUnits += Math.max(
+        1,
+        Math.ceil((topic.voting.approve || []).join(", ").length / 55),
+      );
+      totalUnits += Math.max(
+        1,
+        Math.ceil((topic.voting.disapprove || []).join(", ").length / 55),
+      );
+      totalUnits += Math.max(
+        1,
+        Math.ceil((topic.voting.abstain || []).join(", ").length / 55),
+      );
+    }
+
+    return totalUnits;
+  }
+
+  return 1;
+};
+
+const paginateAgendaPrintItems = (items) => {
+  if (!items.length) {
+    return [[]];
+  }
+
+  const pages = [];
+  let currentPage = [];
+  let currentUnits = 0;
+
+  items.forEach((item) => {
+    const itemUnits = getAgendaPrintItemUnits(item);
+
+    if (
+      currentPage.length > 0 &&
+      currentUnits + itemUnits > PRINT_PAGE_ITEM_CAPACITY
+    ) {
+      pages.push(currentPage);
+      currentPage = [];
+      currentUnits = 0;
+    }
+
+    currentPage.push(item);
+    currentUnits += itemUnits;
+  });
+
+  if (currentPage.length > 0) {
+    pages.push(currentPage);
+  }
+
+  return pages;
 };
 
 const toInputDateValue = (date) => {
@@ -598,6 +729,9 @@ const AgendaPreview = ({ agenda, showPrintFooter = false }) => {
     resolvedAgenda.meetingStartTime,
     resolvedAgenda.meetingEndTime,
   );
+  const structurePages = paginateAgendaPrintItems(
+    getAgendaPrintItems(resolvedAgenda),
+  );
 
   return (
     <div className="space-y-6">
@@ -662,95 +796,115 @@ const AgendaPreview = ({ agenda, showPrintFooter = false }) => {
         </div>
       </AgendaPage>
 
-      <AgendaPage
-        dateValue={resolvedAgenda.date}
-        pageLabel="Page 2"
-        pinFooter={showPrintFooter}
-        footer={showPrintFooter ? <AgendaPrintFooter agenda={resolvedAgenda} /> : null}
-      >
-        <ul className="space-y-4">
-          <PreviewListItem
-            label={getAgendaLabel(resolvedAgenda, "meetingInitiation")}
-            value={resolvedAgenda.meetingInitiation}
-          />
-          <PreviewListItem
-            label={getAgendaLabel(resolvedAgenda, "boardMembersMeetUp")}
-            value={resolvedAgenda.boardMembersMeetUp}
-          />
-          <PreviewListItem label="Meeting start">
-            <div className="text-sm font-semibold leading-6 text-gray-900">
-              {resolvedAgenda.meetingStartTime || " "}
-            </div>
-          </PreviewListItem>
-          <PreviewListItem label="End of meeting">
-            <div className="text-sm font-semibold leading-6 text-gray-900">
-              {resolvedAgenda.meetingEndTime || " "}
-            </div>
-          </PreviewListItem>
-          <PreviewListItem label="Meeting duration">
-            <div className="text-sm font-semibold leading-6 text-gray-900">
-              {meetingDuration || " "}
-            </div>
-          </PreviewListItem>
-          {resolvedAgenda.topics.map((topic, index) => (
-            <PreviewListItem
-              key={topic.id || `topic-${index}`}
-              label={topic.label || `Topic ${index + 1}`}
-            >
-              <div className="space-y-3">
-                <div className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
-                  {topic.content || " "}
-                </div>
-                {topic.voting?.enabled ? (
-                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                      Voting
-                    </div>
-                    <div className="mt-2 text-sm text-gray-700">
-                      <span className="font-semibold text-gray-900">
-                        Reason of vote:
-                      </span>{" "}
-                      {topic.voting.reason || " "}
-                    </div>
-                    <div className="mt-3 space-y-2 text-sm text-gray-700">
+      {structurePages.map((items, pageIndex) => (
+        <AgendaPage
+          key={`structure-page-${pageIndex + 2}`}
+          dateValue={resolvedAgenda.date}
+          pageLabel={`Page ${pageIndex + 2}`}
+          pinFooter={showPrintFooter}
+          footer={
+            showPrintFooter ? <AgendaPrintFooter agenda={resolvedAgenda} /> : null
+          }
+        >
+          <ul className="space-y-4">
+            {items.map((item) => {
+              if (item.type === "field") {
+                return (
+                  <PreviewListItem
+                    key={item.key}
+                    label={item.label}
+                    value={item.value}
+                  />
+                );
+              }
+
+              if (item.type === "timeSummary") {
+                return (
+                  <li
+                    key={item.key}
+                    className="rounded-2xl border border-gray-200 px-4 py-4"
+                    style={{ breakInside: "avoid" }}
+                  >
+                    <div className="grid gap-4 md:grid-cols-3">
                       <div>
-                        <span className="font-semibold text-gray-900">
-                          Approve:
-                        </span>{" "}
-                        {(topic.voting.approve || []).join(", ") || " "}
+                        <div className="text-sm font-semibold text-gray-900">
+                          Meeting start
+                        </div>
+                        <div className="mt-2 text-sm leading-6 text-gray-700">
+                          {resolvedAgenda.meetingStartTime || " "}
+                        </div>
                       </div>
                       <div>
-                        <span className="font-semibold text-gray-900">
-                          Disapprove:
-                        </span>{" "}
-                        {(topic.voting.disapprove || []).join(", ") || " "}
+                        <div className="text-sm font-semibold text-gray-900">
+                          End of meeting
+                        </div>
+                        <div className="mt-2 text-sm leading-6 text-gray-700">
+                          {resolvedAgenda.meetingEndTime || " "}
+                        </div>
                       </div>
                       <div>
-                        <span className="font-semibold text-gray-900">
-                          Obstain:
-                        </span>{" "}
-                        {(topic.voting.abstain || []).join(", ") || " "}
+                        <div className="text-sm font-semibold text-gray-900">
+                          Meeting duration
+                        </div>
+                        <div className="mt-2 text-sm leading-6 text-gray-700">
+                          {meetingDuration || " "}
+                        </div>
                       </div>
                     </div>
+                  </li>
+                );
+              }
+
+              const topic = item.topic;
+              return (
+                <PreviewListItem
+                  key={item.key}
+                  label={topic.label || `Topic ${item.fallbackIndex + 1}`}
+                >
+                  <div className="space-y-3" style={{ breakInside: "avoid" }}>
+                    <div className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
+                      {topic.content || " "}
+                    </div>
+                    {topic.voting?.enabled ? (
+                      <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                          Voting
+                        </div>
+                        <div className="mt-2 text-sm text-gray-700">
+                          <span className="font-semibold text-gray-900">
+                            Reason of vote:
+                          </span>{" "}
+                          {topic.voting.reason || " "}
+                        </div>
+                        <div className="mt-3 space-y-2 text-sm text-gray-700">
+                          <div>
+                            <span className="font-semibold text-gray-900">
+                              Approve:
+                            </span>{" "}
+                            {(topic.voting.approve || []).join(", ") || " "}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-900">
+                              Disapprove:
+                            </span>{" "}
+                            {(topic.voting.disapprove || []).join(", ") || " "}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-900">
+                              Obstain:
+                            </span>{" "}
+                            {(topic.voting.abstain || []).join(", ") || " "}
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
-              </div>
-            </PreviewListItem>
-          ))}
-          <PreviewListItem
-            label={getAgendaLabel(resolvedAgenda, "meetingConcludes")}
-            value={resolvedAgenda.meetingConcludes}
-          />
-          <PreviewListItem
-            label={getAgendaLabel(resolvedAgenda, "nextMeetingDate")}
-            value={resolvedAgenda.nextMeetingDate}
-          />
-          <PreviewListItem
-            label={getAgendaLabel(resolvedAgenda, "topicsForNextMeeting")}
-            value={resolvedAgenda.topicsForNextMeeting}
-          />
-        </ul>
-      </AgendaPage>
+                </PreviewListItem>
+              );
+            })}
+          </ul>
+        </AgendaPage>
+      ))}
     </div>
   );
 };
@@ -1466,6 +1620,63 @@ export default function AgendaManagement() {
   const selectedAgenda =
     agendas.find((agenda) => agenda.id === resolvedSelectedAgendaId) || null;
 
+  const handleReactToPrint = useReactToPrint({
+    contentRef: previewPrintRef,
+    documentTitle: () => selectedAgenda?.title || "agenda",
+    onPrintError: (_location, printError) => {
+      setGeneralError(
+        printError?.message || "Could not prepare the agenda for printing.",
+      );
+    },
+    pageStyle: `
+      @page {
+        size: A4 portrait;
+        margin: 12mm;
+      }
+
+      @media print {
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .agenda-print-page {
+          break-after: page;
+          page-break-after: always;
+          border: none !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          background: white !important;
+        }
+
+        .agenda-print-page:last-child {
+          break-after: auto;
+          page-break-after: auto;
+        }
+
+        .agenda-print-footer-page {
+          min-height: calc(297mm - 24mm);
+          box-sizing: border-box;
+        }
+
+        .agenda-print-page ul,
+        .agenda-print-page li {
+          margin: 0;
+          padding: 0;
+        }
+
+        .agenda-print-page li,
+        .agenda-print-page [data-print-avoid-break="true"] {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+      }
+    `,
+  });
+
   const mutation = useMutation({
     mutationFn: updateAgendas,
     onSuccess: (updatedAgendas) => {
@@ -1984,153 +2195,8 @@ export default function AgendaManagement() {
       return;
     }
 
-    const printWindow = window.open("", "_blank", "width=1100,height=900");
-
-    if (!printWindow) {
-      setGeneralError("Allow pop-ups to print or download the agenda PDF.");
-      return;
-    }
-
-    const headMarkup = Array.from(
-      document.querySelectorAll('link[rel="stylesheet"], style'),
-    )
-      .map((node) => node.outerHTML)
-      .join("\n");
-
-    const escapedTitle = `${selectedAgenda.title}`
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;");
-
-    printWindow.document.open();
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>${escapedTitle}</title>
-          ${headMarkup}
-          <style>
-            body {
-              margin: 0;
-              background: #f3f4f6;
-              padding: 24px;
-            }
-
-            .print-toolbar {
-              position: sticky;
-              top: 0;
-              z-index: 20;
-              display: flex;
-              justify-content: flex-end;
-              gap: 12px;
-              margin: 0 auto 16px;
-              max-width: 960px;
-              padding: 12px 0;
-              background: #f3f4f6;
-            }
-
-            .print-toolbar button {
-              border: 0;
-              border-radius: 10px;
-              padding: 10px 16px;
-              font: inherit;
-              font-weight: 600;
-              cursor: pointer;
-            }
-
-            .print-primary {
-              background: #111827;
-              color: white;
-            }
-
-            .print-secondary {
-              background: #e5e7eb;
-              color: #111827;
-            }
-
-            .print-shell {
-              max-width: 960px;
-              margin: 0 auto;
-            }
-
-            .agenda-print-page {
-              break-after: page;
-              page-break-after: always;
-            }
-
-            .agenda-print-page:last-child {
-              break-after: auto;
-              page-break-after: auto;
-            }
-
-            .agenda-print-footer-page {
-              min-height: calc(297mm - 24mm);
-              box-sizing: border-box;
-            }
-
-            @page {
-              size: A4;
-              margin: 12mm;
-            }
-
-            @media print {
-              body {
-                background: white;
-                padding: 0;
-              }
-
-              .print-toolbar {
-                display: none;
-              }
-
-              .print-shell {
-                max-width: none;
-              }
-
-              .agenda-print-page {
-                border: none !important;
-                border-radius: 0 !important;
-                box-shadow: none !important;
-                background: white !important;
-              }
-
-              .agenda-print-footer-page {
-                min-height: calc(297mm - 24mm);
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="print-toolbar">
-            <button class="print-secondary" type="button" id="close-preview">
-              Close
-            </button>
-            <button class="print-primary" type="button" id="print-agenda">
-              Print / Save as PDF
-            </button>
-          </div>
-          <div class="print-shell">${previewPrintRef.current.innerHTML}</div>
-          <script>
-            window.addEventListener("DOMContentLoaded", () => {
-              const printButton = document.getElementById("print-agenda");
-              const closeButton = document.getElementById("close-preview");
-
-              if (printButton) {
-                printButton.addEventListener("click", () => window.print());
-              }
-
-              if (closeButton) {
-                closeButton.addEventListener("click", () => window.close());
-              }
-            });
-          <\/script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
+    setGeneralError(null);
+    handleReactToPrint();
   };
 
   if (isLoading) {
@@ -2322,11 +2388,12 @@ export default function AgendaManagement() {
             <>
               <AgendaPreview agenda={selectedAgenda} />
               <div
-                ref={previewPrintRef}
                 aria-hidden="true"
                 className="pointer-events-none absolute -left-[99999px] top-0"
               >
-                <AgendaPreview agenda={selectedAgenda} showPrintFooter />
+                <div ref={previewPrintRef}>
+                  <AgendaPreview agenda={selectedAgenda} showPrintFooter />
+                </div>
               </div>
             </>
           )}
