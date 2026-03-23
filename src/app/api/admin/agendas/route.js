@@ -184,6 +184,37 @@ const ensureTopicList = (topics) => {
   return normalizedTopics;
 };
 
+const ensureAppliedTopicSubmissions = (topics) => {
+  if (!Array.isArray(topics)) {
+    return [];
+  }
+
+  return topics.map((topic, index) => {
+    const safeTopic =
+      topic && typeof topic === "object" && !Array.isArray(topic) ? topic : {};
+
+    return {
+      id:
+        typeof safeTopic.id === "string" && safeTopic.id.trim()
+          ? safeTopic.id
+          : `applied-topic-${index}`,
+      userid:
+        typeof safeTopic.userid === "string" && safeTopic.userid.trim()
+          ? safeTopic.userid
+          : typeof safeTopic.submittedBy === "string" && safeTopic.submittedBy.trim()
+            ? safeTopic.submittedBy
+            : "Unknown",
+      topic:
+        typeof safeTopic.topic === "string"
+          ? safeTopic.topic
+          : typeof safeTopic.content === "string"
+            ? safeTopic.content
+            : "",
+      completed: safeTopic.completed === true ? true : null,
+    };
+  });
+};
+
 const normalizeAgenda = (agenda, index = 0) => {
   const safeAgenda =
     agenda && typeof agenda === "object" && !Array.isArray(agenda) ? agenda : {};
@@ -252,6 +283,9 @@ const normalizeAgenda = (agenda, index = 0) => {
       typeof safeAgenda.topicsForNextMeeting === "string"
         ? safeAgenda.topicsForNextMeeting
         : "",
+    Topics: ensureAppliedTopicSubmissions(
+      Array.isArray(safeAgenda.Topics) ? safeAgenda.Topics : safeAgenda.appliedTopics,
+    ),
   };
 };
 
@@ -319,6 +353,25 @@ const validateAgendas = (data) => {
       throw new Error(
         "Invalid item structure: presentMembers must be an array.",
       );
+    }
+
+    if (!Array.isArray(agenda.Topics)) {
+      throw new Error("Invalid item structure: Topics must be an array.");
+    }
+
+    for (const topic of agenda.Topics) {
+      if (
+        !topic ||
+        typeof topic !== "object" ||
+        typeof topic.id !== "string" ||
+        typeof topic.userid !== "string" ||
+        typeof topic.topic !== "string" ||
+        !(topic.completed === true || topic.completed === null)
+      ) {
+        throw new Error(
+          "Invalid item structure: each Topics item must have id, userid, topic, and completed.",
+        );
+      }
     }
 
     if (

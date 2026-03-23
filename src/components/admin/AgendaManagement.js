@@ -11,6 +11,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import DatePicker from "react-datepicker";
 import { useReactToPrint } from "react-to-print";
 
@@ -587,6 +588,17 @@ const normalizeAgenda = (agenda, index = 0) => {
       typeof safeAgenda.topicsForNextMeeting === "string"
         ? safeAgenda.topicsForNextMeeting
         : "",
+    Topics: Array.isArray(safeAgenda.Topics)
+      ? safeAgenda.Topics.map((topic) => ({
+          id: topic.id || createTopicId(),
+          userid: topic.userid || "Unknown",
+          topic: topic.topic || "",
+          completed: topic.completed || null,
+        }))
+      : [],
+    appliedTopics: Array.isArray(safeAgenda.appliedTopics)
+      ? safeAgenda.appliedTopics
+      : [],
   };
 };
 
@@ -998,8 +1010,10 @@ const SortableTopicItem = ({
   index,
   presentMembers,
   attendanceTemplates,
+  submittedTopics,
   onTopicLabelChange,
   onTopicChange,
+  onApplySubmittedTopic,
   onToggleTopicVoting,
   onTopicVotingReasonChange,
   onAddVoteMember,
@@ -1058,14 +1072,36 @@ const SortableTopicItem = ({
           <span className="mb-1 block text-sm font-medium text-gray-700">
             Topic name
           </span>
-          <input
-            type="text"
-            value={topic.label}
-            onChange={(event) =>
-              onTopicLabelChange(index, event.target.value)
-            }
-            className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
-          />
+          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_240px]">
+            <input
+              type="text"
+              value={topic.label}
+              onChange={(event) =>
+                onTopicLabelChange(index, event.target.value)
+              }
+              className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+            />
+            <select
+              value=""
+              onChange={(event) => {
+                if (event.target.value) {
+                  onApplySubmittedTopic(index, event.target.value);
+                }
+              }}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm"
+            >
+              <option value="">
+                {submittedTopics.length > 0
+                  ? "Use submitted topic"
+                  : "No open submitted topics"}
+              </option>
+              {submittedTopics.map((submittedTopic) => (
+                <option key={submittedTopic.id} value={submittedTopic.id}>
+                  {submittedTopic.topic || "Untitled submitted topic"}
+                </option>
+              ))}
+            </select>
+          </div>
         </label>
 
         <label className="block">
@@ -1184,6 +1220,7 @@ const AgendaEditor = ({
   presentOptionGroups,
   roleOptions,
   attendanceTemplates,
+  submittedTopics,
   presentDropdownOpen,
   onTogglePresentDropdown,
   onAddPresentMember,
@@ -1195,6 +1232,7 @@ const AgendaEditor = ({
   onFieldChange,
   onTopicLabelChange,
   onTopicChange,
+  onApplySubmittedTopic,
   onTopicDragEnd,
   onToggleTopicVoting,
   onTopicVotingReasonChange,
@@ -1527,8 +1565,10 @@ const AgendaEditor = ({
                     index={index}
                     presentMembers={agenda.presentMembers}
                     attendanceTemplates={attendanceTemplates}
+                    submittedTopics={submittedTopics}
                     onTopicLabelChange={onTopicLabelChange}
                     onTopicChange={onTopicChange}
+                    onApplySubmittedTopic={onApplySubmittedTopic}
                     onToggleTopicVoting={onToggleTopicVoting}
                     onTopicVotingReasonChange={onTopicVotingReasonChange}
                     onAddVoteMember={onAddVoteMember}
@@ -1608,6 +1648,7 @@ const AgendaEditor = ({
 
 export default function AgendaManagement() {
   const { user } = useUser();
+  const router = useRouter();
   const isAdmin = user?.publicMetadata?.admin === true;
   const isCommitteeOnly = user?.publicMetadata?.committee === true && !isAdmin;
   const queryClient = useQueryClient();
@@ -1619,6 +1660,7 @@ export default function AgendaManagement() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [newAgendaDate, setNewAgendaDate] = useState(new Date());
   const [isPresentDropdownOpen, setIsPresentDropdownOpen] = useState(false);
+  const [isViewAppliedModalOpen, setIsViewAppliedModalOpen] = useState(false);
   const [attendanceTemplateDraftName, setAttendanceTemplateDraftName] =
     useState("");
   const createAgendaButtonRef = useRef(null);
@@ -1703,6 +1745,16 @@ export default function AgendaManagement() {
 
   const selectedAgenda =
     agendas.find((agenda) => agenda.id === resolvedSelectedAgendaId) || null;
+  const availableSubmittedTopics = useMemo(
+    () =>
+      (draftAgenda?.Topics || []).filter(
+        (topic) =>
+          typeof topic?.topic === "string" &&
+          topic.topic.trim() &&
+          topic.completed !== true,
+      ),
+    [draftAgenda],
+  );
 
   const handleReactToPrint = useReactToPrint({
     contentRef: previewPrintRef,
@@ -1791,8 +1843,14 @@ export default function AgendaManagement() {
       const normalizedAgendas = normalizeAgendas(updatedAgendas);
       queryClient.setQueryData(["agendas"], normalizedAgendas);
 
-      if (draftAgenda) {
-        setSelectedAgendaId(draftAgenda.id);
+      const preservedAgendaId =
+        draftAgenda?.id || selectedAgendaId || normalizedAgendas[0]?.id || null;
+
+      if (
+        preservedAgendaId &&
+        normalizedAgendas.some((agenda) => agenda.id === preservedAgendaId)
+      ) {
+        setSelectedAgendaId(preservedAgendaId);
       } else if (normalizedAgendas[0]) {
         setSelectedAgendaId(normalizedAgendas[0].id);
       }
@@ -1925,6 +1983,39 @@ export default function AgendaManagement() {
         ...currentAgenda,
         topics: currentAgenda.topics.map((topic, index) =>
           index === topicIndex ? { ...topic, content: value } : topic,
+        ),
+      };
+    });
+  };
+
+  const handleApplySubmittedTopic = (topicIndex, submittedTopicId) => {
+    setDraftAgenda((currentAgenda) => {
+      if (!currentAgenda) {
+        return currentAgenda;
+      }
+
+      const selectedSubmittedTopic = (currentAgenda.Topics || []).find(
+        (topic) => topic.id === submittedTopicId,
+      );
+
+      if (!selectedSubmittedTopic) {
+        return currentAgenda;
+      }
+
+      return {
+        ...currentAgenda,
+        topics: currentAgenda.topics.map((topic, index) =>
+          index === topicIndex
+            ? {
+                ...topic,
+                label: selectedSubmittedTopic.topic || topic.label,
+              }
+            : topic,
+        ),
+        Topics: (currentAgenda.Topics || []).map((topic) =>
+          topic.id === submittedTopicId
+            ? { ...topic, completed: true }
+            : topic,
         ),
       };
     });
@@ -2345,6 +2436,16 @@ export default function AgendaManagement() {
               {isAdmin && (
                 <button
                   type="button"
+                  onClick={() => setIsViewAppliedModalOpen(true)}
+                  className="rounded-md bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-200"
+                >
+                  Applied agenda topics
+                </button>
+              )}
+
+              {isAdmin && (
+                <button
+                  type="button"
                   onClick={handleEditAgenda}
                   className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
@@ -2466,6 +2567,7 @@ export default function AgendaManagement() {
                   .filter((group) => group.options.length > 0)}
                 roleOptions={draftAgenda.presentMembers}
                 attendanceTemplates={attendanceTemplates}
+                submittedTopics={availableSubmittedTopics}
                 presentDropdownOpen={isPresentDropdownOpen}
                 onTogglePresentDropdown={() =>
                   setIsPresentDropdownOpen((current) => !current)
@@ -2481,6 +2583,7 @@ export default function AgendaManagement() {
                 onFieldChange={handleDraftFieldChange}
                 onTopicLabelChange={handleTopicLabelChange}
                 onTopicChange={handleTopicChange}
+                onApplySubmittedTopic={handleApplySubmittedTopic}
                 onTopicDragEnd={handleTopicDragEnd}
                 onToggleTopicVoting={handleToggleTopicVoting}
                 onTopicVotingReasonChange={handleTopicVotingReasonChange}
@@ -2507,6 +2610,141 @@ export default function AgendaManagement() {
           )}
         </main>
       </div>
+
+      {isViewAppliedModalOpen && selectedAgenda && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm">
+          <div className="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">Applied Topics</h3>
+              <button
+                type="button"
+                onClick={() => setIsViewAppliedModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <span className="text-2xl leading-none">&times;</span>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {!selectedAgenda.Topics || selectedAgenda.Topics.length === 0 ? (
+                <p className="text-center text-sm text-gray-500">
+                  No topics have been applied to this agenda yet.
+                </p>
+              ) : (
+                <ul className="space-y-4">
+                  {selectedAgenda.Topics.map((topicItem, index) => (
+                    <li
+                      key={topicItem.id || index}
+                      className="flex items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4"
+                    >
+                      <div className="pt-1">
+                        <input
+                          type="checkbox"
+                          checked={topicItem.completed === true}
+                          onChange={(event) => {
+                            const isChecked = event.target.checked;
+                            const updatedTopics = selectedAgenda.Topics.map((topic) =>
+                              topic.id === topicItem.id
+                                ? { ...topic, completed: isChecked ? true : null }
+                                : topic,
+                            );
+                            const updatedAgenda = {
+                              ...selectedAgenda,
+                              Topics: updatedTopics,
+                            };
+                            const updatedAgendas = agendas.map((agenda) =>
+                              agenda.id === updatedAgenda.id ? updatedAgenda : agenda,
+                            );
+                            mutation.mutate(updatedAgendas);
+                          }}
+                          className="h-5 w-5 cursor-pointer rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-600">
+                            Suggested by: {topicItem.userid || "Unknown Member"}
+                          </div>
+                          {isAdmin ? (
+                            <button
+                              type="button"
+                              disabled={mutation.isPending}
+                              onClick={() => {
+                                const shouldRemove = window.confirm(
+                                  "Remove this topic?",
+                                );
+
+                                if (!shouldRemove) {
+                                  return;
+                                }
+
+                                const updatedTopics = selectedAgenda.Topics.filter(
+                                  (topic) => topic.id !== topicItem.id,
+                                );
+                                const updatedAgenda = {
+                                  ...selectedAgenda,
+                                  Topics: updatedTopics,
+                                };
+                                const updatedAgendas = agendas.map((agenda) =>
+                                  agenda.id === updatedAgenda.id ? updatedAgenda : agenda,
+                                );
+                                mutation.mutate(updatedAgendas);
+                              }}
+                              className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-100 disabled:opacity-50"
+                            >
+                              Remove
+                            </button>
+                          ) : null}
+                        </div>
+                        <div
+                          className={`whitespace-pre-wrap text-sm break-all ${
+                            topicItem.completed
+                              ? "text-gray-400 line-through"
+                              : "text-gray-800"
+                          }`}
+                        >
+                          {topicItem.topic}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="gap-3 rounded-b-2xl border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex sm:flex-row-reverse sm:justify-between">
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => setIsViewAppliedModalOpen(false)}
+                  className="w-full rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-800 sm:w-auto"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsViewAppliedModalOpen(false);
+                    router.push(`/admin/${selectedAgenda.id}`);
+                  }}
+                  className="w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 sm:w-auto"
+                >
+                  Submit a new topic
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = `${window.location.origin}/admin/${selectedAgenda.id}`;
+                  navigator.clipboard.writeText(url);
+                  alert("Application link copied to clipboard!");
+                }}
+                className="mt-3 w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 sm:mt-0 sm:w-auto"
+              >
+                Copy Application Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
