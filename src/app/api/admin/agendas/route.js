@@ -215,6 +215,34 @@ const ensureAppliedTopicSubmissions = (topics) => {
   });
 };
 
+const normalizeAgendaSignatures = (signatures) => {
+  const safeSignatures =
+    signatures && typeof signatures === "object" && !Array.isArray(signatures)
+      ? signatures
+      : {};
+
+  return {
+    secretarySigned: safeSignatures.secretarySigned === true,
+    secretarySignedBy:
+      typeof safeSignatures.secretarySignedBy === "string"
+        ? safeSignatures.secretarySignedBy
+        : "",
+    secretarySignedAt:
+      typeof safeSignatures.secretarySignedAt === "string"
+        ? safeSignatures.secretarySignedAt
+        : "",
+    minuteCheckerSigned: safeSignatures.minuteCheckerSigned === true,
+    minuteCheckerSignedBy:
+      typeof safeSignatures.minuteCheckerSignedBy === "string"
+        ? safeSignatures.minuteCheckerSignedBy
+        : "",
+    minuteCheckerSignedAt:
+      typeof safeSignatures.minuteCheckerSignedAt === "string"
+        ? safeSignatures.minuteCheckerSignedAt
+        : "",
+  };
+};
+
 const normalizeAgenda = (agenda, index = 0) => {
   const safeAgenda =
     agenda && typeof agenda === "object" && !Array.isArray(agenda) ? agenda : {};
@@ -283,6 +311,10 @@ const normalizeAgenda = (agenda, index = 0) => {
       typeof safeAgenda.topicsForNextMeeting === "string"
         ? safeAgenda.topicsForNextMeeting
         : "",
+    isCompleted: safeAgenda.isCompleted === true,
+    completedAt:
+      typeof safeAgenda.completedAt === "string" ? safeAgenda.completedAt : "",
+    signatures: normalizeAgendaSignatures(safeAgenda.signatures),
     Topics: ensureAppliedTopicSubmissions(
       Array.isArray(safeAgenda.Topics) ? safeAgenda.Topics : safeAgenda.appliedTopics,
     ),
@@ -357,6 +389,35 @@ const validateAgendas = (data) => {
 
     if (!Array.isArray(agenda.Topics)) {
       throw new Error("Invalid item structure: Topics must be an array.");
+    }
+
+    if (typeof agenda.isCompleted !== "boolean") {
+      throw new Error("Invalid item structure: isCompleted must be a boolean.");
+    }
+
+    if (typeof agenda.completedAt !== "string") {
+      throw new Error("Invalid item structure: completedAt must be a string.");
+    }
+
+    if (
+      !agenda.signatures ||
+      typeof agenda.signatures !== "object" ||
+      Array.isArray(agenda.signatures)
+    ) {
+      throw new Error("Invalid item structure: signatures must be an object.");
+    }
+
+    if (
+      typeof agenda.signatures.secretarySigned !== "boolean" ||
+      typeof agenda.signatures.secretarySignedBy !== "string" ||
+      typeof agenda.signatures.secretarySignedAt !== "string" ||
+      typeof agenda.signatures.minuteCheckerSigned !== "boolean" ||
+      typeof agenda.signatures.minuteCheckerSignedBy !== "string" ||
+      typeof agenda.signatures.minuteCheckerSignedAt !== "string"
+    ) {
+      throw new Error(
+        "Invalid item structure: signatures must include secretary and minute checker signing details.",
+      );
     }
 
     for (const topic of agenda.Topics) {

@@ -222,6 +222,9 @@ const coerceTimeValue = (value) => {
   return /^\d{2}:\d{2}$/.test(normalizedValue) ? normalizedValue : "";
 };
 
+const normalizeComparableName = (value) =>
+  typeof value === "string" ? value.trim().toLowerCase() : "";
+
 const isValid24HourTime = (value) => {
   const coercedValue = coerceTimeValue(value);
 
@@ -520,6 +523,34 @@ const normalizeAttendanceTemplates = (templates) => {
     .filter((template) => template.name.trim());
 };
 
+const normalizeAgendaSignatures = (signatures) => {
+  const safeSignatures =
+    signatures && typeof signatures === "object" && !Array.isArray(signatures)
+      ? signatures
+      : {};
+
+  return {
+    secretarySigned: safeSignatures.secretarySigned === true,
+    secretarySignedBy:
+      typeof safeSignatures.secretarySignedBy === "string"
+        ? safeSignatures.secretarySignedBy
+        : "",
+    secretarySignedAt:
+      typeof safeSignatures.secretarySignedAt === "string"
+        ? safeSignatures.secretarySignedAt
+        : "",
+    minuteCheckerSigned: safeSignatures.minuteCheckerSigned === true,
+    minuteCheckerSignedBy:
+      typeof safeSignatures.minuteCheckerSignedBy === "string"
+        ? safeSignatures.minuteCheckerSignedBy
+        : "",
+    minuteCheckerSignedAt:
+      typeof safeSignatures.minuteCheckerSignedAt === "string"
+        ? safeSignatures.minuteCheckerSignedAt
+        : "",
+  };
+};
+
 const normalizeAgenda = (agenda, index = 0) => {
   const safeAgenda =
     agenda && typeof agenda === "object" && !Array.isArray(agenda) ? agenda : {};
@@ -588,6 +619,10 @@ const normalizeAgenda = (agenda, index = 0) => {
       typeof safeAgenda.topicsForNextMeeting === "string"
         ? safeAgenda.topicsForNextMeeting
         : "",
+    isCompleted: safeAgenda.isCompleted === true,
+    completedAt:
+      typeof safeAgenda.completedAt === "string" ? safeAgenda.completedAt : "",
+    signatures: normalizeAgendaSignatures(safeAgenda.signatures),
     Topics: Array.isArray(safeAgenda.Topics)
       ? safeAgenda.Topics.map((topic) => ({
           id: topic.id || createTopicId(),
@@ -775,11 +810,23 @@ const AgendaPrintFooter = ({ agenda }) => (
     data-print-avoid-break="true"
   >
     {[
-      ["Chairman", agenda.chairman],
-      ["Secretary", agenda.secretary],
-      ["Minute checker", agenda.minuteChecker],
-    ].map(([label, value]) => (
-      <div key={label} className="flex min-h-[72px] flex-col text-center">
+      {
+        label: "Chairman",
+        value: agenda.chairman,
+        isSigned: false,
+      },
+      {
+        label: "Secretary",
+        value: agenda.secretary,
+        isSigned: agenda.signatures?.secretarySigned === true,
+      },
+      {
+        label: "Minute checker",
+        value: agenda.minuteChecker,
+        isSigned: agenda.signatures?.minuteCheckerSigned === true,
+      },
+    ].map(({ label, value, isSigned }) => (
+      <div key={label} className="relative flex min-h-[72px] flex-col text-center">
         <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
           {label}
         </div>
@@ -790,6 +837,13 @@ const AgendaPrintFooter = ({ agenda }) => (
             </span>
           ) : null}
         </div>
+        {isSigned ? (
+          <img
+            src="/approvedsignned.png"
+            alt={`${label} signed`}
+            className="pointer-events-none absolute bottom-3 left-1/2 h-20 w-20 -translate-x-1/2 object-contain opacity-85"
+          />
+        ) : null}
         <div className="mt-1 border-b border-gray-400"></div>
       </div>
     ))}
@@ -1699,6 +1753,7 @@ export default function AgendaManagement() {
   const [isEditing, setIsEditing] = useState(false);
   const [draftAgenda, setDraftAgenda] = useState(null);
   const [generalError, setGeneralError] = useState(null);
+  const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [newAgendaDate, setNewAgendaDate] = useState(new Date());
   const [isPresentDropdownOpen, setIsPresentDropdownOpen] = useState(false);
@@ -1728,6 +1783,10 @@ export default function AgendaManagement() {
   });
 
   const agendas = normalizeAgendas(rawAgendas);
+  const userFullName = useMemo(
+    () => [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim(),
+    [user],
+  );
   const { data: users = [] } = useQuery({
     queryKey: ["admin", "users", "agenda"],
     queryFn: fetchAdminUsers,
@@ -1787,6 +1846,8 @@ export default function AgendaManagement() {
 
   const selectedAgenda =
     agendas.find((agenda) => agenda.id === resolvedSelectedAgendaId) || null;
+  const openAgendas = agendas.filter((agenda) => agenda.isCompleted !== true);
+  const completedAgendas = agendas.filter((agenda) => agenda.isCompleted === true);
   const availableSubmittedTopics = useMemo(
     () =>
       (draftAgenda?.Topics || []).filter(
@@ -1797,6 +1858,20 @@ export default function AgendaManagement() {
       ),
     [draftAgenda],
   );
+  const currentUserComparableName = normalizeComparableName(userFullName);
+  const secretaryComparableName = normalizeComparableName(selectedAgenda?.secretary);
+  const minuteCheckerComparableName = normalizeComparableName(
+    selectedAgenda?.minuteChecker,
+  );
+  const canCurrentUserSignAsSecretary =
+    Boolean(currentUserComparableName) &&
+    currentUserComparableName === secretaryComparableName;
+  const canCurrentUserSignAsMinuteChecker =
+    Boolean(currentUserComparableName) &&
+    currentUserComparableName === minuteCheckerComparableName;
+  const canCompleteSelectedAgenda =
+    selectedAgenda?.signatures?.secretarySigned === true &&
+    selectedAgenda?.signatures?.minuteCheckerSigned === true;
 
   const handleReactToPrint = useReactToPrint({
     contentRef: previewPrintRef,
@@ -1967,6 +2042,11 @@ export default function AgendaManagement() {
 
   const handleEditAgenda = () => {
     if (!selectedAgenda) {
+      return;
+    }
+
+    if (selectedAgenda.isCompleted) {
+      setGeneralError("Completed agendas can no longer be edited.");
       return;
     }
 
@@ -2443,6 +2523,95 @@ export default function AgendaManagement() {
     mutation.mutate(updatedAgendas);
   };
 
+  const handleOpenCompleteModal = () => {
+    if (!selectedAgenda) {
+      return;
+    }
+
+    if (!selectedAgenda.secretary || !selectedAgenda.minuteChecker) {
+      setGeneralError(
+        "Set both Secretary and Minute Checker before completing the agenda.",
+      );
+      return;
+    }
+
+    setGeneralError(null);
+    setIsCompleteModalOpen(true);
+  };
+
+  const handleSignAgendaRole = (roleKey) => {
+    if (!selectedAgenda || selectedAgenda.isCompleted) {
+      return;
+    }
+
+    const isSecretaryRole = roleKey === "secretary";
+    const roleName = isSecretaryRole ? selectedAgenda.secretary : selectedAgenda.minuteChecker;
+    const canSign = isSecretaryRole
+      ? canCurrentUserSignAsSecretary
+      : canCurrentUserSignAsMinuteChecker;
+
+    if (!roleName) {
+      setGeneralError(`Assign the ${isSecretaryRole ? "Secretary" : "Minute Checker"} before signing.`);
+      return;
+    }
+
+    if (!canSign) {
+      setGeneralError(
+        `Only the assigned ${isSecretaryRole ? "Secretary" : "Minute Checker"} can sign this agenda.`,
+      );
+      return;
+    }
+
+    const updatedAgenda = normalizeAgenda({
+      ...selectedAgenda,
+      signatures: {
+        ...selectedAgenda.signatures,
+        ...(isSecretaryRole
+          ? {
+              secretarySigned: true,
+              secretarySignedBy: userFullName,
+              secretarySignedAt: new Date().toISOString(),
+            }
+          : {
+              minuteCheckerSigned: true,
+              minuteCheckerSignedBy: userFullName,
+              minuteCheckerSignedAt: new Date().toISOString(),
+            }),
+      },
+    });
+    const updatedAgendas = agendas.map((agenda) =>
+      agenda.id === updatedAgenda.id ? updatedAgenda : agenda,
+    );
+
+    setGeneralError(null);
+    mutation.mutate(updatedAgendas);
+  };
+
+  const handleCompleteAgenda = () => {
+    if (!selectedAgenda) {
+      return;
+    }
+
+    if (!canCompleteSelectedAgenda) {
+      setGeneralError(
+        "Both Secretary and Minute Checker must sign before the agenda can be completed.",
+      );
+      return;
+    }
+
+    const updatedAgenda = normalizeAgenda({
+      ...selectedAgenda,
+      isCompleted: true,
+      completedAt: new Date().toISOString(),
+    });
+    const updatedAgendas = agendas.map((agenda) =>
+      agenda.id === updatedAgenda.id ? updatedAgenda : agenda,
+    );
+
+    mutation.mutate(updatedAgendas);
+    setIsCompleteModalOpen(false);
+  };
+
   const handleCreateAgenda = (selectedDate) => {
     const normalizedDate = toInputDateValue(selectedDate);
 
@@ -2495,12 +2664,26 @@ export default function AgendaManagement() {
     <div className="mt-6 rounded border bg-gray-50 p-4">
       <div className="mb-6 flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-800">Agenda</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            {isCommitteeOnly
-              ? "Committee members can review agendas in read-only mode."
-              : "Create and maintain meeting agendas based on the official template."}
-          </p>
+          <h2 className="text-2xl font-semibold text-gray-800">
+            {selectedAgenda?.title || "Agenda"}
+          </h2>
+          {selectedAgenda?.isCompleted ? (
+            <div className="mt-2 inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-green-700">
+              Completed
+            </div>
+          ) : null}
+          {selectedAgenda && !isEditing && !selectedAgenda.isCompleted ? (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={handleOpenCompleteModal}
+                disabled={mutation.isPending}
+                className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Complete
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -2524,7 +2707,7 @@ export default function AgendaManagement() {
                 </button>
               )}
 
-              {isAdmin && (
+              {isAdmin && !selectedAgenda.isCompleted && (
                 <button
                   type="button"
                   onClick={handleEditAgenda}
@@ -2590,23 +2773,54 @@ export default function AgendaManagement() {
                 {isAdmin ? " Create the first one from the date picker." : ""}
               </p>
             ) : (
-              <ul className="space-y-2">
-                {agendas.map((agenda) => (
-                  <li key={agenda.id}>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectAgenda(agenda.id)}
-                      className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                        resolvedSelectedAgendaId === agenda.id
-                          ? "bg-purple-100 font-semibold text-purple-700"
-                          : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                    >
-                      {agenda.title}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <div className="space-y-5">
+                {openAgendas.length > 0 ? (
+                  <ul className="space-y-2">
+                    {openAgendas.map((agenda) => (
+                      <li key={agenda.id}>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectAgenda(agenda.id)}
+                          className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                            resolvedSelectedAgendaId === agenda.id
+                              ? "bg-purple-100 font-semibold text-purple-700"
+                              : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                        >
+                          {agenda.title}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-500">No open agendas.</p>
+                )}
+
+                {completedAgendas.length > 0 ? (
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                      Completed
+                    </div>
+                    <ul className="space-y-2">
+                      {completedAgendas.map((agenda) => (
+                        <li key={agenda.id}>
+                          <button
+                            type="button"
+                            onClick={() => handleSelectAgenda(agenda.id)}
+                            className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                              resolvedSelectedAgendaId === agenda.id
+                                ? "bg-green-100 font-semibold text-green-700"
+                                : "text-gray-600 hover:bg-gray-100"
+                            }`}
+                          >
+                            {agenda.title}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
             )}
           </div>
 
@@ -2695,6 +2909,120 @@ export default function AgendaManagement() {
           )}
         </main>
       </div>
+
+      {isCompleteModalOpen && selectedAgenda ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Complete Agenda
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsCompleteModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <span className="text-2xl leading-none">&times;</span>
+              </button>
+            </div>
+            <div className="space-y-5 px-6 py-6">
+              <div className="relative overflow-hidden rounded-2xl border border-green-200 bg-green-50 p-4">
+                <div className="pr-24">
+                  <div className="text-sm font-semibold text-green-900">
+                    {selectedAgenda.title}
+                  </div>
+                  <div className="mt-1 text-sm text-green-800">
+                    Complete this agenda with the digital signature stamp.
+                  </div>
+                </div>
+                <img
+                  src="/approvedsignned.png"
+                  alt="Approved and signed"
+                  className="pointer-events-none absolute right-4 top-3 h-24 w-24 object-contain"
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                    Secretary
+                  </div>
+                  <div className="mt-3 text-sm font-semibold text-gray-900">
+                    {selectedAgenda.secretary}
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500">
+                    {selectedAgenda.signatures?.secretarySigned
+                      ? `Signed by ${selectedAgenda.signatures.secretarySignedBy || selectedAgenda.secretary}`
+                      : "Waiting for signature"}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSignAgendaRole("secretary")}
+                    disabled={
+                      mutation.isPending ||
+                      selectedAgenda.signatures?.secretarySigned === true ||
+                      !canCurrentUserSignAsSecretary
+                    }
+                    className="mt-4 w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                  >
+                    {selectedAgenda.signatures?.secretarySigned
+                      ? "Signed"
+                      : canCurrentUserSignAsSecretary
+                        ? "Sign as Secretary"
+                        : "Secretary sign only"}
+                  </button>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                    Minute Checker
+                  </div>
+                  <div className="mt-3 text-sm font-semibold text-gray-900">
+                    {selectedAgenda.minuteChecker}
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500">
+                    {selectedAgenda.signatures?.minuteCheckerSigned
+                      ? `Signed by ${selectedAgenda.signatures.minuteCheckerSignedBy || selectedAgenda.minuteChecker}`
+                      : "Waiting for signature"}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSignAgendaRole("minuteChecker")}
+                    disabled={
+                      mutation.isPending ||
+                      selectedAgenda.signatures?.minuteCheckerSigned === true ||
+                      !canCurrentUserSignAsMinuteChecker
+                    }
+                    className="mt-4 w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                  >
+                    {selectedAgenda.signatures?.minuteCheckerSigned
+                      ? "Signed"
+                      : canCurrentUserSignAsMinuteChecker
+                        ? "Sign as Minute Checker"
+                        : "Minute Checker sign only"}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 rounded-b-2xl border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setIsCompleteModalOpen(false)}
+                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCompleteAgenda}
+                disabled={mutation.isPending || !canCompleteSelectedAgenda}
+                className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+              >
+                {mutation.isPending ? "Completing..." : "Complete Agenda"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isViewAppliedModalOpen && selectedAgenda && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm">
