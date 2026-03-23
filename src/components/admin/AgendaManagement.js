@@ -632,10 +632,13 @@ const AgendaPage = ({ dateValue, children, pageLabel, footer, pinFooter = false 
       pinFooter ? "agenda-print-footer-page flex flex-col" : ""
     }`}
   >
-    <div className="mb-8 grid grid-cols-[96px_1fr_72px] items-start gap-4">
-      <div className="flex justify-start">
-        <img src="/cc.svg" alt="Culture Connection logo" className="h-12 w-12" />
-      </div>
+    <div className="relative mb-8 min-h-[128px] pl-28 sm:pl-36">
+      <img
+        src="/cc.svg"
+        alt="Culture Connection logo"
+        className="absolute left-0 top-0 h-32 w-32 object-contain"
+      />
+      <div className="grid grid-cols-[1fr_72px] items-start gap-4">
       <div className="text-center">
         <h3 className="font-Header text-4xl font-bold leading-none text-gray-900 sm:text-5xl">
           Culture Connection Agenda
@@ -647,6 +650,7 @@ const AgendaPage = ({ dateValue, children, pageLabel, footer, pinFooter = false 
       <span className="justify-self-end rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-purple-700">
         {pageLabel}
       </span>
+      </div>
     </div>
     <div className={pinFooter ? "agenda-print-content" : ""}>{children}</div>
     {footer ? (
@@ -1229,6 +1233,7 @@ const AgendaEditor = ({
   onAttendanceTemplateDraftNameChange,
   onSaveAttendanceTemplate,
   onApplyAttendanceTemplate,
+  onDeleteAttendanceTemplate,
   onFieldChange,
   onTopicLabelChange,
   onTopicChange,
@@ -1241,6 +1246,9 @@ const AgendaEditor = ({
   onApplyVotePattern,
   onAddTopic,
   onRemoveTopic,
+  onDeleteAgenda,
+  isSaving,
+  isUpdatingAttendanceTemplates,
   sensors,
 }) => (
   <div className="space-y-6">
@@ -1349,14 +1357,27 @@ const AgendaEditor = ({
                   </span>
                 ) : (
                   attendanceTemplates.map((template) => (
-                    <button
+                    <div
                       key={template.id}
-                      type="button"
-                      onClick={() => onApplyAttendanceTemplate(template.id)}
-                      className="rounded-full bg-purple-50 px-3 py-1 text-sm font-medium text-purple-700 ring-1 ring-purple-200 hover:bg-purple-100"
+                      className="inline-flex items-center overflow-hidden rounded-full bg-purple-50 ring-1 ring-purple-200"
                     >
-                      {template.name}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => onApplyAttendanceTemplate(template.id)}
+                        className="px-3 py-1 text-sm font-medium text-purple-700 hover:bg-purple-100"
+                      >
+                        {template.name}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDeleteAttendanceTemplate(template.id)}
+                        disabled={isUpdatingAttendanceTemplates}
+                        aria-label={`Delete saved pattern ${template.name}`}
+                        className="border-l border-purple-200 px-2 py-1 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        ×
+                      </button>
+                    </div>
                   ))
                 )}
               </div>
@@ -1641,6 +1662,27 @@ const AgendaEditor = ({
             className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
           />
         </label>
+
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-red-600">
+                Alert
+              </div>
+              <p className="mt-1 text-sm text-red-700">
+                Delete this agenda permanently. This action cannot be undone.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onDeleteAgenda}
+              disabled={isSaving}
+              className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              Delete Agenda
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   </div>
@@ -2265,6 +2307,28 @@ export default function AgendaManagement() {
     );
   };
 
+  const handleDeleteAttendanceTemplate = (templateId) => {
+    const selectedTemplate = attendanceTemplates.find(
+      (template) => template.id === templateId,
+    );
+
+    if (!selectedTemplate) {
+      return;
+    }
+
+    const shouldDelete = window.confirm(
+      `Delete saved pattern "${selectedTemplate.name}"?`,
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    attendanceTemplateMutation.mutate(
+      attendanceTemplates.filter((template) => template.id !== templateId),
+    );
+  };
+
   const handleApplyVotePattern = (topicIndex, voteKey, templateId) => {
     const selectedTemplate = attendanceTemplates.find(
       (template) => template.id === templateId,
@@ -2359,6 +2423,23 @@ export default function AgendaManagement() {
       agenda.id === normalizedDraft.id ? normalizedDraft : agenda,
     );
 
+    mutation.mutate(updatedAgendas);
+  };
+
+  const handleDeleteAgenda = () => {
+    if (!draftAgenda) {
+      return;
+    }
+
+    const shouldDelete = window.confirm(
+      `Delete ${draftAgenda.title}? This action cannot be undone.`,
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    const updatedAgendas = agendas.filter((agenda) => agenda.id !== draftAgenda.id);
     mutation.mutate(updatedAgendas);
   };
 
@@ -2580,6 +2661,7 @@ export default function AgendaManagement() {
                 }
                 onSaveAttendanceTemplate={handleSaveAttendanceTemplate}
                 onApplyAttendanceTemplate={handleApplyAttendanceTemplate}
+                onDeleteAttendanceTemplate={handleDeleteAttendanceTemplate}
                 onFieldChange={handleDraftFieldChange}
                 onTopicLabelChange={handleTopicLabelChange}
                 onTopicChange={handleTopicChange}
@@ -2592,6 +2674,9 @@ export default function AgendaManagement() {
                 onApplyVotePattern={handleApplyVotePattern}
                 onAddTopic={handleAddTopic}
                 onRemoveTopic={handleRemoveTopic}
+                onDeleteAgenda={handleDeleteAgenda}
+                isSaving={mutation.isPending}
+                isUpdatingAttendanceTemplates={attendanceTemplateMutation.isPending}
                 sensors={sensors}
               />
             </div>
