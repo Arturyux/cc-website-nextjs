@@ -28,7 +28,7 @@ try {
     host: process.env.ONE_COM_SFTP_HOST,
     port: 22,
     username: process.env.ONE_COM_SFTP_USERNAME,
-    password: "fortyj-hiTfe9-vokjez", // <--- HARDCODE IT HERE TO TEST
+    password: process.env.ONE_COM_SFTP_PASSWORD,
     readyTimeout: 10000,
   });
     const list = await client.list("/customers/b/8/9/cultureconnection.se/httpd.www/public_images");

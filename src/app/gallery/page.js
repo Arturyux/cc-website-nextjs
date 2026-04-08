@@ -11,6 +11,20 @@ import { faSpinner, faExpand, faTimes, faImage } from "@fortawesome/free-solid-s
 // --- Configuration ---
 const BATCH_SIZE = 10; // Load 10 images at a time
 
+const shuffleFiles = (files) => {
+  const shuffled = [...files];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[randomIndex]] = [
+      shuffled[randomIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
+};
+
 export default function GalleryPage() {
   // Data State
   const [categories, setCategories] = useState(["All"]);
@@ -73,12 +87,12 @@ export default function GalleryPage() {
 
       setImageBaseUrl(data.imageBaseUrl);
       
-      const sortedFiles = data.files.sort((a, b) => b.name.localeCompare(a.name));
-      
-      setAllFiles(sortedFiles);
-      setDisplayedFiles(sortedFiles.slice(0, BATCH_SIZE));
-      
-      if (sortedFiles.length <= BATCH_SIZE) setHasMore(false);
+      const shuffledFiles = shuffleFiles(data.files);
+
+      setAllFiles(shuffledFiles);
+      setDisplayedFiles(shuffledFiles.slice(0, BATCH_SIZE));
+
+      if (shuffledFiles.length <= BATCH_SIZE) setHasMore(false);
       
     } catch (err) {
       console.error("Failed to load gallery:", err);
@@ -168,7 +182,7 @@ export default function GalleryPage() {
                       transition={{ duration: 0.4, delay: (index % 5) * 0.05 }}
                       
                       // --- YOUR REQUESTED STYLE HERE ---
-                      className="break-inside-avoid mb-4 group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-shadow bg-white cursor-pointer"
+                      className="break-inside-avoid mb-4 group relative overflow-hidden rounded-xl bg-white cursor-pointer"
                       
                       onClick={() => setSelectedImage(fullUrl)} // Open Modal
                     >

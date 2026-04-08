@@ -1,6 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
+/* Safelist the JSON-driven background classes used by ColorPicker and stored card colors. */
+@source inline("bg-slate-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-gray-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-zinc-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-neutral-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-stone-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-red-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-orange-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-amber-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-yellow-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-lime-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-green-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-emerald-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-teal-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-cyan-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-sky-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-blue-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-indigo-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-violet-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-purple-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-fuchsia-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-pink-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("bg-rose-{50,100,200,300,400,500,600,700,800,900,950}");
+
 @font-face {
   font-family: 'AmaticSC';
   src: url('/fonts/AmaticSC-Bold.ttf') format('truetype');
